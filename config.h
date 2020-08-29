@@ -29,9 +29,10 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           -1 },
+	/* class      instance    title       tags mask     switchtotag    isfloating   monitor */
+	{ "Gimp",     NULL,       NULL,       1<<5,         1,             0,           -1 },
+	{ "Chromium", NULL,       NULL,       1<<1,         1,             0,           -1 },
+	{ "Alacritty",NULL,      "spotify",   1<<3,         1,             0,           -1 },
 };
 
 /* layout(s) */
@@ -61,15 +62,35 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "alacritty", NULL };
-static const char *lockcmd[]  = { "slock", NULL }; // Lock the screen with slock.
+static const char *lockcmd[]  = { "slock", NULL };    // Lock the screen with slock.
 static const char *brwscmd[]  = { "chromium", NULL }; // Chromium browser
+static const char *muscmd[]   = { "spotify", NULL };  // spotify-tui with correctly set title
+
+static const char *brupcmd[]  = { "brightness-up", NULL }; // brightness up
+static const char *brdncmd[]  = { "brightness-down", NULL }; // brightness down
+static const char *vlupcmd[]  = { "volume-up", NULL }; // volume up
+static const char *vldncmd[]  = { "volume-down", NULL }; // volume down
+static const char *vlmtcmd[]  = { "volume-mutetoggle", NULL }; // volume mute
+
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
+
+    // Utility spawners
+
+	{ MODKEY,                       XK_F12,    spawn,          {.v = brupcmd } },
+	{ MODKEY,                       XK_F11,    spawn,          {.v = brdncmd } },
+	{ MODKEY,                       XK_F1,     spawn,          {.v = vlmtcmd } },
+	{ MODKEY,                       XK_F2,     spawn,          {.v = vldncmd } },
+	{ MODKEY,                       XK_F3,     spawn,          {.v = vlupcmd } },
+
+    // Application spawn
 	{ MODKEY,                       XK_r,      spawn,          {.v = dmenucmd } },
-	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY,                       XK_Next,   spawn,          {.v = lockcmd } },
-	{ MODKEY,                       XK_c,      spawn,          {.v = brwscmd } },
+	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd  } },
+	{ MODKEY,                       XK_Next,   spawn,          {.v = lockcmd  } },
+	{ MODKEY,                       XK_c,      spawn,          {.v = brwscmd  } },
+	{ MODKEY,                       XK_s,      spawn,          {.v = muscmd  } },
+
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
