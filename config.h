@@ -31,7 +31,7 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     switchtotag    isfloating   monitor */
 	{ "Gimp",     NULL,       NULL,       1<<5,         1,             0,           -1 },
-	{ "Chromium", NULL,       NULL,       1<<1,         1,             0,           -1 },
+	{ "firefox",  NULL,       NULL,       1<<1,         1,             0,           -1 },
 	{ "Alacritty",NULL,      "spotify",   1<<3,         1,             0,           -1 },
 };
 
@@ -63,7 +63,7 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "alacritty", NULL };
 static const char *lockcmd[]  = { "slock", NULL };    // Lock the screen with slock.
-static const char *brwscmd[]  = { "chromium", NULL }; // Chromium browser
+static const char *brwscmd[]  = { "firefox", NULL }; // Chromium browser
 static const char *muscmd[]   = { "spotify", NULL };  // spotify-tui with correctly set title
 
 static const char *brupcmd[]  = { "brightness-up", NULL }; // brightness up
