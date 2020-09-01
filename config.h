@@ -32,8 +32,8 @@ static const char *colors[][3]      = {
 	[SchemeStatus]  = { c_active, c_inactive,  c_blank  }, // Statusbar right {text,background}
 	[SchemeTagsSel]  = { c_inactive, c_active,  c_blank  }, // Tagbar left selected {text,background}
     [SchemeTagsNorm]  = { c_active, c_inactive,  c_blank  }, // Tagbar left unselected {text,background}
-    [SchemeInfoSel]  = { c_inactive, c_active,  c_blank  }, // infobar middle  selected {text,background}
-    [SchemeInfoNorm]  = { c_active, c_inactive,  c_blank  }, // infobar middle  unselected {text,background}
+    [SchemeInfoSel]  = { c_inactive, c_blue,  c_blank  }, // infobar middle  selected {text,background}
+    [SchemeInfoNorm]  = { c_blue, c_inactive,  c_blank  }, // infobar middle  unselected {text,background}
 };
 
 
