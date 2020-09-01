@@ -8,18 +8,34 @@ static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const char *fonts[]          = { "monospace:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
-static const char col_gray1[]       = "#222222";
-static const char col_gray2[]       = "#444444";
-static const char col_gray3[]       = "#bbbbbb";
-static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan[]        = "#005577";
-static const char col_active[]      = "#fffbf6";
-static const char col_inactive[]    = "#101421";
+
+
+/* colors */
+
+static const char c_active[]    =   "#F8F8F2";
+static const char c_inactive[]  =   "#101421";
+static const char c_black[]     =   "#000000";
+static const char c_red[]       =   "#FF5555";
+static const char c_green[]     =   "#50FA7B";
+static const char c_yellow[]    =   "#F1FA8C";
+static const char c_blue[]      =   "#BD93F9";
+static const char c_magenta[]   =   "#FF79C6";
+static const char c_cyan[]      =   "#8BE9FD";
+static const char c_white[]     =   "#BFBFBF";
+static const char c_blank[]     =   "#000000";
+
+/* Color assignment */
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
-	[SchemeNorm] = { col_gray3, col_gray1, col_inactive },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_active   },
+	[SchemeNorm] = { c_active, c_inactive, c_inactive },
+	[SchemeSel]  = { c_inactive, c_active,  c_active   },
+	[SchemeStatus]  = { c_active, c_inactive,  c_blank  }, // Statusbar right {text,background}
+	[SchemeTagsSel]  = { c_inactive, c_active,  c_blank  }, // Tagbar left selected {text,background}
+    [SchemeTagsNorm]  = { c_active, c_inactive,  c_blank  }, // Tagbar left unselected {text,background}
+    [SchemeInfoSel]  = { c_inactive, c_active,  c_blank  }, // infobar middle  selected {text,background}
+    [SchemeInfoNorm]  = { c_active, c_inactive,  c_blank  }, // infobar middle  unselected {text,background}
 };
+
 
 /* tagging                  |1     |2    |3    |4      |5    |6    |7     */
 static const char *tags[] = {"TERM","WWW","DEV","MUSIC","SYS","GFX","TERM"};
@@ -60,7 +76,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", c_inactive, "-nf", c_active, "-sb", c_active, "-sf", c_inactive, NULL };
 static const char *termcmd[]  = { "alacritty", NULL };
 static const char *lockcmd[]  = { "slock", NULL };    // Lock the screen with slock.
 static const char *brwscmd[]  = { "firefox", NULL }; // Chromium browser
