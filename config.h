@@ -79,7 +79,7 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", c_inactive, "-nf", c_active, "-sb", c_active, "-sf", c_inactive, NULL };
 static const char *termcmd[]  = { "alacritty", NULL };
 static const char *lockcmd[]  = { "slock", NULL };    // Lock the screen with slock.
-static const char *brwscmd[]  = { "firefox", NULL }; // Chromium browser
+static const char *brwscmd[]  = { "firefox", NULL }; // Firefox browser
 static const char *muscmd[]   = { "spotify", NULL };  // spotify-tui with correctly set title
 
 static const char *brupcmd[]  = { "brightness-up", NULL }; // brightness up
@@ -87,7 +87,9 @@ static const char *brdncmd[]  = { "brightness-down", NULL }; // brightness down
 static const char *vlupcmd[]  = { "volume-up", NULL }; // volume up
 static const char *vldncmd[]  = { "volume-down", NULL }; // volume down
 static const char *vlmtcmd[]  = { "volume-mutetoggle", NULL }; // volume mute
+static const char *compcmd[]  = { "picom-start", NULL }; // volume mute
 
+static const char *comkill[]  = { "picom-end", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -106,6 +108,10 @@ static Key keys[] = {
 	{ MODKEY,                       XK_Next,   spawn,          {.v = lockcmd  } },
 	{ MODKEY,                       XK_c,      spawn,          {.v = brwscmd  } },
 	{ MODKEY,                       XK_s,      spawn,          {.v = muscmd  } },
+	{ MODKEY,                       XK_t,      spawn,          {.v = compcmd} },
+
+    // Application kill
+	{ MODKEY,                       XK_m,      spawn,          {.v = comkill} },
 
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
