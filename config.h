@@ -79,6 +79,7 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", c_inactive, "-nf", c_active, "-sb", c_active, "-sf", c_inactive, NULL };
 static const char *termcmd[]  = { "alacritty", NULL };
 static const char *lockcmd[]  = { "slock", NULL };    // Lock the screen with slock.
+static const char *powrcmd[]  = { "turnoff", NULL };    // Lock the screen with slock.
 static const char *brwscmd[]  = { "firefox", NULL }; // Firefox browser
 static const char *muscmd[]   = { "spotify", NULL };  // spotify-tui with correctly set title
 
@@ -106,6 +107,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_r,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd  } },
 	{ MODKEY,                       XK_Next,   spawn,          {.v = lockcmd  } },
+	{ MODKEY|ShiftMask|ControlMask, XK_Next,   spawn,          {.v = powrcmd  } },
 	{ MODKEY,                       XK_c,      spawn,          {.v = brwscmd  } },
 	{ MODKEY,                       XK_s,      spawn,          {.v = muscmd  } },
 	{ MODKEY,                       XK_t,      spawn,          {.v = compcmd} },
@@ -118,8 +120,15 @@ static Key keys[] = {
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
+
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_o,      setmfact,       {.f =  0.00} }, //Still doesn't work
+
+    { MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = +0.25} },
+    { MODKEY|ShiftMask,             XK_l,      setcfact,       {.f = -0.25} },
+    { MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} },
+
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_w,      killclient,     {0} },
