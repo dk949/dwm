@@ -13,6 +13,7 @@ This build also requires:
 * [slock](https://tools.suckless.org/slock/)
     * [my slock](https://github.com/dk949/slock)
 * [dwm-scripts](https://github.com/dk949/dwm-scripts)
+* [picom](https://github.com/yshui/picom) compositor
 
 
 Installation
