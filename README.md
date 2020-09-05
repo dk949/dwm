@@ -11,8 +11,8 @@ This build also requires:
 * [dmenu](https://tools.suckless.org/dmenu/)
     * \([my build](https://github.com/dk949/dmenu) also exists but it's not that different from stock\)
 * [slock](https://tools.suckless.org/slock/)
-    * [my slock] (https://github.com/dk949/slock)
-* [dwm-scripts] ((https://github.com/dk949/dwm-scripts)
+    * [my slock](https://github.com/dk949/slock)
+* [dwm-scripts](https://github.com/dk949/dwm-scripts)
 
 
 Installation
