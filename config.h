@@ -45,10 +45,12 @@ static const Rule rules[] = {
      *	WM_CLASS(STRING) = instance, class
      *	WM_NAME(STRING) = title
      */
-    /* class       instance    title       tags mask     switchtotag    isfloating   monitor */
-    { "Gimp",      NULL,       NULL,        1 << 5,      1,             0,           -1 },
-    { "firefox",   NULL,       NULL,        1 << 1,      1,             0,           -1 },
-    { "Alacritty", NULL,       "spotify",   1 << 3,      1,             0,           -1 },
+    /* class                instance  title       tags mask    switchtotag  isfloating  monitor */
+    { "Gimp",               NULL,     NULL,       1 << 5,      1,           0,          -1 },
+    { "firefox",            NULL,     NULL,       1 << 1,      1,           0,          -1 },
+    { "Alacritty",          NULL,     "spotify",  1 << 3,      1,           0,          -1 },
+    { "jetbrains-pycharm",  NULL,     NULL,       1 << 2,      1,           0,          -1 },
+    { "jetbrains-clion",  NULL,     NULL,       1 << 2,      1,           0,          -1 },
 };
 
 /* layout(s) */
@@ -81,8 +83,14 @@ static const Layout layouts[] = {
 
 /* commands */
 static       char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c",
-                                  "-bw", "3",   "-x",   NULL };
+static const char *dmenucmd[] = { "dmenu_run",
+                                  "-m", dmenumon,
+                                  "-fn", dmenufont,
+                                  "-l", "20",
+                                  "-c",
+                                  "-bw", "3",
+                                  "-o", "0.8",
+                                  "-x",   NULL };
 
 static const char *termcmd[] = { "alacritty",           NULL };
 static const char *lockcmd[] = { "slock",               NULL }; // Lock the screen with slock
