@@ -82,7 +82,7 @@ static const Layout layouts[] = {
 /* commands */
 static       char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c",
-                                  "-bw", "3",   "-x",   NULL };
+                                  "-bw", "3",   "-x", "-o", "0.8",   NULL };
 
 static const char *termcmd[] = { "alacritty",           NULL };
 static const char *lockcmd[] = { "slock",               NULL }; // Lock the screen with slock
