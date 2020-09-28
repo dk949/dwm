@@ -45,11 +45,12 @@ static const Rule rules[] = {
      *	WM_CLASS(STRING) = instance, class
      *	WM_NAME(STRING) = title
      */
-    /* class      |instance|title     |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
-    { "Gimp",      NULL,    NULL,      1 << 5,   1,          0,         0,         0,        -1 },
-    { "firefox",   NULL,    NULL,      1 << 1,   1,          0,         0,         0,        -1 },
-    { "Alacritty", NULL,    "spotify", 1 << 3,   1,          0,         0,         1,        -1 },
-    { "Alacritty", NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
+    /* class            |instance|title     |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
+    { "Gimp",            NULL,    NULL,      1 << 5,   1,          0,         0,         0,        -1 },
+    { "firefox",         NULL,    NULL,      1 << 1,   1,          0,         0,         0,        -1 },
+    { "Alacritty",       NULL,    "spotify", 1 << 3,   1,          0,         0,         1,        -1 },
+    { "jetbrains-clion", NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
+    { "Alacritty",       NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
 };
 
 /* layout(s) */
@@ -98,6 +99,8 @@ static const char *vldncmd[] = { "volume-down",         NULL }; // volume down
 static const char *vlmtcmd[] = { "volume-mutetoggle",   NULL }; // volume mute
 static const char *compcmd[] = { "picom-start",         NULL }; // volume mute
 
+static const char *symdmnu[] = { "sym",                 NULL }; // Mathematical symbol selection
+
 static const char *comkill[] = { "picom-end",           NULL };
 
 static Key keys[] = {
@@ -133,6 +136,9 @@ static Key keys[] = {
 
     { MODKEY,                       XK_h,       setmfact,       { .f = -0.05        } },
     { MODKEY,                       XK_l,       setmfact,       { .f = +0.05        } },
+
+    // Dmenu stuff
+    { MODKEY|Mod1Mask,              XK_s,       spawn,          { .v = symdmnu      } },
 
     //Still doesn't work
   //{ MODKEY,                       XK_o,       setmfact,       {.f =  0.00         } },
