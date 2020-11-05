@@ -46,11 +46,13 @@ static const Rule rules[] = {
      *	WM_NAME(STRING) = title
      */
     /* class            |instance|title     |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
-    { "Gimp",            NULL,    NULL,      1 << 5,   1,          0,         0,         0,        -1 },
-    { "firefox",         NULL,    NULL,      1 << 1,   1,          0,         0,         0,        -1 },
-    { "Alacritty",       NULL,    "spotify", 1 << 3,   1,          0,         0,         1,        -1 },
-    { "jetbrains-clion", NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
-    { "Alacritty",       NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
+    { "Gimp",              NULL,    NULL,      1 << 5,   1,          0,         0,         0,        -1 },
+    { "firefox",           NULL,    NULL,      1 << 1,   1,          0,         0,         0,        -1 },
+    { "Alacritty",         NULL,    "spotify", 1 << 3,   1,          0,         0,         1,        -1 },
+    { "jetbrains-clion",   NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-idea",    NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-pycharm", NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
+    { "Alacritty",         NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
 };
 
 /* layout(s) */
