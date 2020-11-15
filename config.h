@@ -37,8 +37,8 @@ static const char *colors[][3] = {
 };
 
 
-/* tagging                  |1      |2     |3     |4       |5     |6     |7       */
-static const char *tags[] = { "TERM", "WWW", "DEV", "MUSIC", "SYS", "GFX", "TERM" };
+/* tagging                  |1      |2     |3     |4       |5     |6     |7      |8       |*/
+static const char *tags[] = { "TERM", "WWW", "DEV", "MUSIC", "SYS", "GFX", "CHAT", "TERM" };
 
 static const Rule rules[] = {
     /* xprop(1):
@@ -48,10 +48,12 @@ static const Rule rules[] = {
     /* class            |instance|title     |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
     { "Gimp",              NULL,    NULL,      1 << 5,   1,          0,         0,         0,        -1 },
     { "firefox",           NULL,    NULL,      1 << 1,   1,          0,         0,         0,        -1 },
-    { "Alacritty",         NULL,    "spotify", 1 << 3,   1,          0,         0,         1,        -1 },
+    { "discord",           NULL,    NULL,      1 << 6,   1,          0,         0,         0,        -1 },
     { "jetbrains-clion",   NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-idea",    NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-pycharm", NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
+    { "Alacritty",         NULL,    "spotify", 1 << 3,   1,          0,         0,         1,        -1 },
+    { "Alacritty",         NULL,    "sysmon",  1 << 4,   1,          0,         0,         1,        -1 },
     { "Alacritty",         NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
 };
 
@@ -92,7 +94,8 @@ static const char *termcmd[] = { "alacritty",           NULL };
 static const char *lockcmd[] = { "slock",               NULL }; // Lock the screen with slock
 static const char *powrcmd[] = { "turnoff",             NULL }; // Lock the screen with slock
 static const char *brwscmd[] = { "firefox",             NULL }; // Firefox browser
-static const char *muscmd[]  = { "spotify",             NULL }; // spotify-tui
+static const char *musccmd[]  = { "spotify",             NULL }; // spotify-tui
+static const char *htopcmd[]  = { "sysmon",              NULL }; // system monitor aka htop
 
 static const char *brupcmd[] = { "brightness-up",       NULL }; // brightness up
 static const char *brdncmd[] = { "brightness-down",     NULL }; // brightness down
@@ -109,7 +112,6 @@ static Key keys[] = {
     /* modifier                     key        function        argument */
 
     // Utility spawners
-
     { MODKEY,                       XK_F12,     spawn,          { .v = brupcmd      } },
     { MODKEY,                       XK_F11,     spawn,          { .v = brdncmd      } },
     { MODKEY,                       XK_F1,      spawn,          { .v = vlmtcmd      } },
@@ -122,8 +124,9 @@ static Key keys[] = {
     { MODKEY,                       XK_Return,  spawn,          { .v = termcmd      } },
     { MODKEY,                       XK_Next,    spawn,          { .v = lockcmd      } },
     { MODKEY,                       XK_c,       spawn,          { .v = brwscmd      } },
-    { MODKEY,                       XK_s,       spawn,          { .v = muscmd       } },
+    { MODKEY,                       XK_s,       spawn,          { .v = musccmd      } },
     { MODKEY,                       XK_t,       spawn,          { .v = compcmd      } },
+    { MODKEY|ShiftMask,             XK_Escape,  spawn,          { .v = htopcmd      } },
 
     // Application kill
     { MODKEY,                       XK_m,       spawn,          { .v = comkill      } },
@@ -176,6 +179,7 @@ static Key keys[] = {
       TAGKEYS(                      XK_5,                         4                   ),
       TAGKEYS(                      XK_6,                         5                   ),
       TAGKEYS(                      XK_7,                         6                   ),
+      TAGKEYS(                      XK_8,                         7                   ),
 };
 
 /* button definitions */
