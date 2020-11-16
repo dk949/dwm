@@ -45,6 +45,14 @@ static const Rule rules[] = {
      *	WM_CLASS(STRING) = instance, class
      *	WM_NAME(STRING) = title
      */
+    /*
+       Rules for swicthtotag:
+           - 0 is default behaviour
+           - 1 automatically moves you to the tag of the newly opened application
+           - 2 enables the tag of the newly opened application in addition to your existing enabled tags
+           - 3 as 1, but closing that window reverts the view back to what it was previously (*)
+           - 4 as 2, but closing that window reverts the view back to what it was previously (*)
+   */
     /* class            |instance|title     |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
     { "Gimp",              NULL,    NULL,      1 << 5,   1,          0,         0,         0,        -1 },
     { "firefox",           NULL,    NULL,      1 << 1,   1,          0,         0,         0,        -1 },
