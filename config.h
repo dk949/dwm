@@ -54,14 +54,14 @@ static const Rule rules[] = {
            - 4 as 2, but closing that window reverts the view back to what it was previously (*)
    */
     /* class            |instance|title     |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
-    { "Gimp",              NULL,    NULL,      1 << 5,   1,          0,         0,         0,        -1 },
-    { "firefox",           NULL,    NULL,      1 << 1,   1,          0,         0,         0,        -1 },
+    { "Gimp",              NULL,    NULL,      1 << 5,   3,          0,         0,         0,        -1 },
+    { "firefox",           NULL,    NULL,      1 << 1,   3,          0,         0,         0,        -1 },
     { "discord",           NULL,    NULL,      1 << 6,   1,          0,         0,         0,        -1 },
     { "jetbrains-clion",   NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-idea",    NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-pycharm", NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
-    { "Alacritty",         NULL,    "spotify", 1 << 3,   1,          0,         0,         1,        -1 },
-    { "Alacritty",         NULL,    "sysmon",  1 << 4,   1,          0,         0,         1,        -1 },
+    { "Alacritty",         NULL,    "spotify", 1 << 3,   3,          0,         0,         1,        -1 },
+    { "Alacritty",         NULL,    "sysmon",  1 << 4,   3,          0,         0,         1,        -1 },
     { "Alacritty",         NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
 };
 
@@ -102,8 +102,10 @@ static const char *termcmd[] = { "alacritty",           NULL };
 static const char *lockcmd[] = { "slock",               NULL }; // Lock the screen with slock
 static const char *powrcmd[] = { "turnoff",             NULL }; // Lock the screen with slock
 static const char *brwscmd[] = { "firefox",             NULL }; // Firefox browser
-static const char *musccmd[]  = { "spotify",             NULL }; // spotify-tui
-static const char *htopcmd[]  = { "sysmon",              NULL }; // system monitor aka htop
+static const char *musccmd[] = { "spotify",             NULL }; // spotify-tui
+static const char *htopcmd[] = { "sysmon",              NULL }; // system monitor aka htop
+static const char *nvimcmd[] = { "neovim",              NULL }; // opens neovim
+static const char *chatcmd[] = { "discord",             NULL }; // does discord
 
 static const char *brupcmd[] = { "brightness-up",       NULL }; // brightness up
 static const char *brdncmd[] = { "brightness-down",     NULL }; // brightness down
@@ -120,24 +122,25 @@ static Key keys[] = {
     /* modifier                     key        function        argument */
 
     // Utility spawners
+    { MODKEY,                       XK_r,       spawn,          { .v = dmenucmd     } },
     { MODKEY,                       XK_F12,     spawn,          { .v = brupcmd      } },
     { MODKEY,                       XK_F11,     spawn,          { .v = brdncmd      } },
     { MODKEY,                       XK_F1,      spawn,          { .v = vlmtcmd      } },
     { MODKEY,                       XK_F2,      spawn,          { .v = vldncmd      } },
     { MODKEY,                       XK_F3,      spawn,          { .v = vlupcmd      } },
+    { MODKEY,                       XK_m,       spawn,          { .v = comkill      } },
+    { MODKEY,                       XK_t,       spawn,          { .v = compcmd      } },
+    { MODKEY,                       XK_Return,  spawn,          { .v = termcmd      } },
+    { MODKEY,                       XK_Next,    spawn,          { .v = lockcmd      } },
     { MODKEY|ShiftMask|ControlMask, XK_Next,    spawn,          { .v = powrcmd      } },
 
     // Application spawn
-    { MODKEY,                       XK_r,       spawn,          { .v = dmenucmd     } },
-    { MODKEY,                       XK_Return,  spawn,          { .v = termcmd      } },
-    { MODKEY,                       XK_Next,    spawn,          { .v = lockcmd      } },
-    { MODKEY,                       XK_c,       spawn,          { .v = brwscmd      } },
-    { MODKEY,                       XK_s,       spawn,          { .v = musccmd      } },
-    { MODKEY,                       XK_t,       spawn,          { .v = compcmd      } },
-    { MODKEY|ShiftMask,             XK_Escape,  spawn,          { .v = htopcmd      } },
+    { MODKEY|ControlMask,           XK_b,       spawn,          { .v = brwscmd      } },
+    { MODKEY|ControlMask,           XK_m,       spawn,          { .v = musccmd      } },
+    { MODKEY|ControlMask,           XK_d,       spawn,          { .v = chatcmd      } },
+    { MODKEY|ControlMask,           XK_n,       spawn,          { .v = nvimcmd      } },
+    { MODKEY|ControlMask,           XK_Escape,  spawn,          { .v = htopcmd      } },
 
-    // Application kill
-    { MODKEY,                       XK_m,       spawn,          { .v = comkill      } },
 
     { MODKEY,                       XK_b,       togglebar,      { 0                 } },
     { MODKEY|ShiftMask,             XK_j,       rotatestack,    { .i = +1           } },
@@ -153,7 +156,7 @@ static Key keys[] = {
     // Dmenu stuff
     { MODKEY|Mod1Mask,              XK_s,       spawn,          { .v = symdmnu      } },
 
-    //Still doesn't work
+    // Still doesn't work
   //{ MODKEY,                       XK_o,       setmfact,       {.f =  0.00         } },
 
     { MODKEY|ShiftMask,             XK_h,       setcfact,       { .f = +0.25        } },
@@ -178,7 +181,7 @@ static Key keys[] = {
     { MODKEY,                       XK_period,  focusmon,       { .i = +1           } },
     { MODKEY|ShiftMask,             XK_comma,   tagmon,         { .i = -1           } },
     { MODKEY|ShiftMask,             XK_period,  tagmon,         { .i = +1           } },
-    { MODKEY|ControlMask,           XK_q,       quit,           { 0                 } },
+    { MODKEY|ShiftMask,             XK_q,       quit,           { 0                 } },
 
       TAGKEYS(                      XK_1,                         0                   ),
       TAGKEYS(                      XK_2,                         1                   ),
