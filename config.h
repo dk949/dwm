@@ -60,6 +60,7 @@ static const Rule rules[] = {
     { "jetbrains-clion",   NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-idea",    NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-pycharm", NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-studio",  NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
     { "Alacritty",         NULL,    "spotify", 1 << 3,   3,          0,         0,         1,        -1 },
     { "Alacritty",         NULL,    "sysmon",  1 << 4,   3,          0,         0,         1,        -1 },
     { "Alacritty",         NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
@@ -115,6 +116,7 @@ static const char *vlmtcmd[] = { "volume-mutetoggle",   NULL }; // volume mute
 static const char *compcmd[] = { "picom-start",         NULL }; // volume mute
 
 static const char *symdmnu[] = { "sym",                 NULL }; // Mathematical symbol selection
+static const char *scrdmnu[] = { "screenshot",          NULL }; // Screenshot taker
 
 static const char *comkill[] = { "picom-end",           NULL };
 
@@ -155,6 +157,7 @@ static Key keys[] = {
 
     // Dmenu stuff
     { MODKEY|Mod1Mask,              XK_s,       spawn,          { .v = symdmnu      } },
+    { MODKEY|Mod1Mask,              XK_i,       spawn,          { .v = scrdmnu      } },
 
     // Still doesn't work
   //{ MODKEY,                       XK_o,       setmfact,       {.f =  0.00         } },
