@@ -1,11 +1,11 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const unsigned int borderpx  = 4; /* border pixel of windows */
-static const unsigned int gappx     = 12;   /* gaps between windows */
-static const unsigned int snap      = 32;    /* snap pixel */
-static const int showbar            = 1;           /* 0 means no bar */
-static const int topbar             = 1;            /* 0 means bottom bar */
+static const unsigned int borderpx  = 4;  /* border pixel of windows */
+static const unsigned int gappx     = 12; /* gaps between windows */
+static const unsigned int snap      = 32; /* snap pixel */
+static const int showbar            = 1;  /* 0 means no bar */
+static const int topbar             = 1;  /* 0 means bottom bar */
 static const char *fonts[]          = { "monospace:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
 
@@ -53,17 +53,18 @@ static const Rule rules[] = {
            - 3 as 1, but closing that window reverts the view back to what it was previously (*)
            - 4 as 2, but closing that window reverts the view back to what it was previously (*)
    */
-    /* class            |instance|title     |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
-    { "Gimp",              NULL,    NULL,      1 << 5,   3,          0,         0,         0,        -1 },
-    { "firefox",           NULL,    NULL,      1 << 1,   3,          0,         0,         0,        -1 },
-    { "discord",           NULL,    NULL,      1 << 6,   1,          0,         0,         0,        -1 },
-    { "jetbrains-clion",   NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-idea",    NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-pycharm", NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-studio",  NULL,    NULL,      1 << 2,   1,          0,         0,         0,        -1 },
-    { "Alacritty",         NULL,    "spotify", 1 << 3,   3,          0,         0,         1,        -1 },
-    { "Alacritty",         NULL,    "sysmon",  1 << 4,   3,          0,         0,         1,        -1 },
-    { "Alacritty",         NULL,    NULL,      0,        0,          0,         1,         1,        -1 },
+    /* class            |instance|title          |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
+    { "Gimp",              NULL,  NULL,           1 << 5,   3,          0,         0,         0,        -1 },
+    { "firefox",           NULL,  NULL,           1 << 1,   3,          0,         0,         0,        -1 },
+    { "discord",           NULL,  NULL,           1 << 6,   1,          0,         0,         0,        -1 },
+    { "zoom",              NULL,  NULL,           1 << 7,   1,          0,         0,         0,        -1 },
+    { "jetbrains-clion",   NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-idea",    NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-pycharm", NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-studio",  NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "Alacritty",         NULL,  "spotify",      1 << 3,   3,          0,         0,         1,        -1 },
+    { "Alacritty",         NULL,  "sysmon",       1 << 4,   3,          0,         0,         1,        -1 },
+    { "Alacritty",         NULL,  NULL,           0,        0,          0,         1,         1,        -1 },
 };
 
 /* layout(s) */
@@ -106,7 +107,7 @@ static const char *brwscmd[] = { "firefox",             NULL }; // Firefox brows
 static const char *musccmd[] = { "spotify",             NULL }; // spotify-tui
 static const char *htopcmd[] = { "sysmon",              NULL }; // system monitor aka htop
 static const char *nvimcmd[] = { "neovim",              NULL }; // opens neovim
-static const char *chatcmd[] = { "discord",             NULL }; // does discord
+static const char *chatcmd[] = { "disc",                NULL }; // does discord
 
 static const char *brupcmd[] = { "brightness-up",       NULL }; // brightness up
 static const char *brdncmd[] = { "brightness-down",     NULL }; // brightness down
@@ -116,6 +117,7 @@ static const char *vlmtcmd[] = { "volume-mutetoggle",   NULL }; // volume mute
 static const char *compcmd[] = { "picom-start",         NULL }; // volume mute
 
 static const char *symdmnu[] = { "sym",                 NULL }; // Mathematical symbol selection
+static const char *grkdmnu[] = { "greek",                 NULL }; // Mathematical symbol selection
 static const char *scrdmnu[] = { "screenshot",          NULL }; // Screenshot taker
 
 static const char *comkill[] = { "picom-end",           NULL };
@@ -157,6 +159,7 @@ static Key keys[] = {
 
     // Dmenu stuff
     { MODKEY|Mod1Mask,              XK_s,       spawn,          { .v = symdmnu      } },
+    { MODKEY|Mod1Mask,              XK_g,       spawn,          { .v = grkdmnu      } },
     { MODKEY|Mod1Mask,              XK_i,       spawn,          { .v = scrdmnu      } },
 
     // Still doesn't work
