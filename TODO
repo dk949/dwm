@@ -15,3 +15,8 @@ Format: %title%\n    %description%\n    Difficulty: %difficulty%
 2. Get status color working (diffs/dwm-statuscolors.diff)
     Have color appear in the status bar. Will also require a slight rewrite of slstatus
     Difficulty: hard
+
+
+3. Layout saving
+    Make it possible to apply a specific layout with specific applications in their places (e.g. 2 windows split down the middle, neovim on the left, zathura on the right.
+    Difficulty: medium to hard
