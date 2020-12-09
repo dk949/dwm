@@ -1,0 +1,17 @@
+ _____ ___  ____   ___
+|_   _/ _ \|  _ \ / _ \
+  | || | | | | | | | | |
+  | || |_| | |_| | |_| |
+  |_| \___/|____/ \___/
+
+List of thongs I'd like to implement but don't have time for
+Format: %title%\n    %description%\n    Difficulty: %difficulty%
+
+1. Rule for the music player
+    A way for the music player (spotify-tui) to become small, floating, and be located on every tag in the top right corner.
+    Difficulty: Medium to hard
+
+
+2. Get status color working (diffs/dwm-statuscolors.diff)
+    Have color appear in the status bar. Will also require a slight rewrite of slstatus
+    Difficulty: hard
