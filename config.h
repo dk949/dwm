@@ -37,8 +37,8 @@ static const char *colors[][3] = {
 };
 
 
-/* tagging                  |1      |2     |3     |4       |5     |6     |7      |8       |*/
-static const char *tags[] = { "TERM", "WWW", "DEV", "MUSIC", "SYS", "GFX", "CHAT", "TERM" };
+/* tagging                  |1      |2     |3     |4     |5     |6     |7      |8       |*/
+static const char *tags[] = { "TERM", "WWW", "DEV", "ENT", "SYS", "GFX", "CHAT", "TERM" };
 
 static const Rule rules[] = {
     /* xprop(1):
@@ -53,18 +53,20 @@ static const Rule rules[] = {
            - 3 as 1, but closing that window reverts the view back to what it was previously (*)
            - 4 as 2, but closing that window reverts the view back to what it was previously (*)
    */
-    /* class            |instance|title          |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
-    { "Gimp",              NULL,  NULL,           1 << 5,   3,          0,         0,         0,        -1 },
-    { "firefox",           NULL,  NULL,           1 << 1,   3,          0,         0,         0,        -1 },
-    { "discord",           NULL,  NULL,           1 << 6,   1,          0,         0,         0,        -1 },
-    { "zoom",              NULL,  NULL,           1 << 7,   1,          0,         0,         0,        -1 },
-    { "jetbrains-clion",   NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-idea",    NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-pycharm", NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-studio",  NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "Alacritty",         NULL,  "spotify",      1 << 3,   3,          0,         0,         1,        -1 },
-    { "Alacritty",         NULL,  "sysmon",       1 << 4,   3,          0,         0,         1,        -1 },
-    { "Alacritty",         NULL,  NULL,           0,        0,          0,         1,         1,        -1 },
+    /* class             |instance|title          |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
+    { "Gimp",               NULL,  NULL,           1 << 5,   3,          0,         0,         0,        -1 },
+    { "Steam",              NULL,  NULL,           1 << 3,   3,          1,         0,         0,        -1 },
+    { "firefox",            NULL,  NULL,           1 << 1,   3,          0,         0,         0,        -1 },
+    { "discord",            NULL,  NULL,           1 << 6,   1,          0,         0,         0,        -1 },
+    { "zoom",               NULL,  NULL,           1 << 7,   1,          0,         0,         0,        -1 },
+    { "jetbrains-clion",    NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-webstorm", NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-idea",     NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-pycharm",  NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-studio",   NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "Alacritty",          NULL,  "spotify",      1 << 3,   3,          0,         0,         1,        -1 },
+    { "Alacritty",          NULL,  "sysmon",       1 << 4,   3,          0,         0,         1,        -1 },
+    { "Alacritty",          NULL,  NULL,           0,        0,          0,         1,         1,        -1 },
 };
 
 /* layout(s) */
