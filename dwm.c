@@ -43,6 +43,7 @@
 #include <X11/Xlib-xcb.h>
 #include <xcb/res.h>
 
+#include "xbacklight.h"
 #include "drw.h"
 #include "util.h"
 
@@ -161,6 +162,9 @@ static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachaside(Client *c);
 static void attachstack(Client *c);
+static void bright_dec(const Arg *arg);
+static void bright_inc(const Arg *arg);
+static void bright_set(const Arg *arg);
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -523,6 +527,27 @@ unswallow(Client *c)
 	setclientstate(c, NormalState);
 }
 
+
+void
+bright_dec(const Arg *arg)
+{
+    if (bright_dec_(arg->f))
+        fprintf( stderr, "Fucntion bright_dec_(const Arg *arg) from xbacklight.h returned a non 0 value");
+}
+
+void
+bright_inc(const Arg *arg)
+{
+    if (bright_inc_(arg->f))
+        fprintf( stderr, "Fucntion bright_inc_(const Arg *arg) from xbacklight.h returned a non 0 value");
+}
+
+void
+bright_set(const Arg *arg)
+{
+    if (bright_set_(arg->f))
+        fprintf( stderr, "Fucntion bright_set_(const Arg *arg) from xbacklight.h returned a non 0 value");
+}
 
 
 
@@ -2575,6 +2600,8 @@ main(int argc, char *argv[])
 		die("dwm: cannot get xcb connection\n");
 	checkotherwm();
 	setup();
+    if(bright_setup(NULL, bright_steps, bright_time))
+        die("xbacklight setup failed");
 #ifdef __OpenBSD__
 	if (pledge("stdio rpath proc exec", NULL) == -1)
 		die("pledge");
