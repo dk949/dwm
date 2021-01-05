@@ -7,7 +7,6 @@ VERSION = 6.2
 PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/share/man
 
-X11INC = /usr/X11R6/include
 
 # Xinerama, comment if you don't want it
 XINERAMALIBS  = -lXinerama
@@ -23,7 +22,7 @@ FREETYPEINC = /usr/include/freetype2
 #FREETYPEINC = ${X11INC}/freetype2
 
 # includes and libs
-INCS = -I${X11INC} -I${FREETYPEINC}
+INCS = -I${FREETYPEINC}
 LIBS = -lX11 ${XINERAMALIBS} ${FREETYPELIBS} ${XBACKLIGHTLIBS} -lX11-xcb -lxcb-res # FIXME: What is going on here?
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
