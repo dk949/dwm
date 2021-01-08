@@ -2,29 +2,37 @@ dwm - dynamic window manager
 ============================
 This is my dwm build. Original project at [suckless.org]( https://dwm.suckless.org/)
 
-
 Requirements
 ------------
-In order to build dwm you will need:
-* the Xlib header files.
-This build also requires:
+* Libraries
+    * X11
+    * XCB
+    * freetype2
+    * (optionally) Xinerama
+
 * [dmenu](https://tools.suckless.org/dmenu/)
-    * \([my build](https://github.com/dk949/dmenu) also exists but it's not that different from stock\)
+    * [my build of dmenu](https://github.com/dk949/dmenu)
 * [slock](https://tools.suckless.org/slock/)
-    * [my slock](https://github.com/dk949/slock)
+    * [my build of slock](https://github.com/dk949/slock)
+* [slstatus](https://tools.suckless.org/slstatus/)
+    * [my build of slstatus](https://github.com/dk949/slstatus)
 * [dwm-scripts](https://github.com/dk949/dwm-scripts)
+* [volume-brightness-control](https://github.com/dk949/volume-brightness-controll)
 * [picom](https://github.com/yshui/picom) compositor
+* cmake (for building and installation)
 
 
 Installation
 ------------
-Edit config.mk to match your local setup (dwm is installed into
+Edit CMakeLists.txt to match your local setup (dwm is installed into
 the /usr/local namespace by default).
 
-Afterwards enter the following command to build and install dwm (if
-necessary as root):
+Afterwards enter the following commands to build and install dwm:
 
-    make clean install
+    mkdir build
+    cd build
+    cmake ..
+    sudo make install
 
 
 Running dwm
@@ -40,12 +48,9 @@ the DISPLAY environment variable is set correctly, e.g.:
 
 (This will start dwm on display :1 of the host foo.bar.)
 
-In order to display status info in the bar, call `statusbar &` from [dwm-scripts](https://github.com/dk949/dwm-scripts) in your .xinitrc or .xprofile, either will work.
-
-
 
 Configuration
 -------------
 The configuration of dwm is done editing  config.h
-and (re)compiling the source code.
-Note: Most [patches](https://dwm.suckless.org/patches/) won't work, since the config.h has been patched several times already \(all diff files which have been applied are in this repository\)
+and (re)compiling the source code.  
+Note: Most [patches](https://dwm.suckless.org/patches/) won't work, since the config.h has been patched several times already \(all diff files which have been applied are in the diffs directory\)
