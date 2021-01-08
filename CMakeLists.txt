@@ -68,7 +68,7 @@ add_compile_definitions(
     )
 
 # warnings
-add_compile_options("-Wall" "-Wno-deprecated-declarations" "-pedantic")
+add_compile_options("-pedantic" "-Wall" "-Werror")
 
 # optmisation
 add_compile_options(-Os)
