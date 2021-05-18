@@ -66,6 +66,7 @@ static const Rule rules[] = {
     { "jetbrains-idea",     NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-pycharm",  NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
     { "jetbrains-studio",   NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "testing",            NULL,  NULL,           0,        0,          1,         1,         1,        -1 },
     { "Alacritty",          NULL,  "spotify",      1 << 3,   3,          0,         0,         1,        -1 },
     { "Alacritty",          NULL,  "sysmon",       1 << 4,   3,          0,         0,         1,        -1 },
     { "Alacritty",          NULL,  NULL,           0,        0,          0,         1,         1,        -1 },

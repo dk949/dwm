@@ -1004,6 +1004,9 @@ focusmon(const Arg *arg)
 		return;
 	unfocus(selmon->sel, 0);
 	selmon = m;
+
+    /* move cursor to the center of the new monitor */
+    XWarpPointer(dpy, 0, selmon->barwin, 0, 0, 0, 0, selmon->ww/2, selmon->wh/2);
 	focus(NULL);
 }
 
