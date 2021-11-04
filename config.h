@@ -55,21 +55,23 @@ static const Rule rules[] = {
            - 3 as 1, but closing that window reverts the view back to what it was previously (*)
            - 4 as 2, but closing that window reverts the view back to what it was previously (*)
    */
-    /* class             |instance|title          |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
-    { "Gimp",               NULL,  NULL,           1 << 5,   3,          0,         0,         0,        -1 },
-    { "Steam",              NULL,  NULL,           1 << 3,   3,          1,         0,         0,        -1 },
-    { "firefox",            NULL,  NULL,           1 << 1,   3,          0,         0,         0,        -1 },
-    { "discord",            NULL,  NULL,           1 << 6,   1,          0,         0,         0,        -1 },
-    { "zoom",               NULL,  NULL,           1 << 7,   1,          0,         0,         0,        -1 },
-    { "jetbrains-clion",    NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-webstorm", NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-idea",     NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-pycharm",  NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "jetbrains-studio",   NULL,  NULL,           1 << 2,   1,          0,         0,         0,        -1 },
-    { "testing",            NULL,  NULL,           0,        0,          1,         1,         1,        -1 },
-    { "Alacritty",          NULL,  "spotify",      1 << 3,   3,          0,         0,         1,        -1 },
-    { "Alacritty",          NULL,  "sysmon",       1 << 4,   3,          0,         0,         1,        -1 },
-    { "Alacritty",          NULL,  NULL,           0,        0,          0,         1,         1,        -1 },
+    /* class                             |instance |title          |tags mask|switchtotag|isfloating|isterminal|noswallow|monitor */
+    { "Gimp",                             NULL,     NULL,           1 << 5,   3,          0,         0,         0,        -1 },
+    { "Steam",                            NULL,     NULL,           1 << 3,   3,          1,         0,         0,        -1 },
+    { "firefox",                          NULL,     NULL,           1 << 1,   3,          0,         0,         0,        -1 },
+    { "discord",                          NULL,     NULL,           1 << 6,   1,          0,         0,         0,        -1 },
+    { "zoom",                             NULL,     NULL,           1 << 7,   1,          0,         0,         0,        -1 },
+    { "VirtualBox Machine",               NULL,     NULL,           1 << 4,   1,          0,         0,         0,        -1 },
+    { "jetbrains-clion",                  NULL,     NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-webstorm",               NULL,     NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-idea",                   NULL,     NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-pycharm",                NULL,     NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "jetbrains-studio",                 NULL,     NULL,           1 << 2,   1,          0,         0,         0,        -1 },
+    { "ptolemy-vergil-VergilApplication", NULL,     NULL,           0,        0,          0,         1,         1,        -1 },
+    { "testing",                          NULL,     NULL,           0,        0,          1,         1,         1,        -1 },
+    { "Alacritty",                        NULL,     "spotify",      1 << 3,   3,          0,         0,         1,        -1 },
+    { "Alacritty",                        NULL,     "sysmon",       1 << 4,   3,          0,         0,         1,        -1 },
+    { "Alacritty",                        NULL,     NULL,           0,        0,          0,         1,         1,        -1 },
 };
 
 /* layout(s) */
@@ -130,8 +132,8 @@ static Key keys[] = {
 
     // Utility spawners
     { MODKEY,                       XK_r,       spawn,          { .v = dmenucmd     } },
-	{ MODKEY,                       XK_F12,     bright_inc,     { .f = 10.0         } },
-	{ MODKEY,                       XK_F11,     bright_dec,     { .f = 10.0         } },
+	{ MODKEY,                       XK_F12,     bright_inc,     { .f = 5.0         } },
+	{ MODKEY,                       XK_F11,     bright_dec,     { .f = 5.0         } },
     { MODKEY,                       XK_F1,      spawn,          { .v = vlmtcmd      } },
     { MODKEY,                       XK_F2,      spawn,          { .v = vldncmd      } },
     { MODKEY,                       XK_F3,      spawn,          { .v = vlupcmd      } },
