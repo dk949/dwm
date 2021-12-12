@@ -42,15 +42,15 @@ typedef struct {
            "\n\t.root = %lu, "     \
            "\n\t.scheme = %llu, "  \
            "\n\t.screen = %i\n",   \
-        DRW->dpy,                  \
-        DRW->drawable,             \
-        DRW->fonts,                \
-        DRW->gc,                   \
-        DRW->h,                    \
-        DRW->w,                    \
-        DRW->root,                 \
-        DRW->scheme,               \
-        DRW->screen)
+        (DRW)->dpy,                \
+        (DRW)->drawable,           \
+        (DRW)->fonts,              \
+        (DRW)->gc,                 \
+        (DRW)->h,                  \
+        (DRW)->w,                  \
+        (DRW)->root,               \
+        (DRW)->scheme,             \
+        (DRW)->screen)
 
 /* Drawable abstraction */
 Drw *drw_create(Display *dpy, int screen, Window win, unsigned int w, unsigned int h);
