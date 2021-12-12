@@ -131,71 +131,64 @@ static const char *scrdmnu[] = {"screenshot", NULL};  // Screenshot taker
 static const char *comkill[] = {"picom-end", NULL};
 
 static Key keys[] = {
-    /* modifier                     key        function        argument */
 
+    // clang-format off
+    /* modifier                         key         function       argument */
     // Utility spawners
-    {MODKEY, XK_r, spawn, {.v = dmenucmd}},
-    {MODKEY, XK_F12, bright_inc, {.f = 5.0}},
-    {MODKEY, XK_F11, bright_dec, {.f = 5.0}},
-    {MODKEY, XK_F1, volumechange, {.i = VOL_MT}},
-    {MODKEY, XK_F2, volumechange, {.i = VOL_DN}},
-    {MODKEY, XK_F3, volumechange, {.i = VOL_UP}},
-    {MODKEY, XK_m, spawn, {.v = comkill}},
-    {MODKEY, XK_t, spawn, {.v = compcmd}},
-    {MODKEY, XK_Return, spawn, {.v = termcmd}},
-    {MODKEY, XK_Next, spawn, {.v = lockcmd}},
-    {MODKEY | ShiftMask | ControlMask, XK_Next, spawn, {.v = powrcmd}},
+    {MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
+    {MODKEY                           , XK_F1     , volumechange   , {.i = VOL_MT}}      ,
+    {MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN}}      ,
+    {MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP}}      ,
+    {MODKEY                           , XK_m      , spawn          , {.v = comkill}}     ,
+    {MODKEY                           , XK_t      , spawn          , {.v = compcmd}}     ,
+    {MODKEY                           , XK_Return , spawn          , {.v = termcmd}}     ,
+    {MODKEY                           , XK_Next   , spawn          , {.v = lockcmd}}     ,
+    {MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , {.v = powrcmd}}     ,
+    {MODKEY | Mod1Mask                , XK_s      , spawn          , {.v = symdmnu}}     ,
+    {MODKEY | Mod1Mask                , XK_g      , spawn          , {.v = grkdmnu}}     ,
+    {MODKEY | Mod1Mask                , XK_i      , spawn          , {.v = scrdmnu}}     ,
 
     // Application spawn
-    {MODKEY | ControlMask, XK_b, spawn, {.v = brwscmd}},
-    {MODKEY | ControlMask, XK_m, spawn, {.v = musccmd}},
-    {MODKEY | ControlMask, XK_d, spawn, {.v = chatcmd}},
-    {MODKEY | ControlMask, XK_n, spawn, {.v = nvimcmd}},
-    {MODKEY | ControlMask, XK_Escape, spawn, {.v = htopcmd}},
+    {MODKEY | ControlMask             , XK_b      , spawn          , {.v = brwscmd}}     ,
+    {MODKEY | ControlMask             , XK_m      , spawn          , {.v = musccmd}}     ,
+    {MODKEY | ControlMask             , XK_d      , spawn          , {.v = chatcmd}}     ,
+    {MODKEY | ControlMask             , XK_n      , spawn          , {.v = nvimcmd}}     ,
+    {MODKEY | ControlMask             , XK_Escape , spawn          , {.v = htopcmd}}     ,
 
 
-    {MODKEY, XK_b, togglebar, {0}},
-    {MODKEY | ShiftMask, XK_j, rotatestack, {.i = +1}},
-    {MODKEY | ShiftMask, XK_k, rotatestack, {.i = -1}},
-    {MODKEY, XK_j, focusstack, {.i = +1}},
-    {MODKEY, XK_k, focusstack, {.i = -1}},
-    {MODKEY, XK_i, incnmaster, {.i = +1}},
-    {MODKEY, XK_d, incnmaster, {.i = -1}},
-
-    {MODKEY, XK_h, setmfact, {.f = -0.05}},
-    {MODKEY, XK_l, setmfact, {.f = +0.05}},
-
-    // Dmenu stuff
-    {MODKEY | Mod1Mask, XK_s, spawn, {.v = symdmnu}},
-    {MODKEY | Mod1Mask, XK_g, spawn, {.v = grkdmnu}},
-    {MODKEY | Mod1Mask, XK_i, spawn, {.v = scrdmnu}},
-
-    // Still doesn't work
-    //{ MODKEY,                       XK_o,       setmfact,       {.f =  0.00         } },
-
-    {MODKEY | ShiftMask, XK_h, setcfact, {.f = +0.25}},
-    {MODKEY | ShiftMask, XK_l, setcfact, {.f = -0.25}},
-    {MODKEY | ShiftMask, XK_o, setcfact, {.f = 0.00}},
-
-    {MODKEY | ShiftMask, XK_Return, zoom, {0}},
-    {MODKEY, XK_Tab, view, {0}},
-    {MODKEY, XK_w, killclient, {0}},
-
-    {MODKEY, XK_t, setlayout, {.v = &layouts[0]}},
-    {MODKEY, XK_f, setlayout, {.v = &layouts[1]}},
-    {MODKEY, XK_m, setlayout, {.v = &layouts[2]}},
-    {MODKEY, XK_u, setlayout, {.v = &layouts[3]}},
-    {MODKEY, XK_o, setlayout, {.v = &layouts[4]}},
-    {MODKEY, XK_space, setlayout, {0}},
-
-    {MODKEY | ShiftMask, XK_space, togglefloating, {0}},
-    {MODKEY, XK_0, view, {.ui = ~0}},
-    {MODKEY | ShiftMask, XK_0, tag, {.ui = ~0}},
-    {MODKEY, XK_comma, focusmon, {.i = -1}},
-    {MODKEY, XK_period, focusmon, {.i = +1}},
-    {MODKEY | ShiftMask, XK_comma, tagmon, {.i = -1}},
-    {MODKEY | ShiftMask, XK_period, tagmon, {.i = +1}},
-    {MODKEY | ShiftMask, XK_q, quit, {0}},
+    // dwm control
+    {MODKEY                           , XK_b      , togglebar      , {0}}                ,
+    {MODKEY | ShiftMask               , XK_j      , rotatestack    , {.i = +1}}          ,
+    {MODKEY | ShiftMask               , XK_k      , rotatestack    , {.i = -1}}          ,
+    {MODKEY                           , XK_j      , focusstack     , {.i = +1}}          ,
+    {MODKEY                           , XK_k      , focusstack     , {.i = -1}}          ,
+    {MODKEY                           , XK_i      , incnmaster     , {.i = +1}}          ,
+    {MODKEY                           , XK_d      , incnmaster     , {.i = -1}}          ,
+    {MODKEY                           , XK_h      , setmfact       , {.f = -0.05}}       ,
+    {MODKEY                           , XK_l      , setmfact       , {.f = +0.05}}       ,
+    {MODKEY | ShiftMask               , XK_h      , setcfact       , {.f = +0.25}}       ,
+    {MODKEY | ShiftMask               , XK_l      , setcfact       , {.f = -0.25}}       ,
+    {MODKEY | ShiftMask               , XK_Return , zoom           , {0}}                ,
+    {MODKEY                           , XK_Tab    , view           , {0}}                ,
+    {MODKEY                           , XK_w      , killclient     , {0}}                ,
+    {MODKEY | ShiftMask               , XK_o      , setcfact       , {.f = 0.00}}        ,
+    {MODKEY                           , XK_F12    , bright_inc     , {.f = 5.0}}         ,
+    {MODKEY                           , XK_F11    , bright_dec     , {.f = 5.0}}         ,
+    {MODKEY                           , XK_t      , setlayout      , {.v = &layouts[0]}} ,
+    {MODKEY                           , XK_f      , setlayout      , {.v = &layouts[1]}} ,
+    {MODKEY                           , XK_m      , setlayout      , {.v = &layouts[2]}} ,
+    {MODKEY                           , XK_u      , setlayout      , {.v = &layouts[3]}} ,
+    {MODKEY                           , XK_o      , setlayout      , {.v = &layouts[4]}} ,
+    {MODKEY                           , XK_space  , setlayout      , {0}}                ,
+    {MODKEY | ShiftMask               , XK_space  , togglefloating , {0}}                ,
+    {MODKEY                           , XK_0      , view           , {.ui = ~0}}         ,
+    {MODKEY | ShiftMask               , XK_0      , tag            , {.ui = ~0}}         ,
+    {MODKEY                           , XK_comma  , focusmon       , {.i = -1}}          ,
+    {MODKEY                           , XK_period , focusmon       , {.i = +1}}          ,
+    {MODKEY | ShiftMask               , XK_comma  , tagmon         , {.i = -1}}          ,
+    {MODKEY | ShiftMask               , XK_period , tagmon         , {.i = +1}}          ,
+    {MODKEY | ShiftMask               , XK_q      , quit           , {0}}                ,
+    // clang-format on
 
     TAGKEYS(XK_1, 0),
     TAGKEYS(XK_2, 1),
@@ -210,16 +203,18 @@ static Key keys[] = {
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
-    /* click                event mask      button          function        argument */
-    {ClkLtSymbol, 0, Button1, setlayout, {0}},
-    {ClkLtSymbol, 0, Button3, setlayout, {.v = &layouts[2]}},
-    {ClkWinTitle, 0, Button2, zoom, {0}},
-    {ClkStatusText, 0, Button2, spawn, {.v = termcmd}},
-    {ClkClientWin, MODKEY, Button1, movemouse, {0}},
-    {ClkClientWin, MODKEY, Button2, togglefloating, {0}},
-    {ClkClientWin, MODKEY, Button3, resizemouse, {0}},
-    {ClkTagBar, 0, Button1, view, {0}},
-    {ClkTagBar, 0, Button3, toggleview, {0}},
-    {ClkTagBar, MODKEY, Button1, tag, {0}},
-    {ClkTagBar, MODKEY, Button3, toggletag, {0}},
+    // clang-format off
+    /* click       , event mask , button  , function       , argument            , */
+    {ClkLtSymbol   , 0          , Button1 , setlayout      , {0}}                ,
+    {ClkLtSymbol   , 0          , Button3 , setlayout      , {.v = &layouts[2]}} ,
+    {ClkWinTitle   , 0          , Button2 , zoom           , {0}}                ,
+    {ClkStatusText , 0          , Button2 , spawn          , {.v = termcmd}}     ,
+    {ClkClientWin  , MODKEY     , Button1 , movemouse      , {0}}                ,
+    {ClkClientWin  , MODKEY     , Button2 , togglefloating , {0}}                ,
+    {ClkClientWin  , MODKEY     , Button3 , resizemouse    , {0}}                ,
+    {ClkTagBar     , 0          , Button1 , view           , {0}}                ,
+    {ClkTagBar     , 0          , Button3 , toggleview     , {0}}                ,
+    {ClkTagBar     , MODKEY     , Button1 , tag            , {0}}                ,
+    {ClkTagBar     , MODKEY     , Button3 , toggletag      , {0}}                ,
+    // clang-format on
 };
