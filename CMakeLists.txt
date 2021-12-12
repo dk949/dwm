@@ -8,6 +8,7 @@ project(dwm LANGUAGES C VERSION 6.2)
 
 # Language standards
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ################################## File setup ##################################
 # Defining project files
