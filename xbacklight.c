@@ -54,14 +54,12 @@ static long backlight_get(xcb_connection_t *connection, xcb_randr_output_t outpu
     backlight = backlight_new;
 
     if (backlight != XCB_ATOM_NONE) {
-        prop_cookie =
-            xcb_randr_get_output_property(connection, output, backlight, XCB_ATOM_NONE, 0, 4, 0, 0);
+        prop_cookie = xcb_randr_get_output_property(connection, output, backlight, XCB_ATOM_NONE, 0, 4, 0, 0);
         prop_reply = xcb_randr_get_output_property_reply(connection, prop_cookie, &generic_error);
         if (generic_error != NULL || prop_reply == NULL) {
             backlight = backlight_legacy;
             if (backlight != XCB_ATOM_NONE) {
-                prop_cookie = xcb_randr_get_output_property(connection, output, backlight,
-                                                            XCB_ATOM_NONE, 0, 4, 0, 0);
+                prop_cookie = xcb_randr_get_output_property(connection, output, backlight, XCB_ATOM_NONE, 0, 4, 0, 0);
                 prop_reply = xcb_randr_get_output_property_reply(connection, prop_cookie, &generic_error);
                 if (generic_error != NULL || prop_reply == NULL) {
                     return -1;
@@ -70,8 +68,7 @@ static long backlight_get(xcb_connection_t *connection, xcb_randr_output_t outpu
         }
     }
 
-    if (prop_reply == NULL || prop_reply->type != XCB_ATOM_INTEGER || prop_reply->num_items != 1 ||
-        prop_reply->format != 32) {
+    if (prop_reply == NULL || prop_reply->type != XCB_ATOM_INTEGER || prop_reply->num_items != 1 || prop_reply->format != 32) {
         value = -1;
     } else {
         value = *((int32_t *)xcb_randr_get_output_property_data(prop_reply));
@@ -82,8 +79,8 @@ static long backlight_get(xcb_connection_t *connection, xcb_randr_output_t outpu
 }
 
 static void backlight_set(xcb_randr_output_t output, long value) {
-    xcb_randr_change_output_property(conn, output, backlight, XCB_ATOM_INTEGER, 32,
-                                     XCB_PROP_MODE_REPLACE, 1, (unsigned char *)&value);
+    xcb_randr_change_output_property(
+        conn, output, backlight, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, (unsigned char *)&value);
 }
 
 
@@ -145,10 +142,10 @@ int bright_setup(char *dpy_name, int step_conf, int time_conf) {
 }
 
 
-int run(double value, op_t op, double* new_value) {
+int run(double value, op_t op, double *new_value) {
     int i;
     double tmp;
-    if (!new_value){
+    if (!new_value) {
         new_value = &tmp;
     }
 
@@ -214,7 +211,7 @@ int run(double value, op_t op, double* new_value) {
                                 return 1;
                         }
                         if (new > max)
-                           new = max;
+                            new = max;
                         if (new < min)
                             new = min;
                         step = (new - cur) / steps;
@@ -223,7 +220,7 @@ int run(double value, op_t op, double* new_value) {
                                 cur = new;
                             else
                                 cur += step;
-                            backlight_set( output, (long)(cur + 0.5));
+                            backlight_set(output, (long)(cur + 0.5));
                             xcb_flush(conn);
                             usleep(total_time * 1000 / steps);
                         }
@@ -253,6 +250,6 @@ int bright_dec_(double value) {
     return run(value, Dec, NULL);
 }
 
-int bright_get_(double* value){
+int bright_get_(double *value) {
     return run(0, Get, value);
 }

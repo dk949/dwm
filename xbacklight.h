@@ -19,6 +19,6 @@ int bright_dec_(double value);
 // Set brightness of the backlight to a certain number
 int bright_set_(double value);
 
-int bright_get_(double* value);
+int bright_get_(double *value);
 
 #endif  // XBACKLIGHT_XBACKLIGHT_H
