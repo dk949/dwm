@@ -70,6 +70,7 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
        ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
+enum {VOL_DN = -1, VOL_MT = 0, VOL_UP = 1};
 
 typedef union {
 	int i;
@@ -254,6 +255,7 @@ static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
+static void volumechange(const Arg *arg);
 static pid_t winpid(Window w);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
@@ -2405,6 +2407,46 @@ view(const Arg *arg)
 
 	focus(NULL);
 	arrange(selmon);
+}
+
+void
+volumechange(const Arg *arg)
+{
+
+    /*
+    {
+    TODO
+        drw_setscheme(drw, scheme[SchemeInfoNorm]);
+        int x = 0;
+        int y = 0;
+        unsigned int w = blw;
+        unsigned int h = bh;
+        int filled = 1;
+        int invert = 0;
+        drw_rect(drw, x, y, w, h, filled, invert);
+        drw_map(drw, selmon->barwin, x, y, w, h);
+    }
+    */
+
+    /*DRW_DEBUG(drw);*/
+    Arg cmd = { .v = NULL };
+    const char *const vlupcmd[] = { "volume-up", NULL };          // volume up
+    const char *const vldncmd[] = { "volume-down", NULL };        // volume down
+    const char *const vlmtcmd[] = { "volume-mutetoggle", NULL };  // volume mute
+    if (arg->i > 0) {
+        cmd.v = vlupcmd;
+        spawn(&cmd);
+        return;
+    }
+
+    if (arg->i < 0) {
+        cmd.v = vldncmd;
+        spawn(&cmd);
+        return;
+    }
+
+    cmd.v = vlmtcmd;
+    spawn(&cmd);
 }
 
 

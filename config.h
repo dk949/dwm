@@ -8,8 +8,8 @@ static const int showbar            = 1;  /* 0 means no bar */
 static const int topbar             = 1;  /* 0 means bottom bar */
 static const int bright_time        = 60;       /* time in useconds to go from one screen brightness value to the next*/
 static const int bright_steps       = 20;       /* number of steps it takes to move between brightness values */
-static const char *fonts[]          = { "monospace:size=10" };
-static const char dmenufont[]       = "monospace:size=10";
+static const char *fonts[]          = { "Hack:size=10" };
+static const char dmenufont[]       = "Hack:size=10";
 
 
 /* colors */
@@ -117,9 +117,6 @@ static const char *htopcmd[] = { "sysmon",              NULL }; // system monito
 static const char *nvimcmd[] = { "neovim",              NULL }; // opens neovim
 static const char *chatcmd[] = { "disc",                NULL }; // does discord
 
-static const char *vlupcmd[] = { "volume-up",           NULL }; // volume up
-static const char *vldncmd[] = { "volume-down",         NULL }; // volume down
-static const char *vlmtcmd[] = { "volume-mutetoggle",   NULL }; // volume mute
 static const char *compcmd[] = { "picom-start",         NULL }; // volume mute
 
 static const char *symdmnu[] = { "sym",                 NULL }; // Mathematical symbol selection
@@ -135,9 +132,9 @@ static Key keys[] = {
     { MODKEY,                       XK_r,       spawn,          { .v = dmenucmd     } },
     { MODKEY,                       XK_F12,     bright_inc,     { .f = 5.0         } },
     { MODKEY,                       XK_F11,     bright_dec,     { .f = 5.0         } },
-    { MODKEY,                       XK_F1,      spawn,          { .v = vlmtcmd      } },
-    { MODKEY,                       XK_F2,      spawn,          { .v = vldncmd      } },
-    { MODKEY,                       XK_F3,      spawn,          { .v = vlupcmd      } },
+    { MODKEY,                       XK_F1,      volumechange,   { .i = VOL_MT      } },
+    { MODKEY,                       XK_F2,      volumechange,   { .i = VOL_DN      } },
+    { MODKEY,                       XK_F3,      volumechange,   { .i = VOL_UP      } },
     { MODKEY,                       XK_m,       spawn,          { .v = comkill      } },
     { MODKEY,                       XK_t,       spawn,          { .v = compcmd      } },
     { MODKEY,                       XK_Return,  spawn,          { .v = termcmd      } },
