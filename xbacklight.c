@@ -172,8 +172,11 @@ int run(double value, op_t op, double *new_value) {
         outputs = xcb_randr_get_screen_resources_current_outputs(resources_reply);
         for (int o = 0; o < resources_reply->num_outputs; o++) {
             xcb_randr_output_t output = outputs[o];
-            double cur, new, step;
-            double min, max;
+            double cur;
+            double new;
+            double step;
+            double min;
+            double max;
             double set;
 
             cur = (double)backlight_get(conn, output);
@@ -184,8 +187,9 @@ int run(double value, op_t op, double *new_value) {
                 prop_cookie = xcb_randr_query_output_property(conn, output, backlight);
                 prop_reply = xcb_randr_query_output_property_reply(conn, prop_cookie, &error);
 
-                if (error != NULL || prop_reply == NULL)
+                if (error != NULL || prop_reply == NULL) {
                     continue;
+                }
 
                 if (prop_reply->range && xcb_randr_query_output_property_valid_values_length(prop_reply) == 2) {
                     int32_t *values = xcb_randr_query_output_property_valid_values(prop_reply);
@@ -210,16 +214,19 @@ int run(double value, op_t op, double *new_value) {
                                 xcb_aux_sync(conn);
                                 return 1;
                         }
-                        if (new > max)
+                        if (new > max) {
                             new = max;
-                        if (new < min)
+                        }
+                        if (new < min) {
                             new = min;
+                        }
                         step = (new - cur) / steps;
                         for (i = 0; i < steps && step != 0; i++) {
-                            if (i == steps - 1)
+                            if (i == steps - 1) {
                                 cur = new;
-                            else
+                            } else {
                                 cur += step;
+                            }
                             backlight_set(output, (long)(cur + 0.5));
                             xcb_flush(conn);
                             usleep(total_time * 1000 / steps);
