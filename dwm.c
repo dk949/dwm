@@ -94,6 +94,9 @@ enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast };                   
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
 enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
 
+
+#define PROGRESS_FADE      0, 0
+
 typedef union {
     int i;
     unsigned int ui;
@@ -260,6 +263,7 @@ static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static Client *termforwin(const Client *c);
 static void tile(Monitor *);
+static double timespecdiff(const struct timespec *a, const struct timespec *b);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void toggletag(const Arg *arg);
@@ -942,6 +946,7 @@ void drawbar(Monitor *m) {
         }
     }
     drw_map(drw, m->barwin, 0, 0, m->ww, barHeight);
+    drawprogress(PROGRESS_FADE);
 }
 
 void drawbars(void) {
@@ -950,8 +955,28 @@ void drawbars(void) {
     }
 }
 
-void drawprogress(unsigned long long total, unsigned long long current) {
-    if (windowNameX > 0 && windowNameWidth > 0 && total > 0) {
+void drawprogress(unsigned long long t, unsigned long long c) {
+    static unsigned long long total;
+    static unsigned long long current;
+    static unsigned long long fade;
+    static struct timespec last;
+
+    if (windowNameX <= 0 || windowNameWidth <= 0) {
+        return;
+    }
+
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+
+    if (t != 0) {
+        total = t;
+        current = c;
+        last = now;
+    }
+
+    DEBUG_PRINT(timespecdiff(&now, &last), "%f");
+
+    if (total > 0 && timespecdiff(&now, &last) < progress_fade_time) {
         int fg = 0;
         int bg = 1;
         drw_setscheme(drw, scheme[SchemeInfoProgress]);
@@ -2068,6 +2093,10 @@ void tile(Monitor *m) {
             }
         }
     }
+}
+
+double timespecdiff(const struct timespec *a, const struct timespec *b) {
+    return labs(a->tv_sec - b->tv_sec) + (labs(a->tv_nsec - b->tv_nsec) * 1e-9);
 }
 
 void togglebar(const Arg *arg) {

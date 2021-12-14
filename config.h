@@ -11,6 +11,8 @@ static const int bright_steps = 20;     /* number of steps it takes to move betw
 static const char *fonts[] = {"Hack:size=10"};
 static const char dmenufont[] = "Hack:size=10";
 
+static const double progress_fade_time = 1.0;  // How long progress bar will not disapear for (in seconds)
+
 
 /* colors */
 
