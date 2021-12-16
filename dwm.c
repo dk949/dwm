@@ -95,7 +95,7 @@ enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, ClkRoot
 enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
 
 
-#define PROGRESS_FADE      0, 0
+#define PROGRESS_FADE 0, 0
 
 typedef union {
     int i;
@@ -974,8 +974,6 @@ void drawprogress(unsigned long long t, unsigned long long c) {
         last = now;
     }
 
-    DEBUG_PRINT(timespecdiff(&now, &last), "%f");
-
     if (total > 0 && timespecdiff(&now, &last) < progress_fade_time) {
         int fg = 0;
         int bg = 1;
@@ -989,9 +987,7 @@ void drawprogress(unsigned long long t, unsigned long long c) {
 
 void enqueue(Client *c) {
     Client *l;
-    for (l = c->mon->clients; l && l->next; l = l->next) {
-        ;
-    }
+    for (l = c->mon->clients; l && l->next; l = l->next) {}
     if (l) {
         l->next = c;
         c->next = NULL;
