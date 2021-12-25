@@ -41,6 +41,9 @@
 #endif /* XINERAMA */
 #include "drw.h"
 #include "util.h"
+#ifdef VOLC
+#include "volc.h"
+#endif /* VOLC */
 #include "xbacklight.h"
 
 #include <X11/Xft/Xft.h>
@@ -324,7 +327,9 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
-
+#ifdef VOLC
+static volc_t *volc;
+#endif /* VOLC */
 static xcb_connection_t *xcon;
 
 /* configuration, allows nested code to access above variables */
@@ -671,6 +676,9 @@ void cleanup(void) {
     XSync(dpy, False);
     XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
     XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
+#ifdef VOLC
+    volc_deinit(volc);
+#endif /* VOLC */
 }
 
 void cleanupmon(Monitor *mon) {
@@ -1923,6 +1931,16 @@ void setup(void) {
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts))) {
         die("no fonts could be loaded.");
     }
+
+    if (bright_setup(NULL, bright_steps, bright_time)) {
+        die("xbacklight setup failed");
+    }
+#ifdef VOLC
+    if (!(volc = volc_init(VOLC_ALL_DEFULTS))) {
+        die("volc setup failed: %s", volc_err_str());
+    }
+#endif /* VOLC */
+
     lrpad = drw->fonts->h;
     barHeight = drw->fonts->h + 2;
     updategeom();
@@ -2535,6 +2553,7 @@ void view(const Arg *arg) {
 void volumechange(const Arg *arg) {
     static int TEMP_VARIABLE = 30;
     drawprogress(100, TEMP_VARIABLE);
+
     Arg cmd = {.v = NULL};
     const char *const vlupcmd[] = {"volume-up", NULL};          // volume up
     const char *const vldncmd[] = {"volume-down", NULL};        // volume down
@@ -2750,9 +2769,6 @@ int main(int argc, char *argv[]) {
     }
     checkotherwm();
     setup();
-    if (bright_setup(NULL, bright_steps, bright_time)) {
-        die("xbacklight setup failed");
-    }
 #ifdef __OpenBSD__
     if (pledge("stdio rpath proc exec", NULL) == -1)
         die("pledge");

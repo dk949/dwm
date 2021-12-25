@@ -16,6 +16,7 @@ set(SOURCE_FILES
         drw.c
         dwm.c
         util.c
+        volc.c
         xbacklight.c
 )
 
@@ -23,6 +24,7 @@ set(HEADER_FILES
         config.h
         drw.h
         util.h
+        volc.h
         xbacklight.h
     )
 
@@ -33,28 +35,33 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 ################################## Libs setup ##################################
 set(X11_DEPS "X11" "X11-xcb" "Xft" "Xinerama")
 set(XCB_DEPS "xcb" "xcb-randr" "xcb-res" "xcb-util")
+set(ALSA_DEPS "asound")
 set(FREETYPE_DEPS "fontconfig")
 
 
 include_directories (/usr/include/freetype2)
 
-foreach(LIB IN LISTS X11_DEPS XCB_DEPS FREETYPE_DEPS)
+foreach(LIB IN LISTS X11_DEPS XCB_DEPS FREETYPE_DEPS ALSA_DEPS)
     find_library(${LIB}_LIB ${LIB})
 
     # Xinerama is an optional library, if tehre are more optional libraries,
     # they will be brought out into a separate loop
-    if("${LIB}" STREQUAL "Xinerama")
+    if("${LIB}" STREQUAL "Xinerama" OR "${LIB}" STREQUAL "asound")
         if(NOT ${LIB}_LIB)
             message(WARNING "l${LIB} was not found. Proceeding without it")
         else()
             target_link_libraries(${PROJECT_NAME} PRIVATE ${${LIB}_LIB})
             add_compile_definitions(XINERAMA=1)
+            # FIXME!!!!!!!!!!!! needs string.toUpper()
+            add_compile_definitions(VOLC=1)
+            message(STATUS "found optional dependency l${LIB}")
         endif()
     else()
         if (NOT ${LIB}_LIB)
             message(FATAL_ERROR "l${LIB} was not found. Cannot proceed.")
         else()
             target_link_libraries(${PROJECT_NAME} PRIVATE ${${LIB}_LIB})
+            message(STATUS "found required dependency l${LIB}")
         endif()
     endif()
 endforeach()
