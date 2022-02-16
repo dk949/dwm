@@ -1,3 +1,4 @@
+#ifdef ASOUND
 #include "volc.h"
 
 #include <alsa/asoundlib.h>
@@ -241,3 +242,5 @@ extern void volc_deinit(volc_t *volc) {
 extern const char *volc_err_str() {
     return err_msg;
 }
+
+#endif  // ASOUND

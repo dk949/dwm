@@ -51,9 +51,8 @@ foreach(LIB IN LISTS X11_DEPS XCB_DEPS FREETYPE_DEPS ALSA_DEPS)
             message(WARNING "l${LIB} was not found. Proceeding without it")
         else()
             target_link_libraries(${PROJECT_NAME} PRIVATE ${${LIB}_LIB})
-            add_compile_definitions(XINERAMA=1)
-            # FIXME!!!!!!!!!!!! needs string.toUpper()
-            add_compile_definitions(VOLC=1)
+            string(TOUPPER ${LIB} LIB_UPPERCASE)
+            add_compile_definitions(${LIB_UPPERCASE}=1)
             message(STATUS "found optional dependency l${LIB}")
         endif()
     else()
@@ -76,7 +75,12 @@ add_compile_definitions(
     )
 
 # warnings
-add_compile_options("-pedantic" "-Wall" "-Werror")
+add_compile_options(
+    "-pedantic"
+    "-Wall"
+    "-Werror"
+    #"-fsanitize=address,leak"
+    )
 
 # optmisation
 add_compile_options(-Os)

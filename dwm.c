@@ -41,9 +41,9 @@
 #endif /* XINERAMA */
 #include "drw.h"
 #include "util.h"
-#ifdef VOLC
+#ifdef ASOUND
 #include "volc.h"
-#endif /* VOLC */
+#endif /* ASOUND */
 #include "xbacklight.h"
 
 #include <X11/Xft/Xft.h>
@@ -329,9 +329,9 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
-#ifdef VOLC
+#ifdef ASOUND
 static volc_t *volc;
-#endif /* VOLC */
+#endif /* ASOUND */
 static xcb_connection_t *xcon;
 
 /* configuration, allows nested code to access above variables */
@@ -694,9 +694,9 @@ void cleanup(void) {
     XSync(dpy, False);
     XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
     XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
-#ifdef VOLC
+#ifdef ASOUND
     volc_deinit(volc);
-#endif /* VOLC */
+#endif /* ASOUND */
 }
 
 void cleanupmon(Monitor *mon) {
@@ -1955,11 +1955,11 @@ void setup(void) {
     if (bright_setup(NULL, bright_steps, bright_time)) {
         die("xbacklight setup failed");
     }
-#ifdef VOLC
+#ifdef ASOUND
     if (!(volc = volc_init(VOLC_ALL_DEFULTS))) {
         die("volc setup failed: %s", volc_err_str());
     }
-#endif /* VOLC */
+#endif /* ASOUND */
 
     lrpad = drw->fonts->h;
     barHeight = drw->fonts->h + 2;
@@ -2571,11 +2571,12 @@ void view(const Arg *arg) {
 }
 
 void volumechange(const Arg *arg) {
+#ifdef ASOUND
     volc_volume_state_t state;
-    if (arg->i != VOL_MT) {
-        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC(arg->i), VOLC_CHAN_SAME);
-    } else {
+    if (arg->i == VOL_MT) {
         state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE);
+    } else {
+        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC(arg->i), VOLC_CHAN_ON);
     }
 
     if (state.err < 0) {
@@ -2584,6 +2585,7 @@ void volumechange(const Arg *arg) {
     }
 
     drawprogress(100, (unsigned long long)state.state.volume, state.state.switch_pos ? SchemeInfoProgress : SchemeOffProgress);
+#endif
 }
 
 
