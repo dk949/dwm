@@ -195,7 +195,7 @@ static void attachaside(Client *c);
 static void attachstack(Client *c);
 static void bright_dec(const Arg *arg);
 static void bright_inc(const Arg *arg);
-static void bright_set(const Arg *arg);
+static void bright_set(const Arg *arg) __attribute__((unused));
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -984,7 +984,6 @@ void drawbars(void) {
 void drawprogress(unsigned long long t, unsigned long long c, int s) {
     static unsigned long long total;
     static unsigned long long current;
-    static unsigned long long fade;
     static struct timespec last;
     static int cscheme;
 
