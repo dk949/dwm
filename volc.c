@@ -17,10 +17,10 @@ static char err_msg[1024];
 #define CARD_SZ         64
 
 #ifdef VOLC_VERBOSE
-#define VERBOSE_PRINT(FMT, ...) fprintf(stderr, FMT "\n", __VA_ARGS__)
+#define VERBOSE_PRINT(FMT, ...) fprintf(stdout, FMT "\n", __VA_ARGS__)
 #define VERBOSE_RET(TYPE, FMT, X)            \
     TYPE ret = (X);                          \
-    fprintf(stderr, "ret = " FMT "\n", ret); \
+    fprintf(stdout, "ret = " FMT "\n", ret); \
     return ret;
 #else
 #define VERBOSE_PRINT(...)
@@ -33,13 +33,13 @@ static char err_msg[1024];
 
 // Avoiding c math lib
 long vceil(double d) {
-  /*
-    if ((n - 0.0000000000000008) == floor(n))
-        this will break :(
-    */
+    /*
+      if ((n - 0.0000000000000008) == floor(n))
+          this will break :(
+      */
 
-  static double eps = 0.999999999999999;
-  return (d + eps);
+    static double eps = 0.999999999999999;
+    return (d + eps);
 }
 
 
@@ -97,22 +97,22 @@ static snd_mixer_t *get_handle(int *err, const char *card) {
     snd_mixer_t *handle;
     {
         if ((*err = snd_mixer_open(&handle, 0)) < 0) {
-            REPORT_ERR("Mixer %s open error: %s", card, snd_strerror(*err));
+            REPORT_ERR(" Mixer %s open error: %s", card, snd_strerror(*err));
             VERBOSE_RET(snd_mixer_t *, "%llu", NULL);
         }
         if ((*err = snd_mixer_attach(handle, card)) < 0) {
-            REPORT_ERR("Mixer attach %s error: %s", card, snd_strerror(*err));
+            REPORT_ERR(" Mixer attach %s error: %s", card, snd_strerror(*err));
             snd_mixer_close(handle);
             VERBOSE_RET(snd_mixer_t *, "%llu", NULL);
         }
         if ((*err = snd_mixer_selem_register(handle, NULL, NULL)) < 0) {
-            REPORT_ERR("Mixer register error: %s", snd_strerror(*err));
+            REPORT_ERR(" Mixer register error: %s", snd_strerror(*err));
             snd_mixer_close(handle);
             VERBOSE_RET(snd_mixer_t *, "%llu", NULL);
         }
         *err = snd_mixer_load(handle);
         if (*err < 0) {
-            REPORT_ERR("Mixer %s load error: %s", card, snd_strerror(*err));
+            REPORT_ERR(" Mixer %s load error: %s", card, snd_strerror(*err));
             snd_mixer_close(handle);
             VERBOSE_RET(snd_mixer_t *, "%llu", NULL);
         }
@@ -160,7 +160,7 @@ extern volc_volume_state_t
             case VOLC_CHAN_OFF:
             case VOLC_CHAN_ON:
                 snd_mixer_selem_get_playback_switch(volc->elem, chn, &init_value);
-                if (snd_mixer_selem_set_playback_switch(volc->elem, chn, channel_switch) >= 0) {
+                if (snd_mixer_selem_set_playback_switch(volc->elem, chn, channel_switch) < 0) {
                     VERBOSE_PRINT("No playback switch for channel %x", 1 << chn);
                     continue;
                 }
@@ -168,7 +168,7 @@ extern volc_volume_state_t
             case VOLC_CHAN_TOGGLE:
                 if (firstchn || !snd_mixer_selem_has_playback_switch_joined(volc->elem)) {
                     snd_mixer_selem_get_playback_switch(volc->elem, chn, &init_value);
-                    if (snd_mixer_selem_set_playback_switch(volc->elem, chn, !init_value) >= 0) {
+                    if (snd_mixer_selem_set_playback_switch(volc->elem, chn, init_value ? 0 : 1) < 0) {
                         VERBOSE_PRINT("No playback switch for channel %x", 1 << chn);
                         continue;
                     }
@@ -190,7 +190,7 @@ extern volc_volume_state_t
         VERBOSE_PRINT("set channel %x", 1 << chn);
     }
     if (!any_set) {
-        REPORT_ERR("failed to set any chanels");
+        REPORT_ERR(" failed to set any chanels");
         VERBOSE_PRINT("no channel was set.%s", "");
         state.err = -1;
     }
@@ -218,7 +218,7 @@ extern volc_t *volc_init(const char *selector, unsigned int selector_index, cons
 
     volc->elem = snd_mixer_find_selem(volc->handle, volc->sid);
     if (!volc->elem) {
-        REPORT_ERR("Unable to find simple control '%s',%i",
+        REPORT_ERR(" Unable to find simple control '%s',%i",
             snd_mixer_selem_id_get_name(volc->sid),
             snd_mixer_selem_id_get_index(volc->sid));
         snd_mixer_close(volc->handle);

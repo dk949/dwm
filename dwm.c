@@ -80,6 +80,8 @@ enum {
     SchemeInfoSel,
     SchemeInfoNorm,
     SchemeInfoProgress,
+    SchemeOffProgress,
+    SchemeBrightProgress,
 }; /* color schemes */
 enum {
     NetSupported,
@@ -98,7 +100,7 @@ enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, ClkRoot
 enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
 
 
-#define PROGRESS_FADE 0, 0
+#define PROGRESS_FADE 0, 0, 0
 
 typedef union {
     int i;
@@ -209,7 +211,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static void drawprogress(unsigned long long total, unsigned long long current);
+static void drawprogress(unsigned long long total, unsigned long long current, int scheme);
 static void enqueue(Client *c);
 static void enqueuestack(Client *c);
 static void enternotify(XEvent *e);
@@ -577,19 +579,35 @@ void unswallow(Client *c) {
 void bright_dec(const Arg *arg) {
     if (bright_dec_(arg->f)) {
         fprintf(stderr, "Fucntion bright_dec_(const Arg *arg) from xbacklight.h returned a non 0 value");
+        return;
     }
+    double newval;
+    if (bright_get_(&newval)) {
+        fprintf(stderr, "Fucntion bright_get_(const Arg *arg) from xbacklight.h returned a non 0 value");
+        return;
+    }
+    drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
 }
 
 void bright_inc(const Arg *arg) {
     if (bright_inc_(arg->f)) {
         fprintf(stderr, "Fucntion bright_inc_(const Arg *arg) from xbacklight.h returned a non 0 value");
+        return;
     }
+    double newval;
+    if (bright_get_(&newval)) {
+        fprintf(stderr, "Fucntion bright_get_(const Arg *arg) from xbacklight.h returned a non 0 value");
+        return;
+    }
+    drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
 }
 
 void bright_set(const Arg *arg) {
     if (bright_set_(arg->f)) {
         fprintf(stderr, "Fucntion bright_set_(const Arg *arg) from xbacklight.h returned a non 0 value");
+        return;
     }
+    drawprogress(100, (unsigned long long)arg->f, SchemeBrightProgress);
 }
 
 
@@ -963,11 +981,12 @@ void drawbars(void) {
     }
 }
 
-void drawprogress(unsigned long long t, unsigned long long c) {
+void drawprogress(unsigned long long t, unsigned long long c, int s) {
     static unsigned long long total;
     static unsigned long long current;
     static unsigned long long fade;
     static struct timespec last;
+    static int cscheme;
 
     if (windowNameX <= 0 || windowNameWidth <= 0) {
         return;
@@ -980,12 +999,13 @@ void drawprogress(unsigned long long t, unsigned long long c) {
         total = t;
         current = c;
         last = now;
+        cscheme = s;
     }
 
-    if (total > 0 && timespecdiff(&now, &last) < progress_fade_time) {
+    if (total > 0 && (timespecdiff(&now, &last) < progress_fade_time)) {
         int fg = 0;
         int bg = 1;
-        drw_setscheme(drw, scheme[SchemeInfoProgress]);
+        drw_setscheme(drw, scheme[cscheme]);
         drw_rect(drw, windowNameX, selmon->by, windowNameWidth, barHeight, 1, bg);
 
         drw_rect(drw, windowNameX, selmon->by, (windowNameWidth * current) / total, barHeight, 1, fg);
@@ -2551,31 +2571,19 @@ void view(const Arg *arg) {
 }
 
 void volumechange(const Arg *arg) {
-    static int TEMP_VARIABLE = 30;
-    drawprogress(100, TEMP_VARIABLE);
+    volc_volume_state_t state;
+    if (arg->i != VOL_MT) {
+        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC(arg->i), VOLC_CHAN_SAME);
+    } else {
+        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE);
+    }
 
-    Arg cmd = {.v = NULL};
-    const char *const vlupcmd[] = {"volume-up", NULL};          // volume up
-    const char *const vldncmd[] = {"volume-down", NULL};        // volume down
-    const char *const vlmtcmd[] = {"volume-mutetoggle", NULL};  // volume mute
-    if (arg->i > 0) {
-        cmd.v = vlupcmd;
-        TEMP_VARIABLE += 5;
-        TEMP_VARIABLE = TEMP_VARIABLE > 100 ? 100 : TEMP_VARIABLE;
-        spawn(&cmd);
+    if (state.err < 0) {
+        printf("volc: failed to change volume: %s\n", volc_err_str());
         return;
     }
 
-    if (arg->i < 0) {
-        TEMP_VARIABLE -= 5;
-        TEMP_VARIABLE = TEMP_VARIABLE < 0 ? 0 : TEMP_VARIABLE;
-        cmd.v = vldncmd;
-        spawn(&cmd);
-        return;
-    }
-
-    cmd.v = vlmtcmd;
-    spawn(&cmd);
+    drawprogress(100, (unsigned long long)state.state.volume, state.state.switch_pos ? SchemeInfoProgress : SchemeOffProgress);
 }
 
 

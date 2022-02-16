@@ -11,35 +11,39 @@ static const int bright_steps = 20;     /* number of steps it takes to move betw
 static const char *fonts[] = {"Hack:size=10"};
 static const char dmenufont[] = "Hack:size=10";
 
-static const double progress_fade_time = 0.95;  // How long progress bar will not disapear for (in seconds)
+static const double progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
 
 
 /* colors */
 
-static const char c_active[] = "#F8F8F2";
+// clang-format off
+static const char c_active[]   = "#F8F8F2";
 static const char c_inactive[] = "#101421";
-static const char c_black[] = "#000000";
-static const char c_red[] = "#FF5555";
-static const char c_green[] = "#50FA7B";
-static const char c_yellow[] = "#F1FA8C";
-static const char c_blue[] = "#BD93F9";
-static const char c_magenta[] = "#FF79C6";
-static const char c_cyan[] = "#8BE9FD";
-static const char c_white[] = "#BFBFBF";
-static const char c_blank[] = "#000000";
+static const char c_black[]    = "#000000";
+static const char c_red[]      = "#FF5555";
+static const char c_green[]    = "#50FA7B";
+static const char c_yellow[]   = "#F1FA8C";
+static const char c_blue[]     = "#BD93F9";
+static const char c_magenta[]  = "#FF79C6";
+static const char c_cyan[]     = "#8BE9FD";
+static const char c_white[]    = "#BFBFBF";
+static const char c_blank[]    = "#000000";
+// clang-format on
 
 /* Color assignment */
 static const char *colors[][3] = {
     // clang-format off
     /*                      fg          bg              border   */
-    [SchemeNorm]         = { c_active   , c_inactive , c_inactive} ,
-    [SchemeSel]          = { c_inactive , c_active   , c_active}   ,
-    [SchemeStatus]       = { c_active   , c_inactive , c_blank}    , // Statusbar right
-    [SchemeTagsSel]      = { c_inactive , c_active   , c_blank}    , // Tagbar left selected
-    [SchemeTagsNorm]     = { c_active   , c_inactive , c_blank}    , // Tagbar left unselected
-    [SchemeInfoSel]      = { c_inactive , c_blue     , c_blank}    , // infobar selected
-    [SchemeInfoNorm]     = { c_blue     , c_inactive , c_blank}    , // infobar unselected
-    [SchemeInfoProgress] = { c_green    , c_inactive , c_blank}    , // infobar middle progress
+    [SchemeNorm]           = { c_active   , c_inactive , c_inactive} ,
+    [SchemeSel]            = { c_inactive , c_active   , c_active}   ,
+    [SchemeStatus]         = { c_active   , c_inactive , c_blank}    , // Statusbar right
+    [SchemeTagsSel]        = { c_inactive , c_active   , c_blank}    , // Tagbar left selected
+    [SchemeTagsNorm]       = { c_active   , c_inactive , c_blank}    , // Tagbar left unselected
+    [SchemeInfoSel]        = { c_inactive , c_blue     , c_blank}    , // infobar selected
+    [SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank}    , // infobar unselected
+    [SchemeInfoProgress]   = { c_green    , c_inactive , c_blank}    , // infobar middle progress
+    [SchemeOffProgress]    = { c_red      , c_inactive , c_blank}    , // infobar middle progress
+    [SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank}    , // infobar middle progress
     // clang-format on
 };
 
@@ -141,9 +145,9 @@ static Key keys[] = {
     /* modifier                         key         function       argument */
     // Utility spawners
     {MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
-    {MODKEY                           , XK_F1     , volumechange   , {.i = VOL_MT}}      ,
-    {MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN}}      ,
-    {MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP}}      ,
+    {MODKEY                           , XK_F1     , volumechange   , {.i = VOL_MT  }}    ,
+    {MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN*5}}    ,
+    {MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP*5}}    ,
     {MODKEY                           , XK_m      , spawn          , {.v = comkill}}     ,
     {MODKEY                           , XK_t      , spawn          , {.v = compcmd}}     ,
     {MODKEY                           , XK_Return , spawn          , {.v = termcmd}}     ,
