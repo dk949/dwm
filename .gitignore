@@ -4,3 +4,4 @@ compile_commands.json
 errors.err
 *.o
 dwm
+gen_conf.h
