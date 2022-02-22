@@ -1,11 +1,17 @@
-#include "gen_conf.h"
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const int showbar = 1;           /* 0 means no bar */
-static const int topbar = 1;            /* 0 means bottom bar */
-static const int bright_time = 60;      /* time in useconds to go from one screen brightness value to the next*/
-static const int bright_steps = 20;     /* number of steps it takes to move between brightness values */
+
+// These will be initialised when screen size is known
+static unsigned int borderpx; /* border pixel of windows */
+static unsigned int gappx;    /* gaps between windows */
+static unsigned int snap;     /* snap pixel */
+
+
+static const int showbar = 1;       /* 0 means no bar */
+static const int topbar = 1;        /* 0 means bottom bar */
+static const int bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
+static const int bright_steps = 20; /* number of steps it takes to move between brightness values */
 static const char *fonts[] = {"Hack:size=10"};
 static const char dmenufont[] = "Hack:size=10";
 

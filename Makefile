@@ -19,19 +19,16 @@ options:
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
 
-gen_conf.h: conf_generator.sh
-	sh conf_generator.sh
-
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-${OBJ}: config.h config.mk gen_conf.h
+${OBJ}: config.h config.mk
 
 dwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
 clean:
-	rm -f dwm ${OBJ} gen_conf.h
+	rm -f dwm ${OBJ}
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin

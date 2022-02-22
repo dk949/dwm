@@ -1987,6 +1987,11 @@ void setup(void) {
     for (i = 0; i < LENGTH(colors); i++) {
         scheme[i] = drw_scm_create(drw, colors[i], 3);
     }
+
+    borderpx = sh / 540;
+    gappx = sh / 180;
+    snap = sh / 67;
+
     /* init bars */
     updatebars();
     updatestatus();
