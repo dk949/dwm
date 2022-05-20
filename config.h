@@ -69,28 +69,28 @@ static const Rule rules[] = {
            - 4 as 2, but closing that window reverts the view back to what it was previously (*)
    */
     // clang-format off
-    /* class                           , inst, title    , tags  , switchtotag, isfloating, isterminal, noswallow, monitor */
-    {"Gimp"                            , NULL, NULL     , 1 << 5, 3          , 0         , 0         , 0        , -1},
-    {"Steam"                           , NULL, NULL     , 1 << 3, 3          , 1         , 0         , 0        , -1},
-    {"firefox"                         , NULL, NULL     , 1 << 1, 3          , 0         , 0         , 0        , -1},
-    {"Spotify"                         , NULL, NULL     , 1 << 3, 1          , 0         , 0         , 0        , -1},
-    {"discord"                         , NULL, NULL     , 1 << 6, 1          , 0         , 0         , 0        , -1},
-    {"Zulip"                           , NULL, NULL     , 1 << 6, 1          , 0         , 0         , 0        , -1},
-    {"zoom"                            , NULL, NULL     , 1 << 7, 1          , 0         , 0         , 0        , -1},
-    {"VirtualBox Machine"              , NULL, NULL     , 1 << 4, 1          , 0         , 0         , 0        , -1},
-    {"jetbrains-clion"                 , NULL, NULL     , 1 << 2, 1          , 0         , 0         , 0        , -1},
-    {"jetbrains-webstorm"              , NULL, NULL     , 1 << 2, 1          , 0         , 0         , 0        , -1},
-    {"jetbrains-idea"                  , NULL, NULL     , 1 << 2, 1          , 0         , 0         , 0        , -1},
-    {"jetbrains-pycharm"               , NULL, NULL     , 1 << 2, 1          , 0         , 0         , 0        , -1},
-    {"jetbrains-studio"                , NULL, NULL     , 1 << 2, 1          , 0         , 0         , 0        , -1},
-    {"ptolemy-vergil-VergilApplication", NULL, NULL     , 0     , 0          , 0         , 1         , 1        , -1},
-    {"qemu-system-i386"                , NULL, NULL     , 0     , 0          , 1         , 1         , 1        , -1},
-    {"testing"                         , NULL, NULL     , 0     , 0          , 1         , 1         , 1        , -1},
-    {"Alacritty"                       , NULL, "spotify", 1 << 3, 3          , 0         , 0         , 1        , -1},
-    {"Alacritty"                       , NULL, "sysmon" , 1 << 4, 3          , 0         , 0         , 1        , -1},
-    {"Alacritty"                       , NULL, NULL     , 0     , 0          , 0         , 1         , 1        , -1},
+    /* class              , inst      , title     , tags   , switchtotag , isfloating , isterminal , noswallow , monitor */
+    {"Gimp"               , NULL      , NULL      , 1 << 5 , 3           , 0          , 0          , 0         , -1},
+    {"Steam"              , NULL      , NULL      , 1 << 3 , 3           , 1          , 0          , 0         , -1},
+    {"firefox"            , NULL      , NULL      , 1 << 1 , 3           , 0          , 0          , 0         , -1},
+    {"Spotify"            , NULL      , NULL      , 1 << 3 , 1           , 0          , 0          , 0         , -1},
+    {"discord"            , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1},
+    {"Zulip"              , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1},
+    {"zoom"               , NULL      , NULL      , 1 << 7 , 1           , 0          , 0          , 0         , -1},
+    {"VirtualBox Machine" , NULL      , NULL      , 1 << 4 , 1           , 0          , 0          , 0         , -1},
+    {"jetbrains-clion"    , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1},
+    {"jetbrains-webstorm" , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1},
+    {"jetbrains-idea"     , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1},
+    {"jetbrains-pycharm"  , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1},
+    {"jetbrains-studio"   , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1},
+    {"qemu-system-i386"   , NULL      , NULL      , 0      , 0           , 1          , 1          , 1         , -1},
+    {"testing"            , "testing" , "testing" , 0      , 0           , 1          , 1          , 1         , -1},
+    {"Alacritty"          , NULL      , "spotify" , 1 << 3 , 3           , 0          , 0          , 1         , -1},
+    {"Alacritty"          , NULL      , "sysmon"  , 1 << 4 , 3           , 0          , 0          , 1         , -1},
+    {"Alacritty"          , NULL      , NULL      , 0      , 0           , 0          , 1          , 1         , -1},
     // clang-format on
 };
+
 
 /* layout(s) */
 static const float mfact = 0.5;   /* factor of master area size [0.05..0.95] */
