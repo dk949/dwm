@@ -12,8 +12,8 @@ static const int showbar = 1;       /* 0 means no bar */
 static const int topbar = 1;        /* 0 means bottom bar */
 static const int bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
 static const int bright_steps = 20; /* number of steps it takes to move between brightness values */
-static const char *fonts[] = {"Hack:size=10"};
-static const char dmenufont[] = "Hack:size=10";
+static const char *fonts[] = {"JetBrains Mono:size=10"};
+static const char dmenufont[] = "JetBrains Mono:size=10";
 
 static const double progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
 
@@ -75,6 +75,7 @@ static const Rule rules[] = {
     {"firefox"            , NULL      , NULL      , 1 << 1 , 3           , 0          , 0          , 0         , -1},
     {"Spotify"            , NULL      , NULL      , 1 << 3 , 1           , 0          , 0          , 0         , -1},
     {"discord"            , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1},
+    {"Thunderbird"        , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1},
     {"Zulip"              , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1},
     {"zoom"               , NULL      , NULL      , 1 << 7 , 1           , 0          , 0          , 0         , -1},
     {"VirtualBox Machine" , NULL      , NULL      , 1 << 4 , 1           , 0          , 0          , 0         , -1},
@@ -85,9 +86,10 @@ static const Rule rules[] = {
     {"jetbrains-studio"   , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1},
     {"qemu-system-i386"   , NULL      , NULL      , 0      , 0           , 1          , 1          , 1         , -1},
     {"testing"            , "testing" , "testing" , 0      , 0           , 1          , 1          , 1         , -1},
-    {"Alacritty"          , NULL      , "spotify" , 1 << 3 , 3           , 0          , 0          , 1         , -1},
-    {"Alacritty"          , NULL      , "sysmon"  , 1 << 4 , 3           , 0          , 0          , 1         , -1},
-    {"Alacritty"          , NULL      , NULL      , 0      , 0           , 0          , 1          , 1         , -1},
+    {"st-256color"        , NULL      , "spotify" , 1 << 3 , 3           , 0          , 0          , 1         , -1},
+    {"st-256color"        , NULL      , "sysmon"  , 1 << 4 , 3           , 0          , 0          , 1         , -1},
+    {"st-256color"        , NULL      , "neovim"  , 0      , 0           , 1          , 0          , 1         , -1},
+    {"st-256color"        , NULL      , NULL      , 0      , 0           , 0          , 1          , 1         , -1},
     // clang-format on
 };
 
@@ -128,7 +130,7 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = {"dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", NULL};
 
-static const char *termcmd[] = {"alacritty", NULL};
+static const char *termcmd[] = {"st", NULL};
 static const char *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
 static const char *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock
 static const char *brwscmd[] = {"firefox", NULL};  // Firefox browser
