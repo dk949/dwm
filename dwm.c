@@ -36,15 +36,21 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
+
 #include "drw.h"
 #include "util.h"
+
 #ifdef ASOUND
 #include "volc.h"
 #endif /* ASOUND */
+
+#ifdef XBACKLIGHT
 #include "xbacklight.h"
+#endif // XBACKLIGHT
 
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
@@ -81,7 +87,9 @@ enum {
     SchemeInfoNorm,
     SchemeInfoProgress,
     SchemeOffProgress,
+#ifdef XBACKLIGHT
     SchemeBrightProgress,
+#endif // XBACKLIGHT
 }; /* color schemes */
 enum {
     NetSupported,
@@ -193,9 +201,11 @@ static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachaside(Client *c);
 static void attachstack(Client *c);
+#ifdef XBACKLIGHT
 static void bright_dec(const Arg *arg);
 static void bright_inc(const Arg *arg);
 static void bright_set(const Arg *arg) __attribute__((unused));
+#endif // XBACKLIGHT
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -287,7 +297,11 @@ static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
+
+#ifdef ASOUND
 static void volumechange(const Arg *arg);
+#endif // ASOUND
+
 static pid_t winpid(Window w);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
@@ -576,6 +590,7 @@ void unswallow(Client *c) {
 }
 
 
+#ifdef XBACKLIGHT
 void bright_dec(const Arg *arg) {
     if (bright_dec_(arg->f)) {
         fprintf(stderr, "Fucntion bright_dec_(const Arg *arg) from xbacklight.h returned a non 0 value");
@@ -610,7 +625,7 @@ void bright_set(const Arg *arg) {
     drawprogress(100, (unsigned long long)arg->f, SchemeBrightProgress);
 }
 
-
+#endif // XBACKLIGHT
 
 void buttonpress(XEvent *e) {
     unsigned int i;
@@ -1951,9 +1966,12 @@ void setup(void) {
         die("no fonts could be loaded.");
     }
 
+#ifdef XBACKLIGHT
     if (bright_setup(NULL, bright_steps, bright_time)) {
         die("xbacklight setup failed");
     }
+#endif // XBACKLIGHT
+
 #ifdef ASOUND
     if (!(volc = volc_init(VOLC_ALL_DEFULTS))) {
         die("volc setup failed: %s", volc_err_str());
@@ -2574,8 +2592,8 @@ void view(const Arg *arg) {
     arrange(selmon);
 }
 
-void volumechange(const Arg *arg) {
 #ifdef ASOUND
+void volumechange(const Arg *arg) {
     volc_volume_state_t state;
     if (arg->i == VOL_MT) {
         state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE);
@@ -2589,8 +2607,8 @@ void volumechange(const Arg *arg) {
     }
 
     drawprogress(100, (unsigned long long)state.state.volume, state.state.switch_pos ? SchemeInfoProgress : SchemeOffProgress);
-#endif
 }
+#endif
 
 
 pid_t winpid(Window w) {

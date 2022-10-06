@@ -10,10 +10,13 @@ static unsigned int snap;     /* snap pixel */
 
 static const int showbar = 1;       /* 0 means no bar */
 static const int topbar = 1;        /* 0 means bottom bar */
-static const int bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
-static const int bright_steps = 20; /* number of steps it takes to move between brightness values */
 static const char *fonts[] = {"JetBrains Mono:size=10"};
 static const char dmenufont[] = "JetBrains Mono:size=10";
+
+#ifdef XBACKLIGHT
+static const int bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
+static const int bright_steps = 20; /* number of steps it takes to move between brightness values */
+#endif // XBACKLIGHT
 
 static const double progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
 
@@ -47,7 +50,9 @@ static const char *colors[][3] = {
     [SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank}    , // infobar unselected
     [SchemeInfoProgress]   = { c_green    , c_inactive , c_blank}    , // infobar middle progress
     [SchemeOffProgress]    = { c_red      , c_inactive , c_blank}    , // infobar middle progress
+#ifdef XBACKLIGHT
     [SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank}    , // infobar middle progress
+#endif // XBACKLIGHT
     // clang-format on
 };
 
@@ -153,9 +158,11 @@ static Key keys[] = {
     /* modifier                         key         function       argument */
     // Utility spawners
     {MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
+#ifdef ASOUND
     {MODKEY                           , XK_F1     , volumechange   , {.i = VOL_MT  }}    ,
     {MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN*5}}    ,
     {MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP*5}}    ,
+#endif // ASOUND
     {MODKEY                           , XK_m      , spawn          , {.v = comkill}}     ,
     {MODKEY                           , XK_t      , spawn          , {.v = compcmd}}     ,
     {MODKEY                           , XK_Return , spawn          , {.v = termcmd}}     ,
@@ -189,8 +196,10 @@ static Key keys[] = {
     {MODKEY                           , XK_Tab    , view           , {0}}                ,
     {MODKEY                           , XK_w      , killclient     , {0}}                ,
     {MODKEY | ShiftMask               , XK_o      , setcfact       , {.f = 0.00}}        ,
+#ifdef XBACKLIGHT
     {MODKEY                           , XK_F12    , bright_inc     , {.f = 5.0}}         ,
     {MODKEY                           , XK_F11    , bright_dec     , {.f = 5.0}}         ,
+#endif // XBACKLIGHT
     {MODKEY                           , XK_t      , setlayout      , {.v = &layouts[0]}} ,
     {MODKEY                           , XK_f      , setlayout      , {.v = &layouts[1]}} ,
     {MODKEY                           , XK_m      , setlayout      , {.v = &layouts[2]}} ,

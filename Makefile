@@ -3,11 +3,12 @@
 
 include config.mk
 
-SRC = drw.c \
-      dwm.c \
-      util.c \
-      volc.c \
-      xbacklight.c
+SRC = drw.c                        \
+	  dwm.c                        \
+	  util.c                       \
+	  $(if $(ASOUNDFLAGS),volc.c,) \
+	  $(if $(XBACKLIGHTFLAGS ),xbacklight.c)
+
 
 OBJ = ${SRC:.c=.o}
 
