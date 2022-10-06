@@ -7,20 +7,8 @@
 List of things I'd like to implement but don't have time for
 Format: %title%\n    %description%\n    Difficulty: %difficulty%
 
-1. Rule for the music player
-    A way for the music player (spotify-tui) to become small, floating, and be located on every tag in the top right corner.
-    Difficulty: Medium to hard
-
-
 2. Get status color working
     Have color appear in the status bar. Will also require a slight rewrite of slstatus
-    Difficulty: hard
-
 
 3. Layout saving
     Make it possible to apply a specific layout with specific applications in their places (e.g. 2 windows split down the middle, neovim on the left, zathura on the right). Partly implemented in https://github.com/dk949/layout-script
-    Difficulty: medium to hard
-
-4. Change volume from dwm
-    Like how it is possible to change monitor brightness, but for sound.
-    Difficulty: hard
