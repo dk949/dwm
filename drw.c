@@ -10,12 +10,12 @@
 #define UTF_INVALID 0xFFFD
 #define UTF_SIZ     4
 
-static const unsigned char utfbyte[UTF_SIZ + 1] = {0x80, 0, 0xC0, 0xE0, 0xF0};
-static const unsigned char utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
-static const long utfmin[UTF_SIZ + 1] = {0, 0, 0x80, 0x800, 0x10000};
-static const long utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
+static unsigned char const utfbyte[UTF_SIZ + 1] = {0x80, 0, 0xC0, 0xE0, 0xF0};
+static unsigned char const utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
+static long const utfmin[UTF_SIZ + 1] = {0, 0, 0x80, 0x800, 0x10000};
+static long const utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
 
-static long utf8decodebyte(const char c, size_t *i) {
+static long utf8decodebyte(char const c, size_t *i) {
     for (*i = 0; *i < (UTF_SIZ + 1); ++(*i)) {
         if (((unsigned char)c & utfmask[*i]) == utfbyte[*i]) {
             return (unsigned char)c & ~utfmask[*i];
@@ -34,7 +34,7 @@ static size_t utf8validate(long *u, size_t i) {
     return i;
 }
 
-static size_t utf8decode(const char *c, long *u, size_t clen) {
+static size_t utf8decode(char const *c, long *u, size_t clen) {
     size_t i;
     size_t j;
     size_t len;
@@ -102,7 +102,7 @@ void drw_free(Drw *drw) {
 /* This function is an implementation detail. Library users should use
  * drw_fontset_create instead.
  */
-static Fnt *xfont_create(Drw *drw, const char *fontname, FcPattern *fontpattern) {
+static Fnt *xfont_create(Drw *drw, char const *fontname, FcPattern *fontpattern) {
     Fnt *font;
     XftFont *xfont = NULL;
     FcPattern *pattern = NULL;
@@ -164,7 +164,7 @@ static void xfont_free(Fnt *font) {
     free(font);
 }
 
-Fnt *drw_fontset_create(Drw *drw, const char *fonts[], size_t fontcount) {
+Fnt *drw_fontset_create(Drw *drw, char const *fonts[], size_t fontcount) {
     Fnt *cur;
     Fnt *ret = NULL;
     size_t i;
@@ -189,19 +189,23 @@ void drw_fontset_free(Fnt *font) {
     }
 }
 
-void drw_clr_create(Drw *drw, Clr *dest, const char *clrname) {
+void drw_clr_create(Drw *drw, Clr *dest, char const *clrname) {
     if (!drw || !dest || !clrname) {
         return;
     }
 
-    if (!XftColorAllocName(drw->dpy, DefaultVisual(drw->dpy, drw->screen), DefaultColormap(drw->dpy, drw->screen), clrname, dest)) {
+    if (!XftColorAllocName(drw->dpy,
+            DefaultVisual(drw->dpy, drw->screen),
+            DefaultColormap(drw->dpy, drw->screen),
+            clrname,
+            dest)) {
         die("error, cannot allocate color '%s'", clrname);
     }
 }
 
 /* Wrapper to create color schemes. The caller has to call free(3) on the
  * returned color scheme when done using it. */
-Clr *drw_scm_create(Drw *drw, const char *clrnames[], size_t clrcount) {
+Clr *drw_scm_create(Drw *drw, char const *clrnames[], size_t clrcount) {
     size_t i;
     Clr *ret;
 
@@ -240,7 +244,7 @@ void drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled
     }
 }
 
-int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, const char *text, int invert) {
+int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, int invert) {
     char buf[1024];
     int ty;
     unsigned int ew;
@@ -254,7 +258,7 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
     int utf8charlen;
     int render = x || y || w || h;
     long utf8codepoint = 0;
-    const char *utf8str;
+    char const *utf8str;
     FcCharSet *fccharset;
     FcPattern *fcpattern;
     FcPattern *match;
@@ -270,7 +274,10 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
     } else {
         XSetForeground(drw->dpy, drw->gc, drw->scheme[invert ? ColFg : ColBg].pixel);
         XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
-        d = XftDrawCreate(drw->dpy, drw->drawable, DefaultVisual(drw->dpy, drw->screen), DefaultColormap(drw->dpy, drw->screen));
+        d = XftDrawCreate(drw->dpy,
+            drw->drawable,
+            DefaultVisual(drw->dpy, drw->screen),
+            DefaultColormap(drw->dpy, drw->screen));
         x += lpad;
         w -= lpad;
     }
@@ -386,14 +393,14 @@ void drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h)
     XSync(drw->dpy, False);
 }
 
-unsigned int drw_fontset_getwidth(Drw *drw, const char *text) {
+unsigned int drw_fontset_getwidth(Drw *drw, char const *text) {
     if (!drw || !drw->fonts || !text) {
         return 0;
     }
     return drw_text(drw, 0, 0, 0, 0, 0, text, 0);
 }
 
-void drw_font_getexts(Fnt *font, const char *text, unsigned int len, unsigned int *w, unsigned int *h) {
+void drw_font_getexts(Fnt *font, char const *text, unsigned int len, unsigned int *w, unsigned int *h) {
     XGlyphInfo ext;
 
     if (!font || !text) {

@@ -40,11 +40,11 @@
 #include <xcb/xproto.h>
 
 typedef enum { Get, Set, Inc, Dec } op_t;
+
 static int steps, total_time /* ms */;
 
 static xcb_atom_t backlight, backlight_new, backlight_legacy;
 static xcb_connection_t *conn;
-
 
 static long backlight_get(xcb_connection_t *connection, xcb_randr_output_t output) {
     xcb_generic_error_t *generic_error;
@@ -68,7 +68,8 @@ static long backlight_get(xcb_connection_t *connection, xcb_randr_output_t outpu
         }
     }
 
-    if (prop_reply == NULL || prop_reply->type != XCB_ATOM_INTEGER || prop_reply->num_items != 1 || prop_reply->format != 32) {
+    if (prop_reply == NULL || prop_reply->type != XCB_ATOM_INTEGER || prop_reply->num_items != 1
+        || prop_reply->format != 32) {
         value = -1;
     } else {
         value = *((int32_t *)xcb_randr_get_output_property_data(prop_reply));
@@ -79,11 +80,15 @@ static long backlight_get(xcb_connection_t *connection, xcb_randr_output_t outpu
 }
 
 static void backlight_set(xcb_randr_output_t output, long value) {
-    xcb_randr_change_output_property(
-        conn, output, backlight, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, (unsigned char *)&value);
+    xcb_randr_change_output_property(conn,
+        output,
+        backlight,
+        XCB_ATOM_INTEGER,
+        32,
+        XCB_PROP_MODE_REPLACE,
+        1,
+        (unsigned char *)&value);
 }
-
-
 
 int bright_setup(char *dpy_name, int step_conf, int time_conf) {
     steps = step_conf;
@@ -141,7 +146,6 @@ int bright_setup(char *dpy_name, int step_conf, int time_conf) {
     return 0;
 }
 
-
 int run(double value, op_t op, double *new_value) {
     int i;
     double tmp;
@@ -152,7 +156,8 @@ int run(double value, op_t op, double *new_value) {
     xcb_generic_error_t *error;
     xcb_screen_iterator_t iter;
 
-    iter = xcb_setup_roots_iterator(xcb_get_setup(conn));  // Pretty sure this gets managed by something else and i don't need to free it
+    iter = xcb_setup_roots_iterator(
+        xcb_get_setup(conn));  // Pretty sure this gets managed by something else and i don't need to free it
     while (iter.rem) {
         xcb_screen_t *screen = iter.data;
         xcb_window_t root = screen->root;
@@ -201,18 +206,10 @@ int run(double value, op_t op, double *new_value) {
                     } else {
                         set = value * (max - min) / 100;
                         switch (op) {
-                            case Set:
-                                new = min + set;
-                                break;
-                            case Inc:
-                                new = cur + set;
-                                break;
-                            case Dec:
-                                new = cur - set;
-                                break;
-                            default:
-                                xcb_aux_sync(conn);
-                                return 1;
+                            case Set: new = min + set; break;
+                            case Inc: new = cur + set; break;
+                            case Dec: new = cur - set; break;
+                            default: xcb_aux_sync(conn); return 1;
                         }
                         if (new > max) {
                             new = max;

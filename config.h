@@ -8,17 +8,18 @@ static unsigned int gappx;    /* gaps between windows */
 static unsigned int snap;     /* snap pixel */
 
 
-static const int showbar = 1;       /* 0 means no bar */
-static const int topbar = 1;        /* 0 means bottom bar */
-static const char *fonts[] = {"JetBrains Mono:size=10"};
-static const char dmenufont[] = "JetBrains Mono:size=10";
+static int const showbar = 1; /* 0 means no bar */
+static int const topbar = 1;  /* 0 means bottom bar */
+static char const *fonts[] = {"JetBrains Mono:size=10"};
+static char const dmenufont[] = "JetBrains Mono:size=10";
 
 #ifdef XBACKLIGHT
-static const int bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
-static const int bright_steps = 20; /* number of steps it takes to move between brightness values */
-#endif // XBACKLIGHT
+static int const bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
+static int const bright_steps = 20; /* number of steps it takes to move between brightness values */
 
-static const double progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
+#endif  // XBACKLIGHT
+
+static double const progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
 
 
 /* colors */
@@ -38,8 +39,8 @@ static const char c_blank[]    = "#000000";
 // clang-format on
 
 /* Color assignment */
-static const char *colors[][3] = {
-    // clang-format off
+static char const *colors[][3] = {
+  // clang-format off
     /*                      fg          bg              border   */
     [SchemeNorm]           = { c_active   , c_inactive , c_inactive} ,
     [SchemeSel]            = { c_inactive , c_active   , c_active}   ,
@@ -53,27 +54,27 @@ static const char *colors[][3] = {
 #ifdef XBACKLIGHT
     [SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank}    , // infobar middle progress
 #endif // XBACKLIGHT
-    // clang-format on
+  // clang-format on
 };
 
 
 /* tagging                  |1     |2     |3     |4     |5     |6     |7      |8      |*/
-static const char *tags[] = {"TERM", "WWW", "DEV", "ENT", "SYS", "GFX", "CHAT", "TERM"};
+static char const *tags[] = {"TERM", "WWW", "DEV", "ENT", "SYS", "GFX", "CHAT", "TERM"};
 
 static const Rule rules[] = {
-    /* xprop(1):
-     *    WM_CLASS(STRING) = instance, class
-     *    WM_NAME(STRING) = title
-     */
-    /*
-       Rules for swicthtotag:
-           - 0 is default behaviour
-           - 1 automatically moves you to the tag of the newly opened application
-           - 2 enables the tag of the newly opened application in addition to your existing enabled tags
-           - 3 as 1, but closing that window reverts the view back to what it was previously (*)
-           - 4 as 2, but closing that window reverts the view back to what it was previously (*)
-   */
-    // clang-format off
+  /* xprop(1):
+  *    WM_CLASS(STRING) = instance, class
+  *    WM_NAME(STRING) = title
+  */
+  /*
+  Rules for swicthtotag:
+  - 0 is default behaviour
+  - 1 automatically moves you to the tag of the newly opened application
+  - 2 enables the tag of the newly opened application in addition to your existing enabled tags
+  - 3 as 1, but closing that window reverts the view back to what it was previously (*)
+  - 4 as 2, but closing that window reverts the view back to what it was previously (*)
+  */
+  // clang-format off
     /* class              , inst      , title     , tags   , switchtotag , isfloating , isterminal , noswallow , monitor */
     {"Gimp"               , NULL      , NULL      , 1 << 5 , 3           , 0          , 0          , 0         , -1},
     {"Steam"              , NULL      , NULL      , 1 << 3 , 3           , 1          , 0          , 0         , -1},
@@ -95,21 +96,21 @@ static const Rule rules[] = {
     {"st-256color"        , NULL      , "sysmon"  , 1 << 4 , 3           , 0          , 0          , 1         , -1},
     {"st-256color"        , NULL      , "neovim"  , 0      , 0           , 1          , 0          , 1         , -1},
     {"st-256color"        , NULL      , NULL      , 0      , 0           , 0          , 1          , 1         , -1},
-    // clang-format on
+  // clang-format on
 };
 
 
 /* layout(s) */
-static const float mfact = 0.5;   /* factor of master area size [0.05..0.95] */
-static const int nmaster = 1;     /* number of clients in master area */
-static const int resizehints = 1; /* 1 means respect size hints in tiled resizals */
+static float const mfact = 0.5;   /* factor of master area size [0.05..0.95] */
+static int const nmaster = 1;     /* number of clients in master area */
+static int const resizehints = 1; /* 1 means respect size hints in tiled resizals */
 
 static const Layout layouts[] = {
-    /* symbol   arrange function */
-    {"[]=", tile}, /* first entry is default */
-    {"><>", NULL}, /* no layout function means floating behavior */
-    {"[M]", monocle},
-    {"|M|", centeredmaster},
+  /* symbol      arrange function */
+    {"[]=",                   tile}, /* first entry is default */
+    {"><>",                   NULL}, /* no layout function means floating behavior */
+    {"[M]",                monocle},
+    {"|M|",         centeredmaster},
     {">M>", centeredfloatingmaster},
 };
 
@@ -126,35 +127,36 @@ static const Layout layouts[] = {
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd)                     \
     {                                  \
-        .v = (const char *[]) {        \
+        .v = (char const *[]) {        \
             "/bin/sh", "-c", cmd, NULL \
         }                              \
     }
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = {"dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", NULL};
+static char const *dmenucmd[] = {
+    "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", NULL};
 
-static const char *termcmd[] = {"st", NULL};
-static const char *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
-static const char *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock
-static const char *brwscmd[] = {"firefox", NULL};  // Firefox browser
-static const char *musccmd[] = {"spotify", NULL};  // spotify-tui
-static const char *htopcmd[] = {"sysmon", NULL};   // system monitor aka htop
-static const char *nvimcmd[] = {"neovim", NULL};   // opens neovim
-static const char *chatcmd[] = {"disc", NULL};     // does discord
+static char const *termcmd[] = {"st", NULL};
+static char const *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
+static char const *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock
+static char const *brwscmd[] = {"firefox", NULL};  // Firefox browser
+static char const *musccmd[] = {"spotify", NULL};  // spotify-tui
+static char const *htopcmd[] = {"sysmon", NULL};   // system monitor aka htop
+static char const *nvimcmd[] = {"neovim", NULL};   // opens neovim
+static char const *chatcmd[] = {"disc", NULL};     // does discord
 
-static const char *compcmd[] = {"picom-start", NULL};  // volume mute
+static char const *compcmd[] = {"picom-start", NULL};  // volume mute
 
-static const char *symdmnu[] = {"sym", NULL};         // Mathematical symbol selection
-static const char *grkdmnu[] = {"greek", NULL};       // Mathematical symbol selection
-static const char *scrdmnu[] = {"screenshot", NULL};  // Screenshot taker
+static char const *symdmnu[] = {"sym", NULL};         // Mathematical symbol selection
+static char const *grkdmnu[] = {"greek", NULL};       // Mathematical symbol selection
+static char const *scrdmnu[] = {"screenshot", NULL};  // Screenshot taker
 
-static const char *comkill[] = {"picom-end", NULL};
+static char const *comkill[] = {"picom-end", NULL};
 
 static Key keys[] = {
 
-    // clang-format off
+  // clang-format off
     /* modifier                         key         function       argument */
     // Utility spawners
     {MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
@@ -214,7 +216,7 @@ static Key keys[] = {
     {MODKEY | ShiftMask               , XK_comma  , tagmon         , {.i = -1}}          ,
     {MODKEY | ShiftMask               , XK_period , tagmon         , {.i = +1}}          ,
     {MODKEY | ShiftMask               , XK_q      , quit           , {0}}                ,
-    // clang-format on
+  // clang-format on
 
     TAGKEYS(XK_1, 0),
     TAGKEYS(XK_2, 1),
@@ -229,7 +231,7 @@ static Key keys[] = {
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
-    // clang-format off
+  // clang-format off
     /* click       , event mask , button  , function       , argument            , */
     {ClkLtSymbol   , 0          , Button1 , setlayout      , {0}}                ,
     {ClkLtSymbol   , 0          , Button3 , setlayout      , {.v = &layouts[2]}} ,
@@ -242,5 +244,5 @@ static Button buttons[] = {
     {ClkTagBar     , 0          , Button3 , toggleview     , {0}}                ,
     {ClkTagBar     , MODKEY     , Button1 , tag            , {0}}                ,
     {ClkTagBar     , MODKEY     , Button3 , toggletag      , {0}}                ,
-    // clang-format on
+  // clang-format on
 };

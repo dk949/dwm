@@ -15,7 +15,7 @@ void *ecalloc(size_t nmemb, size_t size) {
     return p;
 }
 
-void die(const char *fmt, ...) {
+void die(char const *fmt, ...) {
     va_list ap;
 
     va_start(ap, fmt);

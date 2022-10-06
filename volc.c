@@ -1,36 +1,35 @@
 #ifdef ASOUND
-#include "volc.h"
+#    include "volc.h"
 
-#include <alsa/asoundlib.h>
-#include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <float.h>
-#include <getopt.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/poll.h>
+#    include <alsa/asoundlib.h>
+#    include <assert.h>
+#    include <ctype.h>
+#    include <errno.h>
+#    include <float.h>
+#    include <getopt.h>
+#    include <stdarg.h>
+#    include <stdio.h>
+#    include <stdlib.h>
+#    include <string.h>
+#    include <sys/poll.h>
 
 static char err_msg[1024];
-#define REPORT_ERR(...) sprintf(err_msg, __VA_ARGS__)
-#define CARD_SZ         64
+#    define REPORT_ERR(...) sprintf(err_msg, __VA_ARGS__)
+#    define CARD_SZ         64
 
-#ifdef VOLC_VERBOSE
-#define VERBOSE_PRINT(FMT, ...) fprintf(stdout, FMT "\n", __VA_ARGS__)
-#define VERBOSE_RET(TYPE, FMT, X)            \
-    TYPE ret = (X);                          \
-    fprintf(stdout, "ret = " FMT "\n", ret); \
-    return ret;
-#else
-#define VERBOSE_PRINT(...)
-#define VERBOSE_RET(TYPE, FMT, X) return (X);
-#endif
+#    ifdef VOLC_VERBOSE
+#        define VERBOSE_PRINT(FMT, ...) fprintf(stdout, FMT "\n", __VA_ARGS__)
+#        define VERBOSE_RET(TYPE, FMT, X)            \
+            TYPE ret = (X);                          \
+            fprintf(stdout, "ret = " FMT "\n", ret); \
+            return ret;
+#    else
+#        define VERBOSE_PRINT(...)
+#        define VERBOSE_RET(TYPE, FMT, X) return (X);
+#    endif
 
 
-#define CHECK_RANGE(val, min, max) (((val) < (min)) ? (min) : ((val) > (max)) ? (max) : (val))
-
+#    define CHECK_RANGE(val, min, max) (((val) < (min)) ? (min) : ((val) > (max)) ? (max) : (val))
 
 // Avoiding c math lib
 long vceil(double d) {
@@ -42,7 +41,6 @@ long vceil(double d) {
     static double eps = 0.999999999999999;
     return (d + eps);
 }
-
 
 long convert_prange(float val, float min, float max) {
     VERBOSE_PRINT("convert_prange val = %f, min = %f, max = %f", val, min, max);
@@ -93,7 +91,7 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
     VERBOSE_RET(float, "%f", convert_prange_back(val, (float)pmin, (float)pmax));
 }
 
-static snd_mixer_t *get_handle(int *err, const char *card) {
+static snd_mixer_t *get_handle(int *err, char const *card) {
     VERBOSE_PRINT("get_handle: err = %d, card = %s", *err, card);
     snd_mixer_t *handle;
     {
@@ -122,10 +120,8 @@ static snd_mixer_t *get_handle(int *err, const char *card) {
     VERBOSE_RET(snd_mixer_t *, "%llu", handle);
 }
 
-
-
-extern volc_volume_state_t
-    volc_volume_ctl(volc_t *volc, unsigned int channels, volc_volume_t new_volume, channel_switch_t channel_switch) {
+extern volc_volume_state_t volc_volume_ctl(
+    volc_t *volc, unsigned int channels, volc_volume_t new_volume, channel_switch_t channel_switch) {
     VERBOSE_PRINT("volc_volume_ctl: volc = %llu, channels = %d, new_volume.action = %d ,new_volume.volume = %f, "
                   "channel_switch = %d",
         (unsigned long long)volc,
@@ -199,9 +195,7 @@ extern volc_volume_state_t
     return state;
 }
 
-
-
-extern volc_t *volc_init(const char *selector, unsigned int selector_index, const char *card) {
+extern volc_t *volc_init(char const *selector, unsigned int selector_index, char const *card) {
     int err = 0;
     memset(err_msg, 0, sizeof(err_msg));
     volc_t *volc = malloc(sizeof(volc_t));
@@ -238,8 +232,7 @@ extern void volc_deinit(volc_t *volc) {
     }
 }
 
-
-extern const char *volc_err_str() {
+extern char const *volc_err_str() {
     return err_msg;
 }
 

@@ -13,7 +13,7 @@
     }
 
 #include <stddef.h>
-void die(const char *fmt, ...);
+void die(char const *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
 
 #endif  // UTIL_H
