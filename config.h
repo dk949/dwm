@@ -13,11 +13,13 @@ static int const topbar = 1;  /* 0 means bottom bar */
 static char const *fonts[] = {"JetBrains Mono:size=10"};
 static char const dmenufont[] = "JetBrains Mono:size=10";
 
-#ifdef XBACKLIGHT
 static int const bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
 static int const bright_steps = 20; /* number of steps it takes to move between brightness values */
 
+#ifndef XBACKLIGHT
+static char const bright_file[] = "/sys/class/backlight/amdgpu_bl0/brightness";
 #endif  // XBACKLIGHT
+
 
 static double const progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
 
@@ -51,9 +53,7 @@ static char const *colors[][3] = {
     [SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank}    , // infobar unselected
     [SchemeInfoProgress]   = { c_green    , c_inactive , c_blank}    , // infobar middle progress
     [SchemeOffProgress]    = { c_red      , c_inactive , c_blank}    , // infobar middle progress
-#ifdef XBACKLIGHT
     [SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank}    , // infobar middle progress
-#endif // XBACKLIGHT
   // clang-format on
 };
 
@@ -198,10 +198,8 @@ static Key keys[] = {
     {MODKEY                           , XK_Tab    , view           , {0}}                ,
     {MODKEY                           , XK_w      , killclient     , {0}}                ,
     {MODKEY | ShiftMask               , XK_o      , setcfact       , {.f = 0.00}}        ,
-#ifdef XBACKLIGHT
-    {MODKEY                           , XK_F12    , bright_inc     , {.f = 5.0}}         ,
-    {MODKEY                           , XK_F11    , bright_dec     , {.f = 5.0}}         ,
-#endif // XBACKLIGHT
+    {MODKEY                           , XK_F5     , bright_dec     , {.f = 5.0}}         ,
+    {MODKEY                           , XK_F6     , bright_inc     , {.f = 5.0}}         ,
     {MODKEY                           , XK_t      , setlayout      , {.v = &layouts[0]}} ,
     {MODKEY                           , XK_f      , setlayout      , {.v = &layouts[1]}} ,
     {MODKEY                           , XK_m      , setlayout      , {.v = &layouts[2]}} ,

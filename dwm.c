@@ -48,9 +48,7 @@
 #    include "volc.h"
 #endif /* ASOUND */
 
-#ifdef XBACKLIGHT
-#    include "xbacklight.h"
-#endif  // XBACKLIGHT
+#include "backlight.h"
 
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
@@ -89,10 +87,9 @@ enum {
     SchemeInfoNorm,
     SchemeInfoProgress,
     SchemeOffProgress,
-#ifdef XBACKLIGHT
     SchemeBrightProgress,
-#endif  // XBACKLIGHT
-};      /* color schemes */
+}; /* color schemes */
+
 enum {
     NetSupported,
     NetWMName,
@@ -207,11 +204,9 @@ static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachaside(Client *c);
 static void attachstack(Client *c);
-#ifdef XBACKLIGHT
 static void bright_dec(Arg const *arg);
 static void bright_inc(Arg const *arg);
 static void bright_set(Arg const *arg) __attribute__((unused));
-#endif  // XBACKLIGHT
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -594,43 +589,42 @@ void unswallow(Client *c) {
     setclientstate(c, NormalState);
 }
 
-
-#ifdef XBACKLIGHT
 void bright_dec(Arg const *arg) {
-    if (bright_dec_(arg->f)) {
-        fprintf(stderr, "Fucntion bright_dec_(const Arg *arg) from xbacklight.h returned a non 0 value");
+    int ret;
+    if ((ret = bright_dec_(arg->f))) {
+        fprintf(stderr, "Function bright_dec_(const Arg *arg) from backlight.h returned %d\n", ret);
         return;
     }
     double newval;
-    if (bright_get_(&newval)) {
-        fprintf(stderr, "Fucntion bright_get_(const Arg *arg) from xbacklight.h returned a non 0 value");
+    if ((ret = bright_get_(&newval))) {
+        fprintf(stderr, "Function bright_get_(const Arg *arg) from backlight.h returned %d\n", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
 }
 
 void bright_inc(Arg const *arg) {
-    if (bright_inc_(arg->f)) {
-        fprintf(stderr, "Fucntion bright_inc_(const Arg *arg) from xbacklight.h returned a non 0 value");
+    int ret;
+    if ((ret = bright_inc_(arg->f))) {
+        fprintf(stderr, "Function bright_inc_(const Arg *arg) from backlight.h returned %d\n", ret);
         return;
     }
     double newval;
-    if (bright_get_(&newval)) {
-        fprintf(stderr, "Fucntion bright_get_(const Arg *arg) from xbacklight.h returned a non 0 value");
+    if ((ret = bright_get_(&newval))) {
+        fprintf(stderr, "Function bright_get_(const Arg *arg) from backlight.h returned %d\n", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
 }
 
 void bright_set(Arg const *arg) {
-    if (bright_set_(arg->f)) {
-        fprintf(stderr, "Fucntion bright_set_(const Arg *arg) from xbacklight.h returned a non 0 value");
+    int ret;
+    if ((ret = bright_set_(arg->f))) {
+        fprintf(stderr, "Function bright_set_(const Arg *arg) from backlight.h returned %d\n", ret);
         return;
     }
     drawprogress(100, (unsigned long long)arg->f, SchemeBrightProgress);
 }
-
-#endif  // XBACKLIGHT
 
 void buttonpress(XEvent *e) {
     unsigned int i;
@@ -1997,10 +1991,13 @@ void setup(void) {
     }
 
 #ifdef XBACKLIGHT
-    if (bright_setup(NULL, bright_steps, bright_time)) {
-        die("xbacklight setup failed");
-    }
+    if (bright_setup(NULL, bright_steps, bright_time))
+#else
+    if (bright_setup(bright_file, 0, 0))
 #endif  // XBACKLIGHT
+    {
+        die("backlight setup failed");
+    }
 
 #ifdef ASOUND
     if (!(volc = volc_init(VOLC_ALL_DEFULTS))) {

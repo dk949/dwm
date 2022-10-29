@@ -28,7 +28,7 @@
  * Modifications made by dk949 on 2021-01-02
  */
 
-#include "xbacklight.h"
+#include "backlight.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,7 +90,7 @@ static void backlight_set(xcb_randr_output_t output, long value) {
         (unsigned char *)&value);
 }
 
-int bright_setup(char *dpy_name, int step_conf, int time_conf) {
+backlight_error_t bright_setup(char const *dpy_name, int step_conf, int time_conf) {
     steps = step_conf;
     total_time = time_conf;
 
@@ -107,11 +107,11 @@ int bright_setup(char *dpy_name, int step_conf, int time_conf) {
     if (error != NULL || ver_reply == NULL) {
         int ec = error ? error->error_code : -1;
         fprintf(stderr, "RANDR Query Version returned error %d\n", ec);
-        return 1;
+        return BACKLIGHT_XRANDR_ERROR;
     }
     if (ver_reply->major_version != 1 || ver_reply->minor_version < 2) {
         fprintf(stderr, "RandR version %d.%d too old\n", ver_reply->major_version, ver_reply->minor_version);
-        return 1;
+        return BACKLIGHT_XRANDR_ERROR;
     }
     free(ver_reply);
 
@@ -122,7 +122,7 @@ int bright_setup(char *dpy_name, int step_conf, int time_conf) {
     if (error != NULL || backlight_reply == NULL) {
         int ec = error ? error->error_code : -1;
         fprintf(stderr, "Intern Atom returned error %d\n", ec);
-        return 1;
+        return BACKLIGHT_ATOM_ERROR;
     }
 
     backlight_new = backlight_reply->atom;
@@ -132,7 +132,7 @@ int bright_setup(char *dpy_name, int step_conf, int time_conf) {
     if (error != NULL || backlight_reply == NULL) {
         int ec = error ? error->error_code : -1;
         fprintf(stderr, "Intern Atom returned error %d\n", ec);
-        return 1;
+        return BACKLIGHT_ATOM_ERROR;
     }
 
     backlight_legacy = backlight_reply->atom;
@@ -140,13 +140,13 @@ int bright_setup(char *dpy_name, int step_conf, int time_conf) {
 
     if (backlight_new == XCB_NONE && backlight_legacy == XCB_NONE) {
         fprintf(stderr, "No outputs have backlight property\n");
-        return 1;
+        return BACKLIGHT_PROPERTY_ERROR;
     }
 
-    return 0;
+    return BACKLIGHT_OK;
 }
 
-int run(double value, op_t op, double *new_value) {
+backlight_error_t run(double value, op_t op, double *new_value) {
     int i;
     double tmp;
     if (!new_value) {
@@ -209,7 +209,7 @@ int run(double value, op_t op, double *new_value) {
                             case Set: new = min + set; break;
                             case Inc: new = cur + set; break;
                             case Dec: new = cur - set; break;
-                            default: xcb_aux_sync(conn); return 1;
+                            default: xcb_aux_sync(conn); return BACKLIGHT_INTERNAL_ERROR;
                         }
                         if (new > max) {
                             new = max;
@@ -239,21 +239,21 @@ int run(double value, op_t op, double *new_value) {
     }
 
     xcb_aux_sync(conn);
-    return 0;
+    return BACKLIGHT_OK;
 }
 
-int bright_set_(double value) {
+backlight_error_t bright_set_(double value) {
     return run(value, Set, NULL);
 }
 
-int bright_inc_(double value) {
+backlight_error_t bright_inc_(double value) {
     return run(value, Inc, NULL);
 }
 
-int bright_dec_(double value) {
+backlight_error_t bright_dec_(double value) {
     return run(value, Dec, NULL);
 }
 
-int bright_get_(double *value) {
+backlight_error_t bright_get_(double *value) {
     return run(0, Get, value);
 }

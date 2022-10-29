@@ -7,7 +7,7 @@ SRC = drw.c                        \
 	  dwm.c                        \
 	  util.c                       \
 	  $(if $(ASOUNDFLAGS),volc.c,) \
-	  $(if $(XBACKLIGHTFLAGS ),xbacklight.c)
+	  $(if $(XBACKLIGHTFLAGS),xbacklight.c,alt_backlight.c)
 
 
 OBJ = ${SRC:.c=.o}
