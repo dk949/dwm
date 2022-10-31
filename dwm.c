@@ -240,6 +240,7 @@ static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static int isdescprocess(pid_t p, pid_t c);
 static void incnmaster(Arg const *arg);
+static Atom initemptymessage();
 static void keypress(XEvent *e);
 static void killclient(Arg const *arg);
 static void manage(Window w, XWindowAttributes *wa);
@@ -250,6 +251,7 @@ static void motionnotify(XEvent *e);
 static void movemouse(Arg const *arg);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
+static int notifyself();
 static void pop(Client *);
 static void propertynotify(XEvent *e);
 static void quit(Arg const *arg);
@@ -336,7 +338,7 @@ static void (*handler[LASTEvent])(XEvent *) = {[ButtonPress] = buttonpress,
     [MotionNotify] = motionnotify,
     [PropertyNotify] = propertynotify,
     [UnmapNotify] = unmapnotify};
-static Atom wmatom[WMLast], netatom[NetLast];
+static Atom wmatom[WMLast], netatom[NetLast], emptymsg;
 static int running = 1;
 static Cur *cursor[CurLast];
 static Clr **scheme;
@@ -731,11 +733,15 @@ void cleanupmon(Monitor *mon) {
 
 void clientmessage(XEvent *e) {
     XClientMessageEvent *cme = &e->xclient;
-    Client *c = wintoclient(cme->window);
 
-    if (!c) {
+    if (cme->message_type == emptymsg) {
         return;
     }
+
+    Client *c = wintoclient(cme->window);
+
+    if (!c) return;
+
     if (cme->message_type == netatom[NetWMState]) {
         if (cme->data.l[1] == netatom[NetWMFullscreen] || cme->data.l[2] == netatom[NetWMFullscreen]) {
             setfullscreen(c,
@@ -1295,6 +1301,22 @@ void incnmaster(Arg const *arg) {
     arrange(selmon);
 }
 
+Atom initemptymessage() {
+    Atom out = 5830572;
+    int cont;
+    do {
+        cont = 0;
+        for (int i = 0; i < NetLast; i++) {
+            if (out == 0) die("could not allocate an atom for empty client message");
+            if (netatom[i] == out) {
+                out++;
+                cont = 1;
+            }
+        }
+    } while (cont);
+    return out;
+}
+
 #ifdef XINERAMA
 static int isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
     while (n--) {
@@ -1833,6 +1855,11 @@ void scan(void) {
     }
 }
 
+int notifyself() {
+    XClientMessageEvent ev = {.type = ClientMessage, .window = root, .message_type = emptymsg};
+    return XSendEvent(dpy, root, True, StructureNotifyMask, (XEvent *)&ev);
+}
+
 void sendmon(Client *c, Monitor *m) {
     if (c->mon == m) {
         return;
@@ -2023,6 +2050,8 @@ void setup(void) {
     netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
     netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
     netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
+    emptymsg = initemptymessage();
+
     /* init cursors */
     cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
     cursor[CurResize] = drw_cur_create(drw, XC_sizing);
