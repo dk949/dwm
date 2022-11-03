@@ -9,31 +9,43 @@ Requirements
     * XCB
     * freetype2
     * (optionally) Xinerama
-
-* [dmenu](https://tools.suckless.org/dmenu/)
-    * [my build of dmenu](https://github.com/dk949/dmenu)
-* [slock](https://tools.suckless.org/slock/)
-    * [my build of slock](https://github.com/dk949/slock)
-* [slstatus](https://tools.suckless.org/slstatus/)
+    * (optionally) asound
+* make
+* [slstatus](https://tools.suckless.org/slstatus/) status bar information
     * [my build of slstatus](https://github.com/dk949/slstatus)
-* [dwm-scripts](https://github.com/dk949/dwm-scripts)
-* [volume-brightness-control](https://github.com/dk949/volume-brightness-controll)
-* [picom](https://github.com/yshui/picom) compositor
-* cmake (for building and installation)
 
+Following tools are used by default, but can be changed in `config.h`
+
+* [dmenu](https://tools.suckless.org/dmenu/) run launcher
+    * [my build of dmenu](https://github.com/dk949/dmenu)
+    * set with the `dmenucmd` variable
+* [slock](https://tools.suckless.org/slock/) screen lock
+    * [my build of slock](https://github.com/dk949/slock)
+    * set with the `lockcmd` variable
+* [picom](https://github.com/yshui/picom) compositor
+    * set with the `compcmd` and `comkill` variables
+* [st](https://st.suckless.org) terminal
+    * [my build of slstatus](https://github.com/dk949/st)
+    * set with the `termcmd` variable
+* [firefox](https://www.mozilla.org/en-US/firefox/new/) browser
+    * set with the `brwscmd` variable
+* [spotify](https://open.spotify.com/) music player
+    * set with the `musccmd` variable
+* [dwm-scripts](https://github.com/dk949/dwm-scripts) various helper scripts
+    * required for `powrcmd`, `htopcmd`, `nvimcmd` and `chatcmd`
+* [dmenu-scripts](https://github.com/dk949/dmenu-scripts) more helper scripts
+    * required for `symdmnu`, `grkdmnu` and `scrdmnu`
 
 Installation
 ------------
-Edit CMakeLists.txt to match your local setup (dwm is installed into
+Edit config.mk to match your local setup (dwm is installed into
 the /usr/local namespace by default).
 
 Afterwards enter the following commands to build and install dwm:
-
-    mkdir build
-    cd build
-    cmake ..
-    sudo make install
-
+``` sh
+make
+make install # possibly as root
+```
 
 Running dwm
 -----------
@@ -51,6 +63,7 @@ the DISPLAY environment variable is set correctly, e.g.:
 
 Configuration
 -------------
-The configuration of dwm is done editing  config.h
-and (re)compiling the source code.  
-Note: Most [patches](https://dwm.suckless.org/patches/) won't work, since the config.h has been patched several times already \(all diff files which have been applied are in the diffs directory\)
+The configuration is done editing config.h and (re)compiling the source code.
+Note: Most [patches](https://dwm.suckless.org/patches/) won't work, since the
+this version is heavily modified (all diff files which have been applied are in
+the `diffs` directory)
