@@ -39,7 +39,7 @@ install: all
 	chmod 644 ${DESTDIR}${MANPREFIX}/man1/dwm.1
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/dwm\
+	rm -f ${DESTDIR}${PREFIX}/bin/dwm \
 		${DESTDIR}${MANPREFIX}/man1/dwm.1
 
 .PHONY: all options clean install uninstall
