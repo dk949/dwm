@@ -251,7 +251,7 @@ static void motionnotify(XEvent *e);
 static void movemouse(Arg const *arg);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
-static int notifyself();
+static int notifyself() __attribute__((unused));
 static void pop(Client *);
 static void propertynotify(XEvent *e);
 static void quit(Arg const *arg);
