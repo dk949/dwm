@@ -83,6 +83,7 @@ static const Rule rules[] = {
   // clang-format off
     /* class              , inst      , title     , tags   , switchtotag , isfloating , isterminal , noswallow , monitor */
     {"Gimp"               , NULL      , NULL      , 1 << 5 , 3           , 0          , 0          , 0         , -1},
+    {"MuseScore3"         , NULL      , NULL      , 1 << 5 , 1           , 0          , 0          , 0         , -1},
     {"Steam"              , NULL      , NULL      , 1 << 3 , 3           , 1          , 0          , 0         , -1},
     {"firefox"            , NULL      , NULL      , 1 << 1 , 3           , 0          , 0          , 0         , -1},
     {"Spotify"            , NULL      , NULL      , 1 << 3 , 1           , 0          , 0          , 0         , -1},
