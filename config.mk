@@ -1,48 +1,48 @@
 # dwm version
-VERSION = 6.2
+
+DATE         = $(shell git log -1 --format='%cd' --date=format:'%F')
+DATE_TIME    = $(DATE) 00:00
+COMMIT_COUNT = $(shell git rev-list --count HEAD --since="$(DATE_TIME)")
+VERSION      = 6.2.$(shell date -d "$(DATE)" +'%Y%m%d')_$(COMMIT_COUNT)
 
 # Customize below to fit your system
 
 # paths
-PREFIX := /usr/local
-MANPREFIX = $(PREFIX)/share/man
+DESTDIR   ?=
+PREFIX    ?= /usr/local
+MANPREFIX  = $(PREFIX)/share/man
 
 
 # Optional dependencies:
-# 	Xinerama
+# 	libxinerama
 #   libasound
-#   Xbacklight
-# Uncomment *FLAGS and *LIBS to make available
-XINERAMALIBS  = -lXinerama
-XINERAMAFLAGS = -DXINERAMA
+# Will be included if installed
+XINERAMAFLAGS = `pkg-config xinerama --cflags --silence-errors && echo "-DXINERAMA"`
+XINERAMALIBS  = `pkg-config xinerama --libs --silence-errors`
 
-ASOUNDLIBS = -lasound
-ASOUNDFLAGS = -DASOUND
+ASOUNDFLAGS = `pkg-config alsa --cflags --silence-errors && echo -DASOUND`
+ASOUNDLIBS  = `pkg-config alsa --libs --silence-errors`
 
-#XBACKLIGHTLIBS = -lxcb-randr -lxcb -lxcb-util
-#XBACKLIGHTFLAGS = -DXBACKLIGHT
+# Optional features:
+# 	Setting backlight with X
+# Deprecated. Uncomment to reenable
+# XBACKLIGHTLIBS = `pkg-config xcb xcb-randr xcb-util --cflags --silence-errors && echo "-DXBACKLIGHT"`
+# XBACKLIGHTFLAGS = `pkg-config xcb xcb-randr xcb-util --libs --silence-errors`
 
-X11LIBS = -lX11 -lX11-xcb -lxcb-res
 
-# freetype
-FREETYPELIBS = -lfontconfig -lXft
-FREETYPEINC = /usr/include/freetype2
+REQ_LIBS = x11 x11-xcb xcb-res xft fontconfig
 
 # includes and libs
-INCS = -I$(FREETYPEINC)
-LIBS = $(X11LIBS) $(XINERAMALIBS) $(FREETYPELIBS) $(XBACKLIGHTLIBS) $(ASOUNDLIBS)
+LIBFLAGS = $(XINERAMAFLAGS) $(ASOUNDFLAGS) $(XBACKLIGHTFLAGS) `pkg-config $(REQ_LIBS) --cflags`
+LIBS     = $(XINERAMALIBS)  $(ASOUNDLIBS)  $(XBACKLIGHTLIBS)  `pkg-config $(REQ_LIBS) --libs`
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE \
-		   -D_BSD_SOURCE \
 		   -D_POSIX_C_SOURCE=200809L \
 		   -DVERSION=\"$(VERSION)\" \
-		   $(XINERAMAFLAGS)\
-		   $(ASOUNDFLAGS) \
-		   $(XBACKLIGHT)
 
-CFLAGS   = -std=c99 -Wpedantic -Wall -Werror -Os $(INCS) $(CPPFLAGS)
+CFLAGS   = -std=c99 -Wpedantic -Wall -Werror -Os $(LIBFLAGS) $(CPPFLAGS)
 LDFLAGS  = $(LIBS)
 
 # compiler and linker
-CC = cc
+CC ?= gcc
