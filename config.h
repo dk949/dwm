@@ -23,7 +23,11 @@ static int const bright_time = 60;  /* time in useconds to go from one screen br
 static int const bright_steps = 20; /* number of steps it takes to move between brightness values */
 
 #ifndef XBACKLIGHT
-static char const bright_file[] = "/sys/class/backlight/amdgpu_bl0/brightness";
+/* Either provide the name of the file here, or set this to NULL and provide it
+   in the get_bright_file function. If bright_file is not NULL get_bright_file
+   may return NULL, but one of them has to be a valid pointer.
+*/
+static char const *bright_file = NULL;
 #endif  // XBACKLIGHT
 
 
@@ -253,3 +257,10 @@ static Button buttons[] = {
     {ClkTagBar     , MODKEY     , Button3 , toggletag      , {0}}                ,
   // clang-format on
 };
+
+
+static char const *get_bright_file(void) {
+    char const *filename = getenv("DWM_BACKLIGHT_FILE");
+    if (filename) return filename;
+    return  "/sys/class/backlight/amdgpu_bl0/brightness";
+}
