@@ -93,6 +93,7 @@ static const Rule rules[] = {
     {"firefox"                   , NULL      , NULL      , 1 << 1 , 3           , 0          , 0          , 0         , -1}        ,
     {"Spotify"                   , NULL      , NULL      , 1 << 3 , 1           , 0          , 0          , 0         , -1}        ,
     {"discord"                   , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
+    {"Mattermost"                , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
     {"Microsoft Teams - Preview" , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
     {"Thunderbird"               , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
     {"Zulip"                     , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
