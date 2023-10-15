@@ -17,11 +17,11 @@ MANPREFIX  = $(PREFIX)/share/man
 # 	libxinerama
 #   libasound
 # Will be included if installed
-XINERAMAFLAGS = `pkg-config xinerama --cflags --silence-errors && echo "-DXINERAMA"`
-XINERAMALIBS  = `pkg-config xinerama --libs --silence-errors`
+XINERAMAFLAGS = $(shell pkg-config xinerama --cflags --silence-errors && echo "-DXINERAMA")
+XINERAMALIBS  = $(shell pkg-config xinerama --libs --silence-errors)
 
-ASOUNDFLAGS = `pkg-config alsa --cflags --silence-errors && echo -DASOUND`
-ASOUNDLIBS  = `pkg-config alsa --libs --silence-errors`
+ASOUNDFLAGS = $(shell pkg-config alsa --cflags --silence-errors && echo -DASOUND)
+ASOUNDLIBS  = $(shell pkg-config alsa --libs --silence-errors)
 
 # Optional features:
 # 	Setting backlight with X
