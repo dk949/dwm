@@ -2711,11 +2711,16 @@ pid_t getparentprocess(pid_t p) {
     snprintf(buf, sizeof(buf) - 1, "/proc/%u/stat", (unsigned)p);
 
     if (!(f = fopen(buf, "r"))) {
+        fprintf(stderr, "dwm: failed to open stat file %s for process %d: %s", buf, p, strerror(errno));
         return 0;
     }
 
-    fscanf(f, "%*u %*s %*c %u", &v);
+    int res = fscanf(f, "%*u %*s %*c %u", &v);
     fclose(f);
+    if (res != 1) {
+        fprintf(stderr, "dwm: failed to get child process of %d: %s", p, strerror(errno));
+        return 0;
+    }
 #endif /* __linux__ */
 
     return (pid_t)v;
