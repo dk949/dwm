@@ -1029,7 +1029,7 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
     static int cscheme;
 
     if (selBarNameX <= 0 || selBarNameWidth <= 0) {
-        WARN("can't draw progress: bar name x position = %d; bar name width = %d", selBarNameX, selBarNameWidth);
+        DEBUG_PRINTF("can't draw progress: bar name x position = %d; bar name width = %d", selBarNameX, selBarNameWidth);
         return;
     }
 
