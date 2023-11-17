@@ -204,6 +204,7 @@ static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachaside(Client *c);
 static void attachstack(Client *c);
+static int avgheight(Display *dpy);
 static void bright_dec(Arg const *arg);
 static void bright_inc(Arg const *arg);
 static void bright_set(Arg const *arg) __attribute__((unused));
@@ -551,6 +552,23 @@ void attachaside(Client *c) {
 void attachstack(Client *c) {
     c->snext = c->mon->stack;
     c->mon->stack = c;
+}
+
+int avgheight(Display *dpy) {
+#ifdef XINERAMA
+    if (XineramaIsActive(dpy)) {
+        int scr_count;
+        XineramaScreenInfo *screens = XineramaQueryScreens(dpy, &scr_count);
+        double out = 0;
+        for (int i = 0; i < scr_count; i++)
+            out += screens->width;
+        XFree(screens);
+        return out / (double)scr_count;
+    } else
+#endif
+    {
+        return sh;
+    }
 }
 
 void swallow(Client *p, Client *c) {
@@ -2062,9 +2080,14 @@ void setup(void) {
         scheme[i] = drw_scm_create(drw, colors[i], 3);
     }
 
-    borderpx = sh / 540;
-    gappx = sh / 180;
-    snap = sh / 67;
+    {
+        // In multimonitor setups with Xinerama, the value of `sh` becomes very
+        // big as all monitors are treated as a single screen
+        int avg = avgheight(dpy);
+        borderpx = avg / 540;
+        gappx = avg / 180;
+        snap = avg / 67;
+    }
 
     /* init bars */
     updatebars();
