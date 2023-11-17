@@ -19,6 +19,7 @@ void die(char const *fmt, ...) {
     va_list ap;
 
     va_start(ap, fmt);
+    fputs("[DWM ERROR]", stderr);
     vfprintf(stderr, fmt, ap);
     va_end(ap);
 
@@ -28,6 +29,7 @@ void die(char const *fmt, ...) {
     } else {
         fputc('\n', stderr);
     }
+    fflush(stderr);
 
     exit(1);
 }

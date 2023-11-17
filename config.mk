@@ -13,7 +13,7 @@ endif
 DESTDIR   ?=
 PREFIX    ?= /usr/local
 MANPREFIX  = $(PREFIX)/share/man
-
+MODE      ?= RELEASE
 
 # Optional dependencies:
 # 	libxinerama
@@ -38,13 +38,23 @@ REQ_LIBS = x11 x11-xcb xcb-res xft fontconfig
 LIBFLAGS = $(XINERAMAFLAGS) $(ASOUNDFLAGS) $(XBACKLIGHTFLAGS) `pkg-config $(REQ_LIBS) --cflags`
 LIBS     = $(XINERAMALIBS)  $(ASOUNDLIBS)  $(XBACKLIGHTLIBS)  `pkg-config $(REQ_LIBS) --libs`
 
+RELEASE_CPPFLAGS = -DNDEBUG
+DEBUG_CPPFLAGS   =
+
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE \
 		   -D_POSIX_C_SOURCE=200809L \
 		   -DVERSION=\"$(VERSION)\" \
+		   $($(MODE)_CPPFLAGS)
 
-CFLAGS   = -std=c99 -Wpedantic -Wall -Werror -Os $(LIBFLAGS) $(CPPFLAGS)
-LDFLAGS  = $(LIBS)
+RELEASE_CFLAGS = -Os -flto
+DEBUG_CFLAGS   = -Og -g -fsanitize=address
+RELEASE_LDFLAGS = -flto
+DEBUG_LDFLAGS   = -lg -fsanitize=address
+
+CFLAGS         = -std=c99 -Wpedantic -Wall -Werror $($(MODE)_CFLAGS) $(LIBFLAGS) $(CPPFLAGS)
+
+LDFLAGS  = $($(MODE)_LDFLAGS) $(LIBS)
 
 # compiler and linker
 CC ?= gcc

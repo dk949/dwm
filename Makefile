@@ -23,7 +23,7 @@ options:
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-${OBJ}: config.h config.mk
+${OBJ}: config.h config.mk MODE
 
 dwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
@@ -43,3 +43,6 @@ uninstall:
 		${DESTDIR}${MANPREFIX}/man1/dwm.1
 
 .PHONY: all options clean install uninstall
+.PHONY: phony
+MODE: phony
+	@[ "`cat $@ 2>&1`" = '$($@)' ] || echo -n $($@) >$@

@@ -321,7 +321,7 @@ static char const broken[] = "broken";
 static char stext[256];
 static int screen;
 static int sw, sh;                                                     /* X display screen geometry width, height */
-static int barHeight, blw = 0, windowNameX = -1, windowNameWidth = -1; /* bar geometry */
+static int barHeight, blw = 0, selBarNameX = -1, selBarNameWidth = -1; /* bar geometry */
 static int lrpad;                                                      /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
@@ -612,12 +612,12 @@ void unswallow(Client *c) {
 void bright_dec(Arg const *arg) {
     int ret;
     if ((ret = bright_dec_(arg->f))) {
-        fprintf(stderr, "Function bright_dec_(const Arg *arg) from backlight.h returned %d\n", ret);
+        WARN("Function bright_dec_(const Arg *arg) from backlight.h returned %d", ret);
         return;
     }
     double newval;
     if ((ret = bright_get_(&newval))) {
-        fprintf(stderr, "Function bright_get_(const Arg *arg) from backlight.h returned %d\n", ret);
+        WARN("Function bright_get_(const Arg *arg) from backlight.h returned %d", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
@@ -626,12 +626,12 @@ void bright_dec(Arg const *arg) {
 void bright_inc(Arg const *arg) {
     int ret;
     if ((ret = bright_inc_(arg->f))) {
-        fprintf(stderr, "Function bright_inc_(const Arg *arg) from backlight.h returned %d\n", ret);
+        WARN("Function bright_inc_(const Arg *arg) from backlight.h returned %d", ret);
         return;
     }
     double newval;
     if ((ret = bright_get_(&newval))) {
-        fprintf(stderr, "Function bright_get_(const Arg *arg) from backlight.h returned %d\n", ret);
+        WARN("Function bright_get_(const Arg *arg) from backlight.h returned %d", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
@@ -640,7 +640,7 @@ void bright_inc(Arg const *arg) {
 void bright_set(Arg const *arg) {
     int ret;
     if ((ret = bright_set_(arg->f))) {
-        fprintf(stderr, "Function bright_set_(const Arg *arg) from backlight.h returned %d\n", ret);
+        WARN("Function bright_set_(const Arg *arg) from backlight.h returned %d", ret);
         return;
     }
     drawprogress(100, (unsigned long long)arg->f, SchemeBrightProgress);
@@ -995,9 +995,9 @@ void drawbar(Monitor *m) {
     }
     w = blw = TEXTW(m->layoutSymbol);
     drw_setscheme(drw, scheme[SchemeTagsNorm]);
-    windowNameX = x = drw_text(drw, x, 0, w, barHeight, lrpad / 2, m->layoutSymbol, 0);
+    x = drw_text(drw, x, 0, w, barHeight, lrpad / 2, m->layoutSymbol, 0);
 
-    if ((windowNameWidth = w = m->ww - tw - x) > barHeight) {
+    if ((w = m->ww - tw - x) > barHeight) {
         if (m->sel) {
             drw_setscheme(drw, scheme[m == selmon ? SchemeInfoSel : SchemeInfoNorm]);
             drw_text(drw, x, 0, w, barHeight, lrpad / 2, m->sel->name, 0);
@@ -1008,6 +1008,10 @@ void drawbar(Monitor *m) {
             drw_setscheme(drw, scheme[SchemeInfoNorm]);
             drw_rect(drw, x, 0, w, barHeight, 1, 1);
         }
+    }
+    if (m == selmon) {
+        selBarNameX = x;
+        selBarNameWidth = w;
     }
     drw_map(drw, m->barwin, 0, 0, m->ww, barHeight);
     drawprogress(PROGRESS_FADE);
@@ -1025,7 +1029,8 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
     static struct timespec last;
     static int cscheme;
 
-    if (windowNameX <= 0 || windowNameWidth <= 0) {
+    if (selBarNameX <= 0 || selBarNameWidth <= 0) {
+        WARN("can't draw progress: bar name x position = %d; bar name width = %d", selBarNameX, selBarNameWidth);
         return;
     }
 
@@ -1040,13 +1045,19 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
     }
 
     if (total > 0 && (timespecdiff(&now, &last) < progress_fade_time)) {
+        IF_DEBUG {
+            if (t)
+                DEBUG_PRINTF("Drawing begin: total = %llu, curent = %llu", total, current);
+            else
+                DEBUG_PRINTF("Drawing fade: total = %llu, curent = %llu", total, current);
+        }
         int fg = 0;
         int bg = 1;
         drw_setscheme(drw, scheme[cscheme]);
-        drw_rect(drw, windowNameX, selmon->by, windowNameWidth, barHeight, 1, bg);
+        drw_rect(drw, selBarNameX, selmon->by, selBarNameWidth, barHeight, 1, bg);
 
-        drw_rect(drw, windowNameX, selmon->by, (windowNameWidth * current) / total, barHeight, 1, fg);
-        drw_map(drw, selmon->barwin, windowNameX, selmon->by, windowNameWidth, barHeight);
+        drw_rect(drw, selBarNameX, selmon->by, (selBarNameWidth * current) / total, barHeight, 1, fg);
+        drw_map(drw, selmon->barwin, selBarNameX, selmon->by, selBarNameWidth, barHeight);
     }
 }
 
@@ -2159,9 +2170,7 @@ void spawn(Arg const *arg) {
         }
         setsid();
         execvp(((char **)arg->v)[0], (char **)arg->v);
-        fprintf(stderr, "dwm: execvp %s", ((char **)arg->v)[0]);
-        perror(" failed");
-        exit(EXIT_SUCCESS);
+        die("failed to spawn %s:", ((char **)arg->v)[0]);
     }
 }
 
@@ -2681,7 +2690,7 @@ void volumechange(Arg const *arg) {
     }
 
     if (state.err < 0) {
-        printf("volc: failed to change volume: %s\n", volc_err_str());
+        WARN("volc: failed to change volume: %s", volc_err_str());
         return;
     }
 
@@ -2734,14 +2743,14 @@ pid_t getparentprocess(pid_t p) {
     snprintf(buf, sizeof(buf) - 1, "/proc/%u/stat", (unsigned)p);
 
     if (!(f = fopen(buf, "r"))) {
-        fprintf(stderr, "dwm: failed to open stat file %s for process %d: %s", buf, p, strerror(errno));
+        WARN("failed to open stat file %s for process %d: %s", buf, p, strerror(errno));
         return 0;
     }
 
     int res = fscanf(f, "%*u %*s %*c %u", &v);
     fclose(f);
     if (res != 1) {
-        fprintf(stderr, "dwm: failed to get child process of %d: %s", p, strerror(errno));
+        WARN("failed to get child process of %d: %s", p, strerror(errno));
         return 0;
     }
 #endif /* __linux__ */
@@ -2839,7 +2848,7 @@ int xerror(Display *dpy, XErrorEvent *ee) {
         || (ee->request_code == X_CopyArea && ee->error_code == BadDrawable)) {
         return 0;
     }
-    fprintf(stderr, "dwm: fatal error: request code=%d, error code=%d\n", ee->request_code, ee->error_code);
+    WARN("fatal error: request code=%d, error code=%d", ee->request_code, ee->error_code);
     return xerrorxlib(dpy, ee); /* may call exit */
 }
 
@@ -2850,7 +2859,7 @@ int xerrordummy(Display *dpy, XErrorEvent *ee) {
 /* Startup Error handler to check if another window manager
  * is already running. */
 int xerrorstart(Display *dpy, XErrorEvent *ee) {
-    die("dwm: another window manager is already running");
+    die("another window manager is already running");
     return -1;
 }
 
@@ -2870,18 +2879,20 @@ void zoom(Arg const *arg) {
 
 int main(int argc, char *argv[]) {
     if (argc == 2 && !strcmp("-v", argv[1])) {
-        die("dwm-" VERSION);
+        puts("dwm-" VERSION);
+        return 0;
     } else if (argc != 1) {
-        die("usage: dwm [-v]");
+        fputs("usage: dwm [-v]", stderr);
+        return 1;
     }
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale()) {
-        fputs("warning: no locale support\n", stderr);
+        WARN("no locale support");
     }
     if (!(dpy = XOpenDisplay(NULL))) {
-        die("dwm: cannot open display");
+        die("cannot open display");
     }
     if (!(xcon = XGetXCBConnection(dpy))) {
-        die("dwm: cannot get xcb connection\n");
+        die("cannot get xcb connection");
     }
     checkotherwm();
     setup();

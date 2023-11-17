@@ -5,3 +5,4 @@ errors.err
 *.o
 dwm
 gen_conf.h
+MODE
