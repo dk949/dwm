@@ -25,7 +25,7 @@ Following tools are used by default, but can be changed in `config.h`
 * [picom](https://github.com/yshui/picom) compositor
     * set with the `compcmd` and `comkill` variables
 * [st](https://st.suckless.org) terminal
-    * [my build of slstatus](https://github.com/dk949/st)
+    * [my build of st](https://github.com/dk949/st)
     * set with the `termcmd` variable
 * [firefox](https://www.mozilla.org/en-US/firefox/new/) browser
     * set with the `brwscmd` variable
@@ -67,3 +67,20 @@ The configuration is done editing config.h and (re)compiling the source code.
 Note: Most [patches](https://dwm.suckless.org/patches/) won't work, since the
 this version is heavily modified (all diff files which have been applied are in
 the `diffs` directory)
+
+
+Debugging
+---------
+
+dwm can be built with additional debugging functionality. This build will
+produce additional debug logs and will use address sanitiser to check for memory
+errors.
+
+```sh
+MODE=DEBUG make
+```
+
+_Note:_ To build in release mode explicitly use `MODE=RELEASE`
+
+_Note:_ if you want to install the debug build, the install command also needs
+`MODE=DEBUG` set, other wise it will rebuild in `RELEASE` mode.
