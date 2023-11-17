@@ -959,6 +959,8 @@ Monitor *dirtomon(int dir) {
     return m;
 }
 
+// TODO: handle the case where the tags overlap with status
+//       (common if monitor is vertical)
 void drawbar(Monitor *m) {
     int x;
     int w;
@@ -1044,19 +1046,21 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
     }
 
     if (total > 0 && (timespecdiff(&now, &last) < progress_fade_time)) {
+        int x = selBarNameX, y = 0, w = selBarNameWidth, h = barHeight; /*progress rectangle*/
         IF_DEBUG {
             if (t)
-                DEBUG_PRINTF("Drawing begin: total = %llu, curent = %llu", total, current);
+                DEBUG_PRINTF("Draw start: total = %llu, curent = %llu, rect = [%d, %d, %d, %d]", total, current, x, y, w, h);
             else
-                DEBUG_PRINTF("Drawing fade: total = %llu, curent = %llu", total, current);
+                DEBUG_PRINTF("Draw fade: total = %llu, curent = %llu, rect = [%d, %d, %d, %d]", total, current, x, y, w, h);
         }
         int fg = 0;
         int bg = 1;
         drw_setscheme(drw, scheme[cscheme]);
-        drw_rect(drw, selBarNameX, selmon->by, selBarNameWidth, barHeight, 1, bg);
 
-        drw_rect(drw, selBarNameX, selmon->by, (selBarNameWidth * current) / total, barHeight, 1, fg);
-        drw_map(drw, selmon->barwin, selBarNameX, selmon->by, selBarNameWidth, barHeight);
+        drw_rect(drw, x, y, w, h, 1, bg);
+        drw_rect(drw, x, y, ((double)w * (double)current) / (double)total, h, 1, fg);
+
+        drw_map(drw, selmon->barwin, x, y, w, h);
     }
 }
 
