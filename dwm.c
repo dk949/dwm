@@ -968,7 +968,6 @@ void drawbar(Monitor *m) {
     unsigned int i;
     unsigned int occ = 0;
     unsigned int urg = 0;
-    Client *c;
 
     /* draw status first so it can be overdrawn by tags later */
     if (m == selmon) { /* status is only drawn on selected monitor */
@@ -977,7 +976,7 @@ void drawbar(Monitor *m) {
         drw_text(drw, m->ww - tw, 0, tw, barHeight, 0, stext, 0);
     }
 
-    for (c = m->clients; c; c = c->next) {
+    for (Client *c = m->clients; c; c = c->next) {
         occ |= c->tags;
         if (c->isurgent) {
             urg |= c->tags;
