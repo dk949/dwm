@@ -228,6 +228,7 @@ static Key keys[] = {
     {MODKEY | ShiftMask               , XK_comma  , tagmon         , {.i = -1}}          ,
     {MODKEY | ShiftMask               , XK_period , tagmon         , {.i = +1}}          ,
     {MODKEY | ShiftMask               , XK_q      , quit           , {0}}                ,
+    {MODKEY | ShiftMask               , XK_r      , restart        , {0}}                ,
   // clang-format on
 
     TAGKEYS(XK_1, 0),

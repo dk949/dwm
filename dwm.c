@@ -261,6 +261,7 @@ static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(Arg const *arg);
 static void restack(Monitor *m);
+static void restart(Arg const *arg);
 static void rotatestack(Arg const *arg);
 static void run(void);
 static void scan(void);
@@ -340,7 +341,7 @@ static void (*handler[LASTEvent])(XEvent *) = {[ButtonPress] = buttonpress,
     [PropertyNotify] = propertynotify,
     [UnmapNotify] = unmapnotify};
 static Atom wmatom[WMLast], netatom[NetLast], emptymsg;
-static int running = 1;
+static int running = 1, need_restart = 0;
 static Cur *cursor[CurLast];
 static Clr **scheme;
 static Display *dpy;
@@ -1652,6 +1653,12 @@ void propertynotify(XEvent *e) {
 
 void quit(Arg const *arg) {
     running = 0;
+    need_restart = 0;
+}
+
+void restart(Arg const *arg) {
+    running = 0;
+    need_restart = 1;
 }
 
 Monitor *recttomon(int x, int y, int w, int h) {
@@ -2906,6 +2913,9 @@ int main(int argc, char *argv[]) {
     run();
     cleanup();
     XCloseDisplay(dpy);
+    if (need_restart)
+        if (execvp(argv[0], argv)) die("could not restart dwm:");
+
     return EXIT_SUCCESS;
 }
 
