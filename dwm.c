@@ -2869,8 +2869,12 @@ int main(int argc, char *argv[]) {
     run();
     cleanup();
     XCloseDisplay(dpy);
-    if (need_restart)
+    if (need_restart) {
+        printf("Restarting dwm\n"
+               "________________________________________________________________________________\n");
+        fflush(stdout);
         if (execvp(argv[0], argv)) die("could not restart dwm:");
+    }
 
     return EXIT_SUCCESS;
 }
