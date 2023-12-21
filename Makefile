@@ -9,6 +9,7 @@ SRC = drw.c                        \
 	  $(if $(ASOUNDFLAGS),volc.c,) \
 	  $(if $(XBACKLIGHTFLAGS),xbacklight.c,alt_backlight.c)
 
+HDR = backlight.h common.h config.h drw.h util.h $(if $(ASOUNDFLAGS),volc.h,)
 
 OBJ = ${SRC:.c=.o}
 
@@ -23,7 +24,7 @@ options:
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-${OBJ}: config.h config.mk MODE
+${OBJ}: ${HDR} config.mk MODE
 
 dwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
