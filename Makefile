@@ -3,13 +3,14 @@
 
 include config.mk
 
-SRC = drw.c                        \
-	  dwm.c                        \
-	  util.c                       \
-	  $(if $(ASOUNDFLAGS),volc.c,) \
+SRC = drw.c                         \
+	  dwm.c                         \
+	  util.c                        \
+	  $(if $(ASOUNDFLAGS),volc.c,)  \
+	  $(if $(STFLAGS),st.c,)        \
 	  $(if $(XBACKLIGHTFLAGS),xbacklight.c,alt_backlight.c)
 
-HDR = backlight.h common.h config.h drw.h util.h $(if $(ASOUNDFLAGS),volc.h,)
+HDR = backlight.h config.h drw.h dwm.h st.h util.h $(if $(ASOUNDFLAGS),volc.h,)
 
 OBJ = ${SRC:.c=.o}
 

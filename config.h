@@ -152,6 +152,8 @@ static char const *dmenucmd[] = {
     "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", NULL};
 
 static char const *termcmd[] = {"st", NULL};
+static char const *termclass = "st-256color";
+
 static char const *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
 static char const *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock
 static char const *brwscmd[] = {"firefox", NULL};  // Firefox browser
@@ -160,13 +162,11 @@ static char const *htopcmd[] = {"sysmon", NULL};   // system monitor aka htop
 static char const *nvimcmd[] = {"neovim", NULL};   // opens neovim
 static char const *chatcmd[] = {"disc", NULL};     // does discord
 
-static char const *compcmd[] = {"picom-start", NULL};  // volume mute
 
 static char const *symdmnu[] = {"sym", NULL};         // Mathematical symbol selection
 static char const *grkdmnu[] = {"greek", NULL};       // Mathematical symbol selection
 static char const *scrdmnu[] = {"screenshot", NULL};  // Screenshot taker
 
-static char const *comkill[] = {"picom-end", NULL};
 
 static Key keys[] = {
 
@@ -179,8 +179,6 @@ static Key keys[] = {
     {MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN*5}}    ,
     {MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP*5}}    ,
 #endif // ASOUND
-    {MODKEY                           , XK_m      , spawn          , {.v = comkill}}     ,
-    {MODKEY                           , XK_t      , spawn          , {.v = compcmd}}     ,
     {MODKEY                           , XK_Return , spawn          , {.v = termcmd}}     ,
     {MODKEY                           , XK_Next   , spawn          , {.v = lockcmd}}     ,
     {MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , {.v = powrcmd}}     ,

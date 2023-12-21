@@ -20,6 +20,11 @@
  *
  * To understand everything else, start reading main().
  */
+
+#include "dwm.h"
+
+#include "st.h"
+
 #include <errno.h>
 #include <locale.h>
 #include <signal.h>
@@ -62,14 +67,12 @@
 #define INTERSECT(x, y, w, h, m)                                   \
     (MAX(0, MIN((x) + (w), (m)->wx + (m)->ww) - MAX((x), (m)->wx)) \
         * MAX(0, MIN((y) + (h), (m)->wy + (m)->wh) - MAX((y), (m)->wy)))
-#define ISVISIBLEONTAG(C, T) (((C)->tags & (T)))
-#define ISVISIBLE(C)         ISVISIBLEONTAG(C, (C)->mon->tagset[(C)->mon->seltags])
-#define LENGTH(X)            (sizeof(X) / sizeof(X)[0])
-#define MOUSEMASK            (BUTTONMASK | PointerMotionMask)
-#define WIDTH(X)             ((X)->w + 2 * (X)->bw + gappx)
-#define HEIGHT(X)            ((X)->h + 2 * (X)->bw + gappx)
-#define TAGMASK              ((1 << LENGTH(tags)) - 1)
-#define TEXTW(X)             (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define LENGTH(X) (sizeof(X) / sizeof(X)[0])
+#define MOUSEMASK (BUTTONMASK | PointerMotionMask)
+#define WIDTH(X)  ((X)->w + 2 * (X)->bw + gappx)
+#define HEIGHT(X) ((X)->h + 2 * (X)->bw + gappx)
+#define TAGMASK   ((1 << LENGTH(tags)) - 1)
+#define TEXTW(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
 #ifndef VERSION
 #    define VERSION "unknown"
 #endif
@@ -126,63 +129,12 @@ typedef struct {
     const Arg arg;
 } Button;
 
-typedef struct Monitor Monitor;
-typedef struct Client Client;
-
-struct Client {
-    char name[256];
-    float mina, maxa;
-    float cfact;
-    int x, y, w, h;
-    int oldx, oldy, oldw, oldh;
-    int basew, baseh, incw, inch, maxw, maxh, minw, minh;
-    int bw, oldbw;
-    unsigned int tags;
-    unsigned int switchtotag;
-    int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow;
-    pid_t pid;
-    Client *next;
-    Client *snext;
-    Client *swallowing;
-    Monitor *mon;
-    Window win;
-};
-
 typedef struct {
     unsigned int mod;
     KeySym keysym;
     void (*func)(Arg const *);
     const Arg arg;
 } Key;
-
-typedef struct {
-    char const *symbol;
-    void (*arrange)(Monitor *);
-} Layout;
-
-typedef struct Pertag Pertag;
-
-struct Monitor {
-    char layoutSymbol[16];
-    float mfact;
-    int nmaster;
-    int num;
-    int by;             /* bar geometry */
-    int mx, my, mw, mh; /* screen size */
-    int wx, wy, ww, wh; /* window area  */
-    unsigned int seltags;
-    unsigned int sellt;
-    unsigned int tagset[2];
-    int showbar;
-    int topbar;
-    Client *clients;
-    Client *sel;
-    Client *stack;
-    Monitor *next;
-    Window barwin;
-    Layout const *lt[2];
-    Pertag *pertag;
-};
 
 typedef struct {
     char const *class;
@@ -532,6 +484,10 @@ void arrangemon(Monitor *m) {
     strncpy(m->layoutSymbol, m->lt[m->sellt]->symbol, sizeof m->layoutSymbol);
     if (m->lt[m->sellt]->arrange) {
         m->lt[m->sellt]->arrange(m);
+        if (m->lt[m->sellt]->arrange == monocle)
+            st_make_opaque(dpy, termclass, m);
+        else
+            st_make_transparent(dpy, termclass, m);
     }
 }
 

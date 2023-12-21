@@ -18,12 +18,15 @@ MODE      ?= RELEASE
 # Optional dependencies:
 # 	libxinerama
 #   libasound
+#   st
 # Will be included if installed
 XINERAMAFLAGS = $(shell pkg-config xinerama --cflags --silence-errors && echo "-DXINERAMA")
 XINERAMALIBS  = $(shell pkg-config xinerama --libs --silence-errors)
 
 ASOUNDFLAGS = $(shell pkg-config alsa --cflags --silence-errors && echo -DASOUND)
 ASOUNDLIBS  = $(shell pkg-config alsa --libs --silence-errors)
+
+STFLAGS = $(shell command -v st >/dev/null && echo -DST_INTEGRATION)
 
 # Optional features:
 # 	Setting backlight with X
@@ -42,9 +45,10 @@ RELEASE_CPPFLAGS = -DNDEBUG
 DEBUG_CPPFLAGS   =
 
 # flags
-CPPFLAGS = -D_DEFAULT_SOURCE \
+CPPFLAGS = -D_DEFAULT_SOURCE         \
 		   -D_POSIX_C_SOURCE=200809L \
-		   -DVERSION=\"$(VERSION)\" \
+		   -DVERSION=\"$(VERSION)\"  \
+		   $(STFLAGS)	             \
 		   $($(MODE)_CPPFLAGS)
 
 RELEASE_CFLAGS = -Os -flto
