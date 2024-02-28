@@ -105,7 +105,7 @@ static const Rule rules[] = {
     {"jetbrains-pycharm"         , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1}        ,
     {"jetbrains-studio"          , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1}        ,
     {"qemu-system-i386"          , NULL      , NULL      , 0      , 0           , 1          , 1          , 1         , -1}        ,
-    {"testing"                   , "testing" , "testing" , 0      , 0           , 1          , 1          , 1         , -1}        ,
+    {"testing"                   , NULL      , NULL      , 0      , 0           , 1          , 1          , 1         , -1}        ,
     {"st-256color"               , NULL      , "spotify" , 1 << 3 , 3           , 0          , 0          , 1         , -1}        ,
     {"st-256color"               , NULL      , "sysmon"  , 1 << 4 , 3           , 0          , 0          , 1         , -1}        ,
     {"st-256color"               , NULL      , "neovim"  , 0      , 0           , 1          , 0          , 1         , -1}        ,
