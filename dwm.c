@@ -1636,20 +1636,19 @@ void resizeclient(Client *c, int x, int y, int w, int h) {
     unsigned int gapoffset;
     unsigned int gapincr;
     Client *nbc;
+    Monitor *mon = c->mon;
 
     wc.border_width = c->bw;
 
     /* Get number of clients for the selected monitor */
-    for (n = 0, nbc = nexttiled(selmon->clients); nbc; nbc = nexttiled(nbc->next), n++) {
-        ;
-    }
+    for (n = 0, nbc = nexttiled(mon->clients); nbc; nbc = nexttiled(nbc->next), n++) { }
 
     /* Do nothing if layout is floating */
-    if (c->isfloating || selmon->lt[selmon->sellt]->arrange == NULL) {
+    if (c->isfloating || mon->lt[mon->sellt]->arrange == NULL) {
         gapincr = gapoffset = 0;
     } else {
         /* Remove border and gap if layout is monocle or only one client */
-        if (selmon->lt[selmon->sellt]->arrange == monocle || n == 1) {
+        if (mon->lt[mon->sellt]->arrange == monocle || n == 1) {
             gapoffset = 0;
             gapincr = -2 * borderpx;
             wc.border_width = 0;
