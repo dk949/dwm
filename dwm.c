@@ -984,10 +984,7 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
     static struct timespec last;
     static int cscheme;
 
-    if (selBarNameX <= 0 || selBarNameWidth <= 0) {
-        DEBUG_PRINTF("can't draw progress: bar name x position = %d; bar name width = %d", selBarNameX, selBarNameWidth);
-        return;
-    }
+    if (selBarNameX <= 0 || selBarNameWidth <= 0) return;
 
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
