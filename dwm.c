@@ -885,15 +885,11 @@ void detachstack(Client *c) {
     Client **tc;
     Client *t;
 
-    for (tc = &c->mon->stack; *tc && *tc != c; tc = &(*tc)->snext) {
-        ;
-    }
+    for (tc = &c->mon->stack; *tc && *tc != c; tc = &(*tc)->snext) { }
     *tc = c->snext;
 
     if (c == c->mon->sel) {
-        for (t = c->mon->stack; t && !ISVISIBLE(t); t = t->snext) {
-            ;
-        }
+        for (t = c->mon->stack; t && !ISVISIBLE(t); t = t->snext) { }
         c->mon->sel = t;
     }
 }
@@ -1634,9 +1630,7 @@ Monitor *recttomon(int x, int y, int w, int h) {
 }
 
 void resize(Client *c, int x, int y, int w, int h, int interact) {
-    if (applysizehints(c, &x, &y, &w, &h, interact)) {
-        resizeclient(c, x, y, w, h);
-    }
+    if (applysizehints(c, &x, &y, &w, &h, interact)) resizeclient(c, x, y, w, h);
 }
 
 void resizeclient(Client *c, int x, int y, int w, int h) {
@@ -1857,9 +1851,8 @@ int notifyself() {
 }
 
 void sendmon(Client *c, Monitor *m) {
-    if (c->mon == m) {
-        return;
-    }
+    if (c->mon == m) return;
+
     unfocus(c, 1);
     detach(c);
     detachstack(c);
@@ -2170,22 +2163,20 @@ void tile(Monitor *m) {
     float sfacts = 0;
     Client *c;
 
-    for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
-        if (n < m->nmaster) {
+    for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++)
+        if (n < m->nmaster)
             mfacts += c->cfact;
-        } else {
+        else
             sfacts += c->cfact;
-        }
-    }
-    if (n == 0) {
-        return;
-    }
 
-    if (n > m->nmaster) {
+    if (n == 0) return;
+
+
+    if (n > m->nmaster)
         mw = m->nmaster ? m->ww * m->mfact : 0;
-    } else {
+    else
         mw = m->ww;
-    }
+
     for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
         if (i < m->nmaster) {
             h = (m->wh - my) * (c->cfact / mfacts);
@@ -2282,9 +2273,8 @@ void toggleview(Arg const *arg) {
 }
 
 void unfocus(Client *c, int setfocus) {
-    if (!c) {
-        return;
-    }
+    if (!c) return;
+
     grabbuttons(c, 0);
     XSetWindowBorder(dpy, c->win, scheme[SchemeNorm][ColBorder].pixel);
     if (setfocus) {
