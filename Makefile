@@ -29,6 +29,8 @@ ${OBJ}: ${HDR} config.mk MODE
 
 dwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
+	$(if $(filter $(MODE),RELEASE),strip $@,)
+
 
 clean:
 	rm -f dwm ${OBJ}
