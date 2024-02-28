@@ -875,9 +875,9 @@ void destroynotify(XEvent *e) {
 void detach(Client *c) {
     Client **tc;
 
-    for (tc = &c->mon->clients; *tc && *tc != c; tc = &(*tc)->next) {
-        ;
-    }
+    for (tc = &c->mon->clients; *tc && *tc != c; tc = &(*tc)->next) { }
+
+    if (!*tc) WARN("Client `%s` was not attached, c->next %s!!!", c->name, c->next ? "is not null" : "is null");
     *tc = c->next;
 }
 
