@@ -5,32 +5,21 @@
 #include <string.h>
 #include <X11/Xutil.h>
 
-void st_kill(Display *dpy, char const *termclass, Monitor *m, int sig) {
+static void st_kill(Display *dpy, char const *termclass, Monitor *m, int sig) {
     {
         XClassHint ch = {0};
         int i;
         Client *c;
         for (i = 0, c = m->clients; c; c = c->next, i++)
             if (ISVISIBLE(c)) {
-                DEBUG_PRINTF("[%d] client name = %s", i, c->name);
                 if (!XGetClassHint(dpy, c->win, &ch)) {
-                    WARN("Could not get class hint for a window");
+                    WARN("Could not get class hint for the window %lu of client %s", c->win, c->name);
                     return;
                 }
-                if (!strcmp(termclass, ch.res_class)) {
-                    DEBUG_PRINTF("Sending signal %d to pid %d, class = %s, instance = %s",
-                        sig,
-                        c->pid,
-                        ch.res_class,
-                        ch.res_name);
+                if (!strcmp(termclass, ch.res_class))
                     kill(c->pid, sig);
-                } else
-                    DEBUG_PRINTF("Not sending signal %d to pid %d, class = %s, instance = %s",
-                        sig,
-                        c->pid,
-                        ch.res_class,
-                        ch.res_name);
-                XFree(ch.res_class);
+                else
+                    XFree(ch.res_class);
                 XFree(ch.res_name);
             }
     }
