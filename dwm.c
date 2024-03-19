@@ -23,7 +23,8 @@
 
 #include "dwm.h"
 
-#include "arg.h"
+#include "layout.h"
+#include "mapping.h"
 #include "st.h"
 
 #include <errno.h>
@@ -81,18 +82,6 @@
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 
-enum {
-    SchemeNorm,
-    SchemeSel,
-    SchemeStatus,
-    SchemeTagsSel,
-    SchemeTagsNorm,
-    SchemeInfoSel,
-    SchemeInfoNorm,
-    SchemeInfoProgress,
-    SchemeOffProgress,
-    SchemeBrightProgress,
-}; /* color schemes */
 
 enum {
     NetSupported,
@@ -109,38 +98,8 @@ enum {
 
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
-
-enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
-
 #define PROGRESS_FADE 0, 0, 0
 
-typedef struct {
-    unsigned int click;
-    unsigned int mask;
-    unsigned int button;
-    void (*func)(Arg const *arg);
-    Arg const arg;
-} Button;
-
-typedef struct {
-    unsigned int mod;
-    KeySym keysym;
-    void (*func)(Arg const *);
-    Arg const arg;
-} Key;
-
-typedef struct {
-    char const *class;
-    char const *instance;
-    char const *title;
-    unsigned int tags;
-    unsigned int switchtotag;
-    int isfloating;
-    int isterminal;
-    int noswallow;
-    int monitor;
-} Rule;
 
 /* function declarations */
 
@@ -188,7 +147,6 @@ static void keypress(XEvent *e);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
-static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
@@ -212,7 +170,6 @@ static void showhide(Client *c);
 static void sigchld(int unused);
 static Client *swallowingclient(Window w);
 static Client *termforwin(Client const *c);
-static void tile(Monitor *);
 static double timespecdiff(const struct timespec *a, const struct timespec *b);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
@@ -235,8 +192,6 @@ static Monitor *wintomon(Window w);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
-static void centeredmaster(Monitor *m);
-static void centeredfloatingmaster(Monitor *m);
 
 /* variables */
 static char const broken[] = "broken";
@@ -1235,6 +1190,7 @@ void grabkeys(void) {
         unsigned int j;
         unsigned int modifiers[] = {0, LockMask, numlockmask, numlockmask | LockMask};
         KeyCode code;
+        XK_r;
 
         XUngrabKey(dpy, AnyKey, AnyModifier, root);
         for (i = 0; i < LENGTH(keys); i++) {

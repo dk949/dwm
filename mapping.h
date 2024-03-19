@@ -1,7 +1,21 @@
-#ifndef ARG_H
-#define ARG_H
+#ifndef MAPPING_H
+#define MAPPING_H
+
+#include <X11/X.h>
 
 /// Arg functions for key and mouse bindings
+
+typedef struct Rule {
+    char const *class;
+    char const *instance;
+    char const *title;
+    unsigned int tags;
+    unsigned int switchtotag;
+    int isfloating;
+    int isterminal;
+    int noswallow;
+    int monitor;
+} Rule;
 
 /// Union to pass generic data to key/mouse binding functions
 typedef union Arg {
@@ -10,6 +24,48 @@ typedef union Arg {
     float f;
     void const *v;
 } Arg;
+
+typedef struct Key {
+    unsigned int mod;
+    KeySym keysym;
+    void (*func)(Arg const *);
+    Arg const arg;
+} Key;
+
+typedef struct Button {
+    unsigned int click;
+    unsigned int mask;
+    unsigned int button;
+    void (*func)(Arg const *arg);
+    Arg const arg;
+} Button;
+
+enum {
+    ClkTagBar,
+    ClkLtSymbol,
+    ClkStatusText,
+    ClkWinTitle,
+    ClkClientWin,
+    ClkRootWin,
+    ClkLast,
+}; /* clicks */
+
+enum {
+    SchemeNorm,
+    SchemeSel,
+    SchemeStatus,
+    SchemeTagsSel,
+    SchemeTagsNorm,
+    SchemeInfoSel,
+    SchemeInfoNorm,
+    SchemeInfoProgress,
+    SchemeOffProgress,
+    SchemeBrightProgress,
+}; /* color schemes */
+
+#ifdef ASOUND
+enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
+#endif  // ASOUND
 
 void bright_dec(Arg const *arg);
 void bright_inc(Arg const *arg);
@@ -38,6 +94,7 @@ void zoom(Arg const *arg);
 
 #ifdef ASOUND
 void volumechange(Arg const *arg);
+
 #endif  // ASOUND
 
-#endif  // ARG_H
+#endif  // MAPPING_H

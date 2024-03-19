@@ -1,17 +1,14 @@
 #ifndef DWM_H
 #define DWM_H
 
+#include "layout.h"
+
 #include <signal.h>
 #include <X11/X.h>
 
 typedef struct Pertag Pertag;
 typedef struct Monitor Monitor;
 typedef struct Client Client;
-
-typedef struct {
-    char const *symbol;
-    void (*arrange)(Monitor *);
-} Layout;
 
 struct Monitor {
     char layoutSymbol[16];

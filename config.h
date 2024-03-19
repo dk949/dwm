@@ -1,7 +1,9 @@
 /* See LICENSE file for copyright and license details. */
-#include "arg.h"
+#include "layout.h"
+#include "mapping.h"
 
 #include <stdlib.h>
+#include <X11/keysymdef.h>
 
 /* appearance */
 
@@ -57,16 +59,16 @@ static const char c_blank[]    = "#000000";
 static char const *colors[][3] = {
   // clang-format off
     /*                      fg          bg              border   */
-    [SchemeNorm]           = { c_active   , c_inactive , c_inactive} ,
-    [SchemeSel]            = { c_inactive , c_active   , c_active}   ,
-    [SchemeStatus]         = { c_active   , c_inactive , c_blank}    , // Statusbar right
-    [SchemeTagsSel]        = { c_inactive , c_active   , c_blank}    , // Tagbar left selected
-    [SchemeTagsNorm]       = { c_active   , c_inactive , c_blank}    , // Tagbar left unselected
-    [SchemeInfoSel]        = { c_inactive , c_blue     , c_blank}    , // infobar selected
-    [SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank}    , // infobar unselected
-    [SchemeInfoProgress]   = { c_green    , c_inactive , c_blank}    , // infobar middle progress
-    [SchemeOffProgress]    = { c_red      , c_inactive , c_blank}    , // infobar middle progress
-    [SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank}    , // infobar middle progress
+    [SchemeNorm]           = { c_active   , c_inactive , c_inactive },
+    [SchemeSel]            = { c_inactive , c_active   , c_active   },
+    [SchemeStatus]         = { c_active   , c_inactive , c_blank    }, // Statusbar right
+    [SchemeTagsSel]        = { c_inactive , c_active   , c_blank    }, // Tagbar left selected
+    [SchemeTagsNorm]       = { c_active   , c_inactive , c_blank    }, // Tagbar left unselected
+    [SchemeInfoSel]        = { c_inactive , c_blue     , c_blank    }, // infobar selected
+    [SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank    }, // infobar unselected
+    [SchemeInfoProgress]   = { c_green    , c_inactive , c_blank    }, // infobar middle progress
+    [SchemeOffProgress]    = { c_red      , c_inactive , c_blank    }, // infobar middle progress
+    [SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank    }, // infobar middle progress
   // clang-format on
 };
 
