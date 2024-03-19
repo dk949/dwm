@@ -82,7 +82,6 @@
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 
-
 enum {
     NetSupported,
     NetWMName,
@@ -2139,6 +2138,10 @@ void togglefloating(Arg const *arg) {
         resize(selmon->sel, selmon->sel->x, selmon->sel->y, selmon->sel->w, selmon->sel->h, 0);
     }
     arrange(selmon);
+}
+
+void togglefs(Arg const *arg) {
+    setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
 }
 
 void toggletag(Arg const *arg) {

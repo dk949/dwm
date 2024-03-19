@@ -87,6 +87,7 @@ void tag(Arg const *arg);
 void tagmon(Arg const *arg);
 void togglebar(Arg const *arg);
 void togglefloating(Arg const *arg);
+void togglefs(Arg const *arg);
 void toggletag(Arg const *arg);
 void toggleview(Arg const *arg);
 void view(Arg const *arg);

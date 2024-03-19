@@ -210,6 +210,7 @@ static Key keys[] = {
     {MODKEY | ShiftMask               , XK_o      , setcfact       , {.f = 0.00}}        ,
     {MODKEY                           , XK_F5     , bright_dec     , {.f = 5.0}}         ,
     {MODKEY                           , XK_F6     , bright_inc     , {.f = 5.0}}         ,
+    {MODKEY                           , XK_F11    , togglefs       , {0}}                ,
     {MODKEY                           , XK_t      , setlayout      , {.v = &layouts[0]}} ,
     {MODKEY                           , XK_f      , setlayout      , {.v = &layouts[1]}} ,
     {MODKEY                           , XK_m      , setlayout      , {.v = &layouts[2]}} ,
