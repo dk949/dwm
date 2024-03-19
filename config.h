@@ -1,4 +1,7 @@
 /* See LICENSE file for copyright and license details. */
+#include "arg.h"
+
+#include <stdlib.h>
 
 /* appearance */
 
@@ -71,7 +74,7 @@ static char const *colors[][3] = {
 /* tagging                  |1     |2     |3     |4     |5     |6     |7      |8     | 9    */
 static char const *tags[] = {"   ", "  ", " 󰅩 ", "  ", "  ", "  ", " 󰙯 ", "   ", "   "};
 
-static const Rule rules[] = {
+static Rule const rules[] = {
   /* xprop(1):
   *    WM_CLASS(STRING) = instance, class
   *    WM_NAME(STRING) = title
@@ -120,7 +123,7 @@ static float const mfact = 0.5;   /* factor of master area size [0.05..0.95] */
 static int const nmaster = 1;     /* number of clients in master area */
 static int const resizehints = 1; /* 1 means respect size hints in tiled resizals */
 
-static const Layout layouts[] = {
+static Layout const layouts[] = {
   /* symbol      arrange function */
     {"[]=",                   tile}, /* first entry is default */
     {"><>",                   NULL}, /* no layout function means floating behavior */
@@ -259,9 +262,8 @@ static Button buttons[] = {
   // clang-format on
 };
 
-
 static char const *get_bright_file(void) {
     char const *filename = getenv("DWM_BACKLIGHT_FILE");
     if (filename) return filename;
-    return  "/sys/class/backlight/amdgpu_bl0/brightness";
+    return "/sys/class/backlight/amdgpu_bl0/brightness";
 }

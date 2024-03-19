@@ -23,6 +23,7 @@
 
 #include "dwm.h"
 
+#include "arg.h"
 #include "st.h"
 
 #include <errno.h>
@@ -114,26 +115,19 @@ enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
 
 #define PROGRESS_FADE 0, 0, 0
 
-typedef union {
-    int i;
-    unsigned int ui;
-    float f;
-    void const *v;
-} Arg;
-
 typedef struct {
     unsigned int click;
     unsigned int mask;
     unsigned int button;
     void (*func)(Arg const *arg);
-    const Arg arg;
+    Arg const arg;
 } Button;
 
 typedef struct {
     unsigned int mod;
     KeySym keysym;
     void (*func)(Arg const *);
-    const Arg arg;
+    Arg const arg;
 } Key;
 
 typedef struct {
@@ -149,6 +143,7 @@ typedef struct {
 } Rule;
 
 /* function declarations */
+
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
 static void arrange(Monitor *m);
@@ -157,9 +152,6 @@ static void attach(Client *c);
 static void attachaside(Client *c);
 static void attachstack(Client *c);
 static int avgheight(Display *dpy);
-static void bright_dec(Arg const *arg);
-static void bright_inc(Arg const *arg);
-static void bright_set(Arg const *arg) __attribute__((unused));
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -183,8 +175,6 @@ static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
-static void focusmon(Arg const *arg);
-static void focusstack(Arg const *arg);
 static pid_t getparentprocess(pid_t p);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -193,29 +183,22 @@ static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static int isdescprocess(pid_t p, pid_t c);
-static void incnmaster(Arg const *arg);
 static Atom initemptymessage();
 static void keypress(XEvent *e);
-static void killclient(Arg const *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
-static void movemouse(Arg const *arg);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
 static int notifyself() __attribute__((unused));
 static void pop(Client *);
 static void propertynotify(XEvent *e);
-static void quit(Arg const *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
-static void resizemouse(Arg const *arg);
 static void restack(Monitor *m);
-static void restart(Arg const *arg);
-static void rotatestack(Arg const *arg);
 static void run(void);
 static void scan(void);
 static int sendevent(Client *c, Atom proto);
@@ -223,24 +206,14 @@ static void sendmon(Client *c, Monitor *m);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
-static void setlayout(Arg const *arg);
-static void setcfact(Arg const *arg);
-static void setmfact(Arg const *arg);
 static void setup(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void sigchld(int unused);
-static void spawn(Arg const *arg);
 static Client *swallowingclient(Window w);
-static void tag(Arg const *arg);
-static void tagmon(Arg const *arg);
 static Client *termforwin(Client const *c);
 static void tile(Monitor *);
 static double timespecdiff(const struct timespec *a, const struct timespec *b);
-static void togglebar(Arg const *arg);
-static void togglefloating(Arg const *arg);
-static void toggletag(Arg const *arg);
-static void toggleview(Arg const *arg);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
@@ -254,11 +227,7 @@ static void updatestatus(void);
 static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
-static void view(Arg const *arg);
 
-#ifdef ASOUND
-static void volumechange(Arg const *arg);
-#endif  // ASOUND
 
 static pid_t winpid(Window w);
 static Client *wintoclient(Window w);
@@ -266,7 +235,6 @@ static Monitor *wintomon(Window w);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
-static void zoom(Arg const *arg);
 static void centeredmaster(Monitor *m);
 static void centeredfloatingmaster(Monitor *m);
 
