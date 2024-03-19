@@ -482,6 +482,7 @@ void unswallow(Client *c) {
     c->swallowing = NULL;
 
     updatetitle(c);
+    updatesizehints(c);
     arrange(c->mon);
     XMapWindow(dpy, c->win);
     XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
@@ -2127,12 +2128,11 @@ void togglebar(Arg const *arg) {
 }
 
 void togglefloating(Arg const *arg) {
-    if (!selmon->sel) {
+    if (!selmon->sel) return;
+
+    if (selmon->sel->isfullscreen) /* no support for fullscreen windows */
         return;
-    }
-    if (selmon->sel->isfullscreen) { /* no support for fullscreen windows */
-        return;
-    }
+
     selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
     if (selmon->sel->isfloating) {
         resize(selmon->sel, selmon->sel->x, selmon->sel->y, selmon->sel->w, selmon->sel->h, 0);
@@ -2141,6 +2141,7 @@ void togglefloating(Arg const *arg) {
 }
 
 void togglefs(Arg const *arg) {
+    if (!selmon->sel) return;
     setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
 }
 
