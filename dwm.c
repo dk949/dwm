@@ -97,6 +97,14 @@ enum {
 
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 
+enum {
+    SelfNotifyNone = 0,
+    SelfNotifyFadeBar,
+
+    // Has to be last
+    SelfNotifyLast,
+};
+
 #define PROGRESS_FADE 0, 0, 0
 
 
@@ -141,7 +149,6 @@ static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static int isdescprocess(pid_t p, pid_t c);
-static Atom initemptymessage();
 static void keypress(XEvent *e);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
@@ -149,8 +156,10 @@ static void maprequest(XEvent *e);
 static void motionnotify(XEvent *e);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
-static int notifyself() __attribute__((unused));
+static void notifyself(int type);
+static void handle_notifyself_fade_anim(void);
 static void pop(Client *);
+static void print_event_stats(void);
 static void propertynotify(XEvent *e);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
@@ -201,6 +210,11 @@ static int barHeight, blw = 0, selBarNameX = -1, selBarNameWidth = -1; /* bar ge
 static int lrpad;                                                      /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
+static int notified = SelfNotifyNone;
+static void (*self_notify_handler[SelfNotifyLast])(void) = {
+    [SelfNotifyNone] = NULL,
+    [SelfNotifyFadeBar] = handle_notifyself_fade_anim,
+};
 static void (*handler[LASTEvent])(XEvent *) = {[ButtonPress] = buttonpress,
     [ClientMessage] = clientmessage,
     [ConfigureRequest] = configurerequest,
@@ -215,7 +229,7 @@ static void (*handler[LASTEvent])(XEvent *) = {[ButtonPress] = buttonpress,
     [MotionNotify] = motionnotify,
     [PropertyNotify] = propertynotify,
     [UnmapNotify] = unmapnotify};
-static Atom wmatom[WMLast], netatom[NetLast], emptymsg;
+static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1, need_restart = 0;
 static Cur *cursor[CurLast];
 static Clr **scheme;
@@ -633,10 +647,6 @@ void cleanupmon(Monitor *mon) {
 void clientmessage(XEvent *e) {
     XClientMessageEvent *cme = &e->xclient;
 
-    if (cme->message_type == emptymsg) {
-        return;
-    }
-
     Client *c = wintoclient(cme->window);
 
     if (!c) return;
@@ -921,12 +931,6 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
 
     if (total > 0 && (timespecdiff(&now, &last) < progress_fade_time)) {
         int x = selBarNameX, y = 0, w = selBarNameWidth, h = barHeight; /*progress rectangle*/
-        IF_DEBUG {
-            if (t)
-                DEBUG_PRINTF("Draw start: total = %llu, curent = %llu, rect = [%d, %d, %d, %d]", total, current, x, y, w, h);
-            else
-                DEBUG_PRINTF("Draw fade: total = %llu, curent = %llu, rect = [%d, %d, %d, %d]", total, current, x, y, w, h);
-        }
         int fg = 0;
         int bg = 1;
         drw_setscheme(drw, scheme[cscheme]);
@@ -935,6 +939,7 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
         drw_rect(drw, x, y, ((double)w * (double)current) / (double)total, h, 1, fg);
 
         drw_map(drw, selmon->barwin, x, y, w, h);
+        notifyself(SelfNotifyFadeBar);
     }
 }
 
@@ -1210,22 +1215,6 @@ void incnmaster(Arg const *arg) {
     arrange(selmon);
 }
 
-Atom initemptymessage() {
-    Atom out = 5830572;
-    int cont;
-    do {
-        cont = 0;
-        for (int i = 0; i < NetLast; i++) {
-            if (out == 0) die("could not allocate an atom for empty client message");
-            if (netatom[i] == out) {
-                out++;
-                cont = 1;
-            }
-        }
-    } while (cont);
-    return out;
-}
-
 #ifdef XINERAMA
 static int isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
     while (n--) {
@@ -1491,6 +1480,24 @@ void pop(Client *c) {
     arrange(c->mon);
 }
 
+static void print_event_stats(void) {
+    static long calls = 0;
+    static struct timespec last_print = {0};
+
+
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    if (last_print.tv_sec == 0 && last_print.tv_nsec == 0) last_print = now;
+
+    calls++;
+
+    if (timespecdiff(&now, &last_print) < 1.0) return;
+
+    DEBUG_PRINTF("%li events/s", calls);
+    calls = 0;
+    last_print = now;
+}
+
 void propertynotify(XEvent *e) {
     Client *c;
     Window trans;
@@ -1727,9 +1734,17 @@ void run(void) {
     XEvent ev;
     /* main event loop */
     XSync(dpy, False);
-    while (running && !XNextEvent(dpy, &ev)) {
-        if (handler[ev.type]) {
-            handler[ev.type](&ev); /* call handler */
+    while (1) {
+        if (!running) break;
+        // Only handle self notify events if no X events need handling
+        if (notified && XPending(dpy) == 0) {
+            if (self_notify_handler[notified]) self_notify_handler[notified]();
+        } else {
+            if (XNextEvent(dpy, &ev)) break;
+            if (handler[ev.type]) handler[ev.type](&ev); /* call handler */
+        }
+        IF_DEBUG {
+            print_event_stats();
         }
     }
 }
@@ -1767,9 +1782,15 @@ void scan(void) {
     }
 }
 
-int notifyself() {
-    XClientMessageEvent ev = {.type = ClientMessage, .window = root, .message_type = emptymsg};
-    return XSendEvent(dpy, root, True, StructureNotifyMask, (XEvent *)&ev);
+void handle_notifyself_fade_anim(void) {
+    notified = SelfNotifyNone;
+    drawprogress(PROGRESS_FADE);
+    struct timespec requested_time = {.tv_sec = 0, .tv_nsec = (long)((1.0 / 60.0) * 1e9)};
+    nanosleep(&requested_time, NULL);
+}
+
+void notifyself(int type) {
+    notified = type;
 }
 
 void sendmon(Client *c, Monitor *m) {
@@ -1961,7 +1982,6 @@ void setup(void) {
     netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
     netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
     netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
-    emptymsg = initemptymessage();
 
     /* init cursors */
     cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
@@ -2119,7 +2139,10 @@ void tile(Monitor *m) {
 }
 
 double timespecdiff(const struct timespec *a, const struct timespec *b) {
-    return labs(a->tv_sec - b->tv_sec) + (labs(a->tv_nsec - b->tv_nsec) * 1e-9);
+    double a_sec = (double)a->tv_sec + ((double)a->tv_nsec * 1e-9);
+    double b_sec = (double)b->tv_sec + ((double)b->tv_nsec * 1e-9);
+    double diff = a_sec - b_sec;
+    return (diff >= 0) ? diff : -diff;
 }
 
 void togglebar(Arg const *arg) {
