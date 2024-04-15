@@ -1078,14 +1078,16 @@ void focusstack(Arg const *arg) {
 }
 
 Atom getatomprop(Client *c, Atom prop) {
-    int di;
-    unsigned long dl;
+    int fmt;
+    unsigned long bytes_left, nitems;
     unsigned char *p = NULL;
-    Atom da;
+    Atom type;
     Atom atom = None;
 
-    if (XGetWindowProperty(dpy, c->win, prop, 0L, sizeof atom, False, XA_ATOM, &da, &di, &dl, &dl, &p) == Success && p) {
-        atom = *(Atom *)p;
+    if (!XGetWindowProperty(dpy, c->win, prop, 0L, sizeof atom, False, XA_ATOM, &type, &fmt, &nitems, &bytes_left, &p)
+        && p) {
+        // If nitems is 0, no property was returned
+        if (nitems != 0) atom = *(Atom *)p;
         XFree(p);
     }
     return atom;
