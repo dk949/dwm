@@ -1210,9 +1210,13 @@ void grabkeys(void) {
     }
 }
 
-void incnmaster(Arg const *arg) {
-    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(selmon->nmaster + arg->i, 0);
+void setmaster(Arg const *arg) {
+    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(arg->i, 0);
     arrange(selmon);
+}
+
+void incnmaster(Arg const *arg) {
+    setmaster(&(Arg) {.i = MAX(selmon->nmaster + arg->i, 0)});
 }
 
 #ifdef XINERAMA
@@ -1928,6 +1932,15 @@ void setmfact(Arg const *arg) {
         f = 1.0;
     }
     selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag] = f;
+    arrange(selmon);
+}
+
+void resetmcfact(Arg const *unused) {
+    (void)unused;
+    if (!selmon->lt[selmon->sellt]->arrange) return;
+
+    selmon->sel->cfact = 1.0;
+    selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag] = 0.5;
     arrange(selmon);
 }
 

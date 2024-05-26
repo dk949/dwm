@@ -4,7 +4,6 @@
 #include <X11/X.h>
 
 /// Arg functions for key and mouse bindings
-
 typedef struct Rule {
     char const *class;
     char const *instance;
@@ -25,10 +24,14 @@ typedef union Arg {
     void const *v;
 } Arg;
 
+/// Key or mouse combination callback
+typedef void (*MappingCallback)(Arg const *);
+
+/// Key combination
 typedef struct Key {
     unsigned int mod;
     KeySym keysym;
-    void (*func)(Arg const *);
+    MappingCallback func;
     Arg const arg;
 } Key;
 
@@ -36,7 +39,7 @@ typedef struct Button {
     unsigned int click;
     unsigned int mask;
     unsigned int button;
-    void (*func)(Arg const *arg);
+    MappingCallback func;
     Arg const arg;
 } Button;
 
@@ -76,11 +79,13 @@ void incnmaster(Arg const *arg);
 void killclient(Arg const *arg);
 void movemouse(Arg const *arg);
 void quit(Arg const *arg);
+void resetmcfact(Arg const *unused);
 void resizemouse(Arg const *arg);
 void restart(Arg const *arg);
 void rotatestack(Arg const *arg);
 void setcfact(Arg const *arg);
 void setlayout(Arg const *arg);
+void setmaster(Arg const *arg);
 void setmfact(Arg const *arg);
 void spawn(Arg const *arg);
 void tag(Arg const *arg);

@@ -72,9 +72,34 @@ static char const *colors[][3] = {
   // clang-format on
 };
 
+enum TagTypes {
+    TagTerm1 = 0,
+    TagBrowse = 1,
+    TagCode = 2,
+    TagEnt = 3,
+    TagSys = 4,
+    TagCreat = 5,
+    TagChat = 6,
+    TagTerm2 = 7,
+    TagTerm3 = 8,
+};
 
-/* tagging                  |1     |2     |3     |4     |5     |6     |7      |8     | 9    */
-static char const *tags[] = {"   ", "  ", " 󰅩 ", "  ", "  ", "  ", " 󰙯 ", "   ", "   "};
+#define ttype(type) (1 << Tag##type)
+
+/* tagging */
+static char const *tags[] = {
+    [TagTerm1] = "   ",
+    [TagBrowse] = "  ",
+    [TagCode] = " 󰅩 ",
+    [TagEnt] = "  ",
+    [TagSys] = "  ",
+    [TagCreat] = "  ",
+    [TagChat] = " 󰙯 ",
+    [TagTerm2] = "   ",
+    [TagTerm3] = "   ",
+};
+
+
 
 static Rule const rules[] = {
   /* xprop(1):
@@ -90,32 +115,32 @@ static Rule const rules[] = {
   - 4 as 2, but closing that window reverts the view back to what it was previously (*)
   */
   // clang-format off
-    /* class                     , inst      , title     , tags   , switchtotag , isfloating , isterminal , noswallow , monitor */
-    {"Gimp"                      , NULL      , NULL      , 1 << 5 , 3           , 0          , 0          , 0         , -1}        ,
-    {"Darktable"                 , NULL      , NULL      , 1 << 5 , 3           , 0          , 0          , 0         , -1}        ,
-    {"MuseScore3"                , NULL      , NULL      , 1 << 5 , 1           , 0          , 0          , 0         , -1}        ,
-    {"Steam"                     , NULL      , NULL      , 1 << 3 , 3           , 1          , 0          , 0         , -1}        ,
-    {"firefox"                   , NULL      , NULL      , 1 << 1 , 3           , 0          , 0          , 0         , -1}        ,
-    {"Google-chrome"             , NULL      , NULL      , 1 << 1 , 3           , 0          , 1          , 1         , -1}        ,
-    {"Spotify"                   , NULL      , NULL      , 1 << 3 , 1           , 0          , 0          , 0         , -1}        ,
-    {"discord"                   , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
-    {"Mattermost"                , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
-    {"Microsoft Teams - Preview" , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
-    {"Thunderbird"               , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
-    {"Zulip"                     , NULL      , NULL      , 1 << 6 , 1           , 0          , 0          , 0         , -1}        ,
-    {"zoom"                      , NULL      , NULL      , 1 << 7 , 1           , 0          , 0          , 0         , -1}        ,
-    {"VirtualBox Machine"        , NULL      , NULL      , 1 << 4 , 1           , 0          , 0          , 0         , -1}        ,
-    {"jetbrains-clion"           , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1}        ,
-    {"jetbrains-webstorm"        , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1}        ,
-    {"jetbrains-idea"            , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1}        ,
-    {"jetbrains-pycharm"         , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1}        ,
-    {"jetbrains-studio"          , NULL      , NULL      , 1 << 2 , 1           , 0          , 0          , 0         , -1}        ,
-    {"qemu-system-i386"          , NULL      , NULL      , 0      , 0           , 1          , 1          , 1         , -1}        ,
-    {"testing"                   , NULL      , NULL      , 0      , 0           , 1          , 1          , 1         , -1}        ,
-    {"st-256color"               , NULL      , "spotify" , 1 << 3 , 3           , 0          , 0          , 1         , -1}        ,
-    {"st-256color"               , NULL      , "sysmon"  , 1 << 4 , 3           , 0          , 0          , 1         , -1}        ,
-    {"st-256color"               , NULL      , "neovim"  , 0      , 0           , 1          , 0          , 1         , -1}        ,
-    {"st-256color"               , NULL      , NULL      , 0      , 0           , 0          , 1          , 1         , -1}        ,
+    /* class                     , inst      , title     , tags          , switch , isfloating , isterminal , noswallow , monitor */
+    {"firefox"                   , NULL      , NULL      , ttype(Browse) , 3      , 0          , 0          , 0         , -1},
+    {"Google-chrome"             , NULL      , NULL      , ttype(Browse) , 3      , 0          , 1          , 1         , -1},
+    {"jetbrains-clion"           , NULL      , NULL      , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-webstorm"        , NULL      , NULL      , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-idea"            , NULL      , NULL      , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-pycharm"         , NULL      , NULL      , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-studio"          , NULL      , NULL      , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"Steam"                     , NULL      , NULL      , ttype(Ent)    , 3      , 1          , 0          , 0         , -1},
+    {"Spotify"                   , NULL      , NULL      , ttype(Ent)    , 1      , 0          , 0          , 0         , -1},
+    {"st-256color"               , NULL      , "spotify" , ttype(Ent)    , 3      , 0          , 0          , 1         , -1},
+    {"st-256color"               , NULL      , "sysmon"  , ttype(Sys)    , 3      , 0          , 0          , 1         , -1},
+    {"VirtualBox Machine"        , NULL      , NULL      , ttype(Sys)    , 1      , 0          , 0          , 0         , -1},
+    {"qemu-system-i386"          , NULL      , NULL      , ttype(Sys)    , 0      , 1          , 1          , 1         , -1},
+    {"Gimp"                      , NULL      , NULL      , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
+    {"Darktable"                 , NULL      , NULL      , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
+    {"MuseScore3"                , NULL      , NULL      , ttype(Creat)  , 1      , 0          , 0          , 0         , -1},
+    {"discord"                   , NULL      , NULL      , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Mattermost"                , NULL      , NULL      , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Microsoft Teams - Preview" , NULL      , NULL      , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Thunderbird"               , NULL      , NULL      , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Zulip"                     , NULL      , NULL      , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"zoom"                      , NULL      , NULL      , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"testing"                   , NULL      , NULL      , 0             , 0      , 1          , 1          , 1         , -1},
+    {"st-256color"               , NULL      , "neovim"  , 0             , 0      , 1          , 0          , 1         , -1},
+    {"st-256color"               , NULL      , NULL      , 0             , 0      , 0          , 1          , 1         , -1},
   // clang-format on
 };
 
@@ -152,13 +177,15 @@ static char const *dmenucmd[] = {
 static char const *termcmd[] = {"st", NULL};
 static char const *termclass = "st-256color";
 
-static char const *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
-static char const *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock
-static char const *brwscmd[] = {"firefox", NULL};  // Firefox browser
-static char const *musccmd[] = {"spotify", NULL};  // spotify-tui
-static char const *htopcmd[] = {"sysmon", NULL};   // system monitor aka htop
-static char const *nvimcmd[] = {"neovim", NULL};   // opens neovim
-static char const *chatcmd[] = {"disc", NULL};     // does discord
+static char const *lockcmd[] = {"slock", NULL};               // Lock the screen with slock
+static char const *powrcmd[] = {"turnoff", NULL};             // Lock the screen with slock
+static char const *brwscmd[] = {"firefox", NULL};             // Firefox browser
+static char const *musccmd[] = {"spotify", NULL};             // spotify-tui
+static char const *htopcmd[] = {"sysmon", NULL};              // system monitor aka htop
+static char const *nvimcmd[] = {"neovim", NULL};              // opens neovim
+static char const *chatcmd[] = {"disc", NULL};                // does discord
+// static char const *mttrmst[] = {"mattermost-desktop", NULL};  // mattermost
+// static char const *zulpcmd[] = {"zulip", NULL};               // zulip
 
 
 static char const *symdmnu[] = {"sym", NULL};         // Mathematical symbol selection
@@ -204,10 +231,10 @@ static Key keys[] = {
     {MODKEY                           , XK_l      , setmfact       , {.f = +0.02}}       ,
     {MODKEY | ShiftMask               , XK_h      , setcfact       , {.f = +0.25}}       ,
     {MODKEY | ShiftMask               , XK_l      , setcfact       , {.f = -0.25}}       ,
+    {MODKEY | ShiftMask               , XK_o      , resetmcfact    , {0}}                ,
     {MODKEY | ShiftMask               , XK_Return , zoom           , {0}}                ,
     {MODKEY                           , XK_Tab    , view           , {0}}                ,
     {MODKEY                           , XK_w      , killclient     , {0}}                ,
-    {MODKEY | ShiftMask               , XK_o      , setcfact       , {.f = 0.00}}        ,
     {MODKEY                           , XK_F5     , bright_dec     , {.f = 5.0}}         ,
     {MODKEY                           , XK_F6     , bright_inc     , {.f = 5.0}}         ,
     {MODKEY                           , XK_F11    , togglefs       , {0}}                ,
@@ -262,3 +289,5 @@ static char const *get_bright_file(void) {
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl0/brightness";
 }
+
+#undef ttype
