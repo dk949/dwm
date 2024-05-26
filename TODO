@@ -5,10 +5,10 @@
   |_| \___/|____/ \___/
 
 List of things I'd like to implement but don't have time for
-Format: %title%\n    %description%\n    Difficulty: %difficulty%
 
-2. Get status color working
+1. Get status color working
     Have color appear in the status bar. Will also require a slight rewrite of slstatus
 
-3. Layout saving
-    Make it possible to apply a specific layout with specific applications in their places (e.g. 2 windows split down the middle, neovim on the left, zathura on the right). Partly implemented in https://github.com/dk949/layout-script
+2. Finish implementing workspaces
+    When asynchronously spawning applications, they mignt not appear on the screen in the correct order
+    Spawn an app -> wait for it to be on the screen -> position on screen
