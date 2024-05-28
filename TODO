@@ -6,9 +6,12 @@
 
 List of things I'd like to implement but don't have time for
 
-1. Get status color working
-    Have color appear in the status bar. Will also require a slight rewrite of slstatus
-
-2. Finish implementing workspaces
-    When asynchronously spawning applications, they mignt not appear on the screen in the correct order
-    Spawn an app -> wait for it to be on the screen -> position on screen
+* [ ] Get status color working
+    * Have color appear in the status bar. Will also require a slight rewrite of slstatus
+* [ ] Finish implementing workspaces
+    * When asynchronously spawning applications, they mignt not appear on the screen in the correct order
+    * Spawn an app -> wait for it to be on the screen -> position on screen
+* [ ] Look at what changed between 6.2 and 6.4
+* [ ] Some cool new patches (more for inspiration than anything else):
+    * http://dwm.suckless.org/patches/windowmap/
+    * http://dwm.suckless.org/patches/statuscolors/
