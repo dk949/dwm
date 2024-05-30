@@ -1215,6 +1215,10 @@ void setmaster(Arg const *arg) {
     arrange(selmon);
 }
 
+void iconify(Arg const *_) {
+    if (!XIconifyWindow(dpy, selmon->sel->win, screen)) DEBUG_PRINTF("Could not iconify %s", selmon->sel->name);
+}
+
 void incnmaster(Arg const *arg) {
     setmaster(&(Arg) {.i = MAX(selmon->nmaster + arg->i, 0)});
 }

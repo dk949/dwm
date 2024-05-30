@@ -177,13 +177,13 @@ static char const *dmenucmd[] = {
 static char const *termcmd[] = {"st", NULL};
 static char const *termclass = "st-256color";
 
-static char const *lockcmd[] = {"slock", NULL};               // Lock the screen with slock
-static char const *powrcmd[] = {"turnoff", NULL};             // Lock the screen with slock
-static char const *brwscmd[] = {"firefox", NULL};             // Firefox browser
-static char const *musccmd[] = {"spotify", NULL};             // spotify-tui
-static char const *htopcmd[] = {"sysmon", NULL};              // system monitor aka htop
-static char const *nvimcmd[] = {"neovim", NULL};              // opens neovim
-static char const *chatcmd[] = {"disc", NULL};                // does discord
+static char const *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
+static char const *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock
+static char const *brwscmd[] = {"firefox", NULL};  // Firefox browser
+static char const *musccmd[] = {"spotify", NULL};  // spotify-tui
+static char const *htopcmd[] = {"sysmon", NULL};   // system monitor aka htop
+static char const *nvimcmd[] = {"neovim", NULL};   // opens neovim
+static char const *chatcmd[] = {"disc", NULL};     // does discord
 // static char const *mttrmst[] = {"mattermost-desktop", NULL};  // mattermost
 // static char const *zulpcmd[] = {"zulip", NULL};               // zulip
 
@@ -225,6 +225,7 @@ static Key keys[] = {
     {MODKEY | ShiftMask               , XK_k      , rotatestack    , {.i = -1}}          ,
     {MODKEY                           , XK_j      , focusstack     , {.i = +1}}          ,
     {MODKEY                           , XK_k      , focusstack     , {.i = -1}}          ,
+    {MODKEY                           , XK_z      , iconify        , {0}}                ,
     {MODKEY                           , XK_i      , incnmaster     , {.i = +1}}          ,
     {MODKEY                           , XK_d      , incnmaster     , {.i = -1}}          ,
     {MODKEY                           , XK_h      , setmfact       , {.f = -0.02}}       ,
