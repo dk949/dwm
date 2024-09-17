@@ -92,10 +92,11 @@ enum {
     NetWMWindowType,
     NetWMWindowTypeDialog,
     NetClientList,
+    NetWMIcon,
     NetLast
 }; /* EWMH atoms */
 
-enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
+enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMChangeState, WMLast }; /* default atoms */
 
 enum {
     SelfNotifyNone = 0,
@@ -148,6 +149,7 @@ static long getstate(Window w);
 static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
+static void iconifyclient(Client *c);
 static int isdescprocess(pid_t p, pid_t c);
 static void keypress(XEvent *e);
 static void manage(Window w, XWindowAttributes *wa);
@@ -180,6 +182,7 @@ static Client *swallowingclient(Window w);
 static Client *termforwin(Client const *c);
 static double timespecdiff(const struct timespec *a, const struct timespec *b);
 static void unfocus(Client *c, int setfocus);
+static void uniconifyclient(Client *c);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
 static void updatebarpos(Monitor *m);
@@ -197,6 +200,7 @@ static void updatewmhints(Client *c);
 static pid_t winpid(Window w);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
+static void wmchange(Client *c, XClientMessageEvent *cme);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
@@ -663,7 +667,9 @@ void clientmessage(XEvent *e) {
         if (c != selmon->sel && !c->isurgent) {
             seturgent(c, 1);
         }
-    }
+    } /*else if (cme->message_type == wmatom[WMChangeState]) {
+        wmchange(c, cme);
+    }*/
 }
 
 void configure(Client *c) {
@@ -1991,6 +1997,7 @@ void setup(void) {
     wmatom[WMProtocols] = XInternAtom(dpy, "WM_PROTOCOLS", False);
     wmatom[WMDelete] = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
     wmatom[WMState] = XInternAtom(dpy, "WM_STATE", False);
+    wmatom[WMChangeState] = XInternAtom(dpy, "WM_CHANGE_STATE", False);
     wmatom[WMTakeFocus] = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
     netatom[NetActiveWindow] = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
     netatom[NetSupported] = XInternAtom(dpy, "_NET_SUPPORTED", False);
@@ -2001,6 +2008,7 @@ void setup(void) {
     netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
     netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
     netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
+    netatom[NetWMIcon] = XInternAtom(dpy, "_NET_WM_ICON", False);
 
     /* init cursors */
     cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
@@ -2249,6 +2257,19 @@ void unfocus(Client *c, int setfocus) {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
     }
+}
+
+static void uniconifyclient(Client *c) {
+    DEBUG_PRINTF("restoring iconified cliend %s", c->name);
+    updatetitle(c);
+    updatesizehints(c);
+    arrange(c->mon);
+    XMapWindow(dpy, c->win);
+    XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+    configure(c);
+    setclientstate(c, NormalState);
+    attachstack(c);
+    attach(c);
 }
 
 void unmanage(Client *c, int destroyed) {
@@ -2683,6 +2704,139 @@ pid_t getparentprocess(pid_t p) {
     return (pid_t)v;
 }
 
+static uint32_t *geticon(Client *c, unsigned long *size) {
+    /*
+    It also  returns a value to bytes_after_return and nitems_return, by defining the following values:
+     N = actual length of the stored property in bytes (even if the format is 16 or 32)
+     Offs = 4 * offset
+     T = N - Offs
+     ButesToReturn = MINIMUM(T, 4 * long_length)
+     bytes_left = N - (Offs + BytesToReturn)
+
+    The  returned  value starts at byte index Offs in the property (indexing from zero), and its length in bytes is L.
+    If the value for long_offset causes L to be negative, a BadValue error results.  The value of bytes_after_return is
+    A, giving the number of trailing unread bytes in the stored property.
+
+       */
+    long offset = 0, length = 0;
+    Bool delete = False;
+    Atom req_type = XA_CARDINAL;
+    Atom actual_type;
+    int format;
+    unsigned long nitems, bytes_left;
+    unsigned char *data;
+    XGetWindowProperty(dpy,
+        c->win,
+        netatom[NetWMIcon],
+        offset,
+        length,
+        delete,
+        req_type,
+        &actual_type,
+        &format,
+        &nitems,
+        &bytes_left,
+        &data);
+    if (format != 32) DEBUG_PRINTF("wrong format: %d", format);
+    if (req_type != actual_type) DEBUG_PRINTF("wrong type:  expected %lu got %lu", req_type, actual_type);
+    DEBUG_PRINTF("nitems = %lu, bytes_left = %lu", nitems, bytes_left);
+    *size = length = bytes_left;
+    XGetWindowProperty(dpy,
+        c->win,
+        netatom[NetWMIcon],
+        offset,
+        length,
+        delete,
+        req_type,
+        &actual_type,
+        &format,
+        &nitems,
+        &bytes_left,
+        &data);
+    {
+        uint32_t *begin = (uint32_t *)data;
+        uint32_t *end = (uint32_t *)((uint8_t *)data + *size);
+        int pos = 0;
+        for (uint32_t *it = begin; it != end; ++it, pos++) {
+            if (pos % 2) continue;
+            begin[pos / 2] = *it;
+        }
+    }
+    return (uint32_t *)data;
+}
+
+static void dump_ppm(uint32_t *data, uint32_t w, uint32_t h, char const *path) {
+    typedef union ARGB {
+        struct {
+            uint8_t b;
+            uint8_t g;
+            uint8_t r;
+            uint8_t a;
+        };
+
+        uint32_t argb;
+    } ARGB;
+
+    FILE *fp = fopen(path, "w");
+    if (!fp) {
+        DEBUG_PRINTF("Could not open file %s for writing", path);
+        return;
+    }
+    fprintf(fp, "P6 %d %d 255\n", w, h);
+    ARGB *argb_data = (ARGB *)data;
+    int x = 0, y = 0;
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            fwrite(&(argb_data[y * w + x].r), sizeof(uint8_t), 1, fp);
+            fwrite(&(argb_data[y * w + x].g), sizeof(uint8_t), 1, fp);
+            fwrite(&(argb_data[y * w + x].b), sizeof(uint8_t), 1, fp);
+        }
+        // fputc('\n', fp);
+    }
+    DEBUG_PRINTF("After icon, data = %dx%d", (int)data[y * w + x + 0], (int)data[y * w + x + 1]);
+    fclose(fp);
+}
+
+static __attribute_maybe_unused__ void dump_raw(uint8_t *data, size_t size, char const *path) {
+    FILE *fp = fopen(path, "w");
+    if (!fp) {
+        DEBUG_PRINTF("Could not open file %s for writing", path);
+        return;
+    }
+
+    fwrite(data, sizeof(data[0]), size, fp);
+
+    fclose(fp);
+}
+
+static void iconifyclient(Client *c) {
+    char *icon_name;
+    XGetIconName(dpy, c->win, &icon_name);
+    DEBUG_PRINTF("%s wants to iconify. Icon name: %s", c->name, icon_name);
+    XFree(icon_name);
+
+    detach(c);
+    detachstack(c);
+
+    setclientstate(c, IconicState);
+    XUnmapWindow(dpy, c->win);
+
+    arrange(c->mon);
+    updateclientlist();
+    unsigned long size;
+    uint32_t *icon;
+    if ((icon = geticon(c, &size))) {
+        DEBUG_PRINTF("icon is %dx%d, %lu bytes", (int)icon[0], (int)icon[1], size);
+        dump_ppm(icon + 2, icon[0], icon[1], "/home/davidk/.cache/dwm/icon.ppm");
+
+        XFree(icon);
+    } else {
+        DEBUG_PRINTF("No icon for client %s", c->name);
+    }
+
+    delay(1000000 * 5, (void (*)(void *))uniconifyclient, c);
+}
+
 int isdescprocess(pid_t p, pid_t c) {
     while (p != c && c != 0) {
         c = getparentprocess(c);
@@ -2757,6 +2911,14 @@ Monitor *wintomon(Window w) {
         return c->mon;
     }
     return selmon;
+}
+
+static __attribute_used__ void wmchange(Client *c, XClientMessageEvent *cme) {
+    if (cme->format != 32 || cme->data.l[0] != IconicState)
+        // Only handling iconification
+        return;
+
+    iconifyclient(c);
 }
 
 /* There's no way to check accesses to destroyed windows, thus those cases are
