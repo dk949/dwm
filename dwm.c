@@ -215,7 +215,8 @@ static void (*self_notify_handler[SelfNotifyLast])(void) = {
     [SelfNotifyNone] = NULL,
     [SelfNotifyFadeBar] = handle_notifyself_fade_anim,
 };
-static void (*handler[LASTEvent])(XEvent *) = {[ButtonPress] = buttonpress,
+static void (*handler[LASTEvent])(XEvent *) = {
+    [ButtonPress] = buttonpress,
     [ClientMessage] = clientmessage,
     [ConfigureRequest] = configurerequest,
     [ConfigureNotify] = configurenotify,
@@ -228,7 +229,8 @@ static void (*handler[LASTEvent])(XEvent *) = {[ButtonPress] = buttonpress,
     [MapRequest] = maprequest,
     [MotionNotify] = motionnotify,
     [PropertyNotify] = propertynotify,
-    [UnmapNotify] = unmapnotify};
+    [UnmapNotify] = unmapnotify,
+};
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1, need_restart = 0;
 static Cur *cursor[CurLast];
