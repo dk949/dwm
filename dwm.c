@@ -2352,7 +2352,7 @@ void updatebarpos(Monitor *m) {
     }
 }
 
-void updateclientlist() {
+void updateclientlist(void) {
     Client *c;
     Monitor *m;
 
