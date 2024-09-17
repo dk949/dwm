@@ -75,6 +75,7 @@ void bright_inc(Arg const *arg);
 void bright_set(Arg const *arg) __attribute__((unused));
 void focusmon(Arg const *arg);
 void focusstack(Arg const *arg);
+void iconify(Arg const *);
 void incnmaster(Arg const *arg);
 void killclient(Arg const *arg);
 void movemouse(Arg const *arg);
