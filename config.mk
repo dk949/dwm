@@ -56,7 +56,7 @@ DEBUG_CFLAGS   = -Og -g -fsanitize=address
 RELEASE_LDFLAGS = -flto
 DEBUG_LDFLAGS   = -lg -fsanitize=address
 
-CFLAGS         = -std=c99 -Wpedantic -Wall -Werror $($(MODE)_CFLAGS) $(LIBFLAGS) $(CPPFLAGS)
+CFLAGS         = -std=c23 -Wpedantic -Wall -Werror $($(MODE)_CFLAGS) $(LIBFLAGS) $(CPPFLAGS)
 
 LDFLAGS  = $($(MODE)_LDFLAGS) $(LIBS)
 
