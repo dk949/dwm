@@ -33,7 +33,7 @@ dwm: ${OBJ}
 
 
 clean:
-	rm -f dwm ${OBJ}
+	rm -f dwm ${OBJ} MODE
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
@@ -45,6 +45,12 @@ install: all
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/dwm \
 		${DESTDIR}${MANPREFIX}/man1/dwm.1
+
+.ccls: MODE Makefile config.mk
+	printf "clang\n\n" > $@
+	echo "${CFLAGS}" | sed 's/  */\n/g' >> $@
+
+
 
 .PHONY: all options clean install uninstall
 .PHONY: phony
