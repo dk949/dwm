@@ -58,7 +58,6 @@ typedef union volc_volume_state {
 
 extern volc_t *volc_init(char const *selector, unsigned int selector_index, char const *card);
 extern void volc_deinit(volc_t *volc);
-extern char const *volc_err_str();
 extern volc_volume_state_t volc_volume_ctl(
     volc_t *volc, unsigned int channels, volc_volume_t new_volume, channel_switch_t channel_switch);
 

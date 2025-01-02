@@ -1,11 +1,15 @@
 /* See LICENSE file for copyright and license details. */
 #include "util.h"
 
+#include <dirent.h>
+#include <errno.h>
+#include <libgen.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 void *ecalloc(size_t nmemb, size_t size) {
@@ -21,17 +25,17 @@ void die(char const *fmt, ...) {
     va_list ap;
 
     va_start(ap, fmt);
-    fputs("[DWM ERROR]", stderr);
-    vfprintf(stderr, fmt, ap);
+    fputs("[DWM ERROR]: ", log_file);
+    vfprintf(log_file, fmt, ap);
     va_end(ap);
 
     if (fmt[0] && fmt[strlen(fmt) - 1] == ':') {
-        fputc(' ', stderr);
-        perror(NULL);
+        fputc(' ', log_file);
+        fputs(strerror(errno), log_file);
     } else {
-        fputc('\n', stderr);
+        fputc('\n', log_file);
     }
-    fflush(stderr);
+    fflush(log_file);
 
     exit(1);
 }
@@ -61,4 +65,75 @@ void delay(int delay_for, void (*fn)(void *), void *arg) {
     dpl->inner_pl = arg;
     dpl->delay_for = delay_for;
     pthread_create(&tid, &attr, delay_detached, dpl);
+}
+
+char *buildStringV(char const *first, va_list args) {
+    if (first == NULL) return NULL;
+    va_list length_count;
+    va_copy(length_count, args);
+    size_t total_length = 0;
+    for (char const *it = first; it != NULL; it = va_arg(length_count, char const *))
+        total_length += strlen(it);
+    va_end(length_count);
+
+    char *out = malloc(total_length + 1);
+    out[0] = 0;
+    for (char const *it = first; it != NULL; it = va_arg(args, char const *))
+        strcat(out, it);
+
+    return out;
+}
+
+char *buildString(char const *first, ...) {
+    va_list args;
+    va_start(args, first);
+    char *out = buildStringV(first, args);
+    va_end(args);
+    return out;
+}
+
+char *buildStringDealloc(char *first, ...) {
+    va_list args;
+    va_start(args, first);
+    char *out = buildStringDeallocV(first, args);
+    va_end(args);
+    return out;
+}
+
+char *buildStringDeallocV(char *first, va_list args) {
+    char *out = buildStringV(first, args);
+    free(first);
+    return out;
+}
+
+int mkdirP(char const *dir_name, int mode) {
+    struct stat st = {0};
+    if (stat(dir_name, &st) != -1) {
+        if (S_ISDIR(st.st_mode)) return 0;
+        errno = EEXIST;
+        return -1;
+    }
+
+    char const *parent = dirname(strdupa(dir_name));
+    if (mkdirP(parent, mode)) return -1;
+    return mkdir(dir_name, mode);
+}
+
+char *getLogDir(void) {
+    char const *logsubdir = "/dwm/log/";
+
+    char const *xdg_cache_home = getenv("XDG_CACHE_HOME");
+    if (xdg_cache_home) {
+        char *path = buildString(xdg_cache_home, logsubdir, NULL);
+        if (!mkdirP(path, 0700)) return path;
+        WARN("Failed to get XDG_CACHE_HOME (%s): %s", path, strerror(errno));
+    }
+
+    char const *home = getenv("HOME");
+    if (home) {
+        char *path = buildString(home, "/.cache", logsubdir, NULL);
+        if (!mkdirP(path, 0700)) return path;
+        WARN("Failed to get $HOME/.cache directory (%s): %s", path, strerror(errno));
+    }
+    return NULL;
 }

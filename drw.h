@@ -32,27 +32,6 @@ typedef struct {
     Fnt *fonts;
 } Drw;
 
-#define DRW_DEBUG(DRW)             \
-    printf("drw: "                 \
-           "\n\t.dpy = %llu, "     \
-           "\n\t.drawable = %lu, " \
-           "\n\t.fonts = %llu, "   \
-           "\n\t.gc = %llu, "      \
-           "\n\t.h = %u, "         \
-           "\n\t.w = %u, "         \
-           "\n\t.root = %lu, "     \
-           "\n\t.scheme = %llu, "  \
-           "\n\t.screen = %i\n",   \
-        (DRW)->dpy,                \
-        (DRW)->drawable,           \
-        (DRW)->fonts,              \
-        (DRW)->gc,                 \
-        (DRW)->h,                  \
-        (DRW)->w,                  \
-        (DRW)->root,               \
-        (DRW)->scheme,             \
-        (DRW)->screen)
-
 /* Drawable abstraction */
 Drw *drw_create(Display *dpy, int screen, Window win, unsigned int w, unsigned int h);
 void drw_resize(Drw *drw, unsigned int w, unsigned int h);

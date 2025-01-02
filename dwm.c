@@ -28,12 +28,14 @@
 #include "st.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -158,6 +160,7 @@ static void maprequest(XEvent *e);
 static void motionnotify(XEvent *e);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
+static void redirectChildLog(char **argv);
 static void notifyself(int type);
 static void handle_notifyself_fade_anim(void);
 static void pop(Client *);
@@ -247,6 +250,8 @@ static Window root, wmcheckwin;
 static volc_t *volc;
 #endif /* ASOUND */
 static xcb_connection_t *xcon;
+static char *log_dir = NULL;
+FILE *log_file = NULL;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -632,6 +637,8 @@ void cleanup(void) {
 #ifdef ASOUND
     volc_deinit(volc);
 #endif /* ASOUND */
+    free(log_dir);
+    fclose(log_file);
 }
 
 void cleanupmon(Monitor *mon) {
@@ -1964,6 +1971,15 @@ void setup(void) {
     /* clean up any zombies immediately */
     sigchld(0);
 
+    /*Set up logging*/
+    log_dir = getLogDir();
+    {
+        char *log_file_name = buildString(log_dir, "dwm.log");
+        log_file = fopen(log_file_name, "wa");
+        if (!log_file) die("could not open log file:");
+    }
+
+
     /* init screen */
     screen = DefaultScreen(dpy);
     sw = DisplayWidth(dpy, screen);
@@ -1984,9 +2000,8 @@ void setup(void) {
     }
 
 #ifdef ASOUND
-    if (!(volc = volc_init(VOLC_ALL_DEFULTS))) {
-        die("volc setup failed: %s", volc_err_str());
-    }
+    if (!(volc = volc_init(VOLC_ALL_DEFULTS))) die("volc setup failed");
+
 #endif /* ASOUND */
 
     lrpad = drw->fonts->h;
@@ -2081,12 +2096,39 @@ void showhide(Client *c) {
 }
 
 void sigchld(int unused) {
+    (void)unused;
     if (signal(SIGCHLD, sigchld) == SIG_ERR) {
         die("can't install SIGCHLD handler:");
     }
     while (0 < waitpid(-1, NULL, WNOHANG)) {
         ;
     }
+}
+
+void redirectChildLog(char **argv) {
+    char *file_name = buildString(log_dir, "/", argv[0]);
+
+    int child_fd = open(file_name, O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
+    if (child_fd < 0) {
+        WARN("Could not set up logging for child processes %s: %s", argv[0], strerror(errno));
+        return;
+    }
+    char const div[] = "_______________________________\n";
+    if (write(child_fd, div, sizeof(div)) < 0) {
+        WARN("Could not write to child log file %s: %s", file_name, strerror(errno));
+        goto exit;
+    }
+
+    if (dup2(child_fd, STDOUT_FILENO) < 0) {
+        WARN("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
+        goto exit;
+    }
+    if (dup2(child_fd, STDERR_FILENO) < 0) {
+        WARN("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
+        goto exit;
+    }
+exit:
+    close(child_fd);
 }
 
 void spawn(Arg const *arg) {
@@ -2097,6 +2139,7 @@ void spawn(Arg const *arg) {
         if (dpy) {
             close(ConnectionNumber(dpy));
         }
+        redirectChildLog((char **)arg->v);
         setsid();
         execvp(((char **)arg->v)[0], (char **)arg->v);
         die("failed to spawn %s:", ((char **)arg->v)[0]);
@@ -2635,10 +2678,7 @@ void volumechange(Arg const *arg) {
         state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC(arg->i), VOLC_CHAN_ON);
     }
 
-    if (state.err < 0) {
-        WARN("volc: failed to change volume: %s", volc_err_str());
-        return;
-    }
+    if (state.err < 0) return;
 
     drawprogress(100,
         (unsigned long long)state.state.volume,
@@ -2991,9 +3031,8 @@ int main(int argc, char *argv[]) {
     cleanup();
     XCloseDisplay(dpy);
     if (need_restart) {
-        printf("Restarting dwm\n"
-               "________________________________________________________________________________\n");
-        fflush(stdout);
+        LOG("Restarting dwm\n"
+            "________________________________________________________________________________\n");
         if (execvp(argv[0], argv)) die("could not restart dwm:");
     }
 

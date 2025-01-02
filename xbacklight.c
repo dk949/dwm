@@ -29,6 +29,7 @@
  */
 
 #include "backlight.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,11 +107,11 @@ backlight_error_t bright_setup(char const *dpy_name, int step_conf, int time_con
     ver_reply = xcb_randr_query_version_reply(conn, ver_cookie, &error);
     if (error != NULL || ver_reply == NULL) {
         int ec = error ? error->error_code : -1;
-        fprintf(stderr, "RANDR Query Version returned error %d\n", ec);
+        WARN("RANDR Query Version returned error %d\n", ec);
         return BACKLIGHT_XRANDR_ERROR;
     }
     if (ver_reply->major_version != 1 || ver_reply->minor_version < 2) {
-        fprintf(stderr, "RandR version %d.%d too old\n", ver_reply->major_version, ver_reply->minor_version);
+        WARN("RandR version %d.%d too old\n", ver_reply->major_version, ver_reply->minor_version);
         return BACKLIGHT_XRANDR_ERROR;
     }
     free(ver_reply);
@@ -121,7 +122,7 @@ backlight_error_t bright_setup(char const *dpy_name, int step_conf, int time_con
     backlight_reply = xcb_intern_atom_reply(conn, backlight_cookie[0], &error);
     if (error != NULL || backlight_reply == NULL) {
         int ec = error ? error->error_code : -1;
-        fprintf(stderr, "Intern Atom returned error %d\n", ec);
+        WARN("Intern Atom returned error %d\n", ec);
         return BACKLIGHT_ATOM_ERROR;
     }
 
@@ -131,7 +132,7 @@ backlight_error_t bright_setup(char const *dpy_name, int step_conf, int time_con
     backlight_reply = xcb_intern_atom_reply(conn, backlight_cookie[1], &error);
     if (error != NULL || backlight_reply == NULL) {
         int ec = error ? error->error_code : -1;
-        fprintf(stderr, "Intern Atom returned error %d\n", ec);
+        WARN("Intern Atom returned error %d\n", ec);
         return BACKLIGHT_ATOM_ERROR;
     }
 
@@ -139,7 +140,7 @@ backlight_error_t bright_setup(char const *dpy_name, int step_conf, int time_con
     free(backlight_reply);
 
     if (backlight_new == XCB_NONE && backlight_legacy == XCB_NONE) {
-        fprintf(stderr, "No outputs have backlight property\n");
+        WARN("No outputs have backlight property\n");
         return BACKLIGHT_PROPERTY_ERROR;
     }
 
@@ -170,7 +171,7 @@ backlight_error_t run(double value, op_t op, double *new_value) {
         resources_reply = xcb_randr_get_screen_resources_current_reply(conn, resources_cookie, &error);
         if (error != NULL || resources_reply == NULL) {
             int ec = error ? error->error_code : -1;
-            fprintf(stderr, "RANDR Get Screen Resources returned error %d\n", ec);
+            WARN("RANDR Get Screen Resources returned error %d\n", ec);
             continue;
         }
 
