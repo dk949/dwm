@@ -2107,7 +2107,7 @@ void sigchld(int unused) {
 }
 
 void redirectChildLog(char **argv) {
-    char *file_name = buildString(log_dir, "/", argv[0], ".log");
+    char *file_name = buildString(log_dir, "/", argv[0], ".log", NULL);
 
     int child_fd = open(file_name, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
     if (child_fd < 0) {
