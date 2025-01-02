@@ -1974,8 +1974,8 @@ void setup(void) {
     /*Set up logging*/
     log_dir = getLogDir();
     {
-        char *log_file_name = buildString(log_dir, "dwm.log");
-        log_file = fopen(log_file_name, "wa");
+        char *log_file_name = buildString(log_dir, "dwm.log", NULL);
+        log_file = fopen(log_file_name, "a");
         if (!log_file) die("could not open log file:");
     }
 
@@ -2106,25 +2106,25 @@ void sigchld(int unused) {
 }
 
 void redirectChildLog(char **argv) {
-    char *file_name = buildString(log_dir, "/", argv[0]);
+    char *file_name = buildString(log_dir, "/", argv[0], ".log");
 
-    int child_fd = open(file_name, O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
+    int child_fd = open(file_name, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
     if (child_fd < 0) {
-        WARN("Could not set up logging for child processes %s: %s", argv[0], strerror(errno));
+        die("Could not set up logging for child processes %s: %s", argv[0], strerror(errno));
         return;
     }
-    char const div[] = "_______________________________\n";
+    char const div[] = "________________________________________________________________________________\n";
     if (write(child_fd, div, sizeof(div)) < 0) {
-        WARN("Could not write to child log file %s: %s", file_name, strerror(errno));
+        die("Could not write to child log file %s: %s", file_name, strerror(errno));
         goto exit;
     }
 
     if (dup2(child_fd, STDOUT_FILENO) < 0) {
-        WARN("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
+        die("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
         goto exit;
     }
     if (dup2(child_fd, STDERR_FILENO) < 0) {
-        WARN("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
+        die("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
         goto exit;
     }
 exit:
