@@ -22,20 +22,22 @@ void *ecalloc(size_t nmemb, size_t size) {
 }
 
 void die(char const *fmt, ...) {
+    FILE *file = log_file ? log_file : stderr;
     va_list ap;
 
     va_start(ap, fmt);
-    fputs("[DWM ERROR]: ", log_file);
-    vfprintf(log_file, fmt, ap);
+    fputs("[DWM ERROR]: ", file);
+    vfprintf(file, fmt, ap);
     va_end(ap);
 
     if (fmt[0] && fmt[strlen(fmt) - 1] == ':') {
-        fputc(' ', log_file);
-        fputs(strerror(errno), log_file);
+        fputc(' ', file);
+        fputs(strerror(errno), file);
     } else {
-        fputc('\n', log_file);
+        fputc('\n', file);
     }
-    fflush(log_file);
+    if (!log_file) fputs("NOTE: logfile unavailable", file);
+    fflush(file);
 
     exit(1);
 }
