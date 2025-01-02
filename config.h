@@ -130,6 +130,7 @@ static Rule const rules[] = {
     {"VirtualBox Machine"        , NULL      , NULL         , ttype(Sys)    , 1      , 0          , 0          , 0         , -1},
     {"qemu-system-i386"          , NULL      , NULL         , ttype(Sys)    , 0      , 1          , 1          , 1         , -1},
     {"Gimp"                      , NULL      , NULL         , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
+    {"Blender"                   , NULL      , NULL         , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
     {"Darktable"                 , NULL      , NULL         , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
     {"MuseScore3"                , NULL      , NULL         , ttype(Creat)  , 1      , 0          , 0          , 0         , -1},
     {"discord"                   , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
