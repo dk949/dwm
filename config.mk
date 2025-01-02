@@ -1,10 +1,10 @@
 # dwm version
 
 ifndef VERSION
-DATE         = $(shell git log -1 --format='%cd' --date=format:'%F')
-DATE_TIME    = $(DATE) 00:00
-COMMIT_COUNT = $(shell git rev-list --count HEAD --since="$(DATE_TIME)")
-VERSION      = 6.2.$(shell date -d "$(DATE)" +'%Y%m%d')_$(COMMIT_COUNT)
+	DATE         = $(shell git log -1 --format='%cd' --date=format:'%F')
+	DATE_TIME    = $(DATE) 00:00
+	COMMIT_COUNT = $(shell git rev-list --count HEAD --since="$(DATE_TIME)")
+	VERSION      = 6.2.$(shell date -d "$(DATE)" +'%Y%m%d')_$(COMMIT_COUNT)
 endif
 
 # Customize below to fit your system
@@ -43,6 +43,7 @@ LIBS     = $(XINERAMALIBS)  $(ASOUNDLIBS)  $(XBACKLIGHTLIBS)  `pkg-config $(REQ_
 
 RELEASE_CPPFLAGS = -DNDEBUG
 DEBUG_CPPFLAGS   =
+TRACE_CPPFLAGS   = $(DEBUG_CPPFLAGS) -DDWM_TRACE_EVENTS
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE         \
@@ -54,8 +55,10 @@ CPPFLAGS = -D_DEFAULT_SOURCE         \
 
 RELEASE_CFLAGS = -Os -flto
 DEBUG_CFLAGS   = -Og -g -fsanitize=address
+TRACE_CFLAGS   = $(DEBUG_CFLAGS)
 RELEASE_LDFLAGS = -flto
 DEBUG_LDFLAGS   = -lg -fsanitize=address
+TRACE_LDFLAGS   = $(DEBUG_LDFLAGS)
 
 CFLAGS         = -std=c23 -Wpedantic -Wall -Werror $($(MODE)_CFLAGS) $(LIBFLAGS) $(CPPFLAGS)
 

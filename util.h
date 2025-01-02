@@ -16,19 +16,25 @@
             fflush(log_file);                             \
         } while (0)
 #    define DEBUG_PRINT(VAR, FMT) fprintf(log_file, "[DWM DBG]: " #VAR " = " #FMT, VAR)
-#    define DEBUG_PRINT_ARR(ARR, SZ, FMT)                         \
-        do {                                                      \
+#    define DEBUG_PRINT_ARR(ARR, SZ, FMT)                                    \
+        do {                                                                 \
             fputs("[DWM DBG]: " #ARR ":", log_file);                         \
-            for (size_t i = 0; i < SZ; i++) {                     \
+            for (size_t i = 0; i < SZ; i++) {                                \
                 fprintf(log_file, "\t" #ARR "[%lu] = " FMT "\n", i, ARR[i]); \
-            }                                                     \
+            }                                                                \
         } while (0)
 #    define IF_DEBUG if (1)
+#    ifdef DWM_TRACE_EVENTS
+#        define IF_EVENT_TRACE if (1)
+#    else
+#        define IF_EVENT_TRACE if (0)
+#    endif
 #else  // NDEBUG
 #    define DEBUG_PRINTF(...)             (void)0
 #    define DEBUG_PRINT(VAR, FMT)         (void)0
 #    define DEBUG_PRINT_ARR(ARR, SZ, FMT) (void)0
 #    define IF_DEBUG                      if (0)
+#    define IF_EVENT_TRACE                if (0)
 #endif  // NDEBUG
 
 #define LOG(...)                                      \

@@ -1560,6 +1560,7 @@ void propertynotify(XEvent *e) {
 void quit(Arg const *arg) {
     running = 0;
     need_restart = 0;
+    LOG("Initiating shutdowd");
 }
 
 void restart(Arg const *arg) {
@@ -1766,7 +1767,7 @@ void run(void) {
             if (XNextEvent(dpy, &ev)) break;
             if (handler[ev.type]) handler[ev.type](&ev); /* call handler */
         }
-        IF_DEBUG {
+        IF_EVENT_TRACE {
             print_event_stats();
         }
     }
@@ -3027,6 +3028,7 @@ int main(int argc, char *argv[]) {
     if (pledge("stdio rpath proc exec", NULL) == -1) die("pledge");
 #endif /* __OpenBSD__ */
     scan();
+    LOG("Starting DWM");
     run();
     cleanup();
     XCloseDisplay(dpy);
@@ -3036,6 +3038,7 @@ int main(int argc, char *argv[]) {
         if (execvp(argv[0], argv)) die("could not restart dwm:");
     }
 
+    LOG("Shutdown complete");
     return EXIT_SUCCESS;
 }
 
