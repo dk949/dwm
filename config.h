@@ -145,6 +145,7 @@ static Rule const rules[] = {
     {"Xephyr"                    , NULL      , NULL         , 0             , 0      , 1          , 1          , 1         , -1},
     {"st-256color"               , NULL      , "neovim"     , 0             , 0      , 1          , 0          , 1         , -1},
     {"st-256color"               , NULL      , NULL         , 0             , 0      , 0          , 1          , 1         , -1},
+    {"kitty"                     , NULL      , NULL         , 0             , 0      , 0          , 1          , 1         , -1},
   // clang-format on
 };
 
@@ -178,7 +179,7 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static char const *dmenucmd[] = {
     "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", NULL};
 
-static char const *termcmd[] = {"st", NULL};
+static char const *termcmd[] = {"kitty", NULL};
 static char const *termclass = "st-256color";
 
 static char const *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
