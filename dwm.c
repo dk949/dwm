@@ -1977,6 +1977,7 @@ void setup(void) {
     {
         char *log_file_name = buildString(log_dir, "dwm.log", NULL);
         log_file = fopen(log_file_name, "a");
+        free(log_file_name);
         if (!log_file) die("could not open log file:");
     }
 
@@ -2130,6 +2131,7 @@ void redirectChildLog(char **argv) {
     }
 exit:
     close(child_fd);
+    free(file_name);
 }
 
 void spawn(Arg const *arg) {
