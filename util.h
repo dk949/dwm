@@ -37,25 +37,28 @@
 #    define IF_EVENT_TRACE                if (0)
 #endif  // NDEBUG
 
-#define LOG(...)                                      \
-    do {                                              \
-        if (log_file) {                               \
-            fprintf(log_file, "[DWM]: " __VA_ARGS__); \
-            fputc('\n', log_file);                    \
-            fflush(log_file);                         \
-        } else {                                      \
-            die("Log file closed");                   \
-        }                                             \
+#define LOG(...)                                                  \
+    do {                                                          \
+        if (!log_file) {                                          \
+            fprintf(stderr, "LOG FILE CLOSED USING STDERR!!!\n"); \
+            log_file = stderr;                                    \
+        }                                                         \
+        fprintf(log_file, "%s", datetime());                      \
+        fprintf(log_file, "[DWM]: " __VA_ARGS__);                 \
+        fputc('\n', log_file);                                    \
+        fflush(log_file);                                         \
     } while (0)
 
-#define WARN(...)                                             \
-    do {                                                      \
-        if (log_file) {                                       \
-            fprintf(log_file, "[DWM WARNING]: " __VA_ARGS__); \
-            fputc('\n', log_file);                            \
-        } else {                                              \
-            die("Log file closed");                           \
-        }                                                     \
+#define WARN(...)                                                 \
+    do {                                                          \
+        if (!log_file) {                                          \
+            fprintf(stderr, "LOG FILE CLOSED USING STDERR!!!\n"); \
+            log_file = stderr;                                    \
+        }                                                         \
+        fprintf(log_file, "%s", datetime());                      \
+        fprintf(log_file, "[DWM WARNING]: " __VA_ARGS__);         \
+        fputc('\n', log_file);                                    \
+        fflush(log_file);                                         \
     } while (0)
 
 
@@ -69,6 +72,8 @@ __attribute__((format(printf, 1, 2)))
 void die(char const *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
 void delay(int delay_for, void (*fn)(void *), void *arg);
+char const *datetime(void);
+
 
 extern FILE *log_file;
 /**

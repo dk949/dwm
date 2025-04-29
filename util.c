@@ -139,3 +139,11 @@ char *getLogDir(void) {
     }
     return NULL;
 }
+
+char const *datetime(void) {
+    static char buf[26];
+
+    time_t timer = time(NULL);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&timer));
+    return buf;
+}
