@@ -2889,22 +2889,21 @@ int isdescprocess(pid_t p, pid_t c) {
 }
 
 Client *termforwin(Client const *w) {
-    Client *c;
-    Monitor *m;
-
     if (!w->pid || w->isterminal) {
         return NULL;
     }
 
-    for (m = mons; m; m = m->next) {
-        for (c = m->clients; c; c = c->next) {
+    Client *out = NULL;
+    for (Monitor *m = mons; m; m = m->next) {
+        for (Client *c = m->clients; c; c = c->next) {
             if (c->isterminal && !c->swallowing && c->pid && isdescprocess(c->pid, w->pid)) {
-                return c;
+                if(selmon->sel == c) return c;
+                out = c;
             }
         }
     }
 
-    return NULL;
+    return out;
 }
 
 Client *swallowingclient(Window w) {
