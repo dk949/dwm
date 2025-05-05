@@ -6,3 +6,4 @@ errors.err
 dwm
 gen_conf.h
 MODE
+.clangd
