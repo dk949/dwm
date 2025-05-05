@@ -3,7 +3,7 @@ build
 compile_commands.json
 errors.err
 *.o
-dwm
+out/
 gen_conf.h
 MODE
 .clangd
