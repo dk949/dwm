@@ -180,7 +180,6 @@ static char const *dmenucmd[] = {
     "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", NULL};
 
 static char const *termcmd[] = {"kitty", "-1", NULL};
-static char const *termclass = "st-256color";
 
 static char const *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
 static char const *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock

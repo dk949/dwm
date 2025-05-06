@@ -25,7 +25,6 @@
 
 #include "layout.h"
 #include "mapping.h"
-#include "st.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -432,10 +431,6 @@ void arrangemon(Monitor *m) {
     strncpy(m->layoutSymbol, m->lt[m->sellt]->symbol, sizeof m->layoutSymbol);
     if (m->lt[m->sellt]->arrange) {
         m->lt[m->sellt]->arrange(m);
-        if (m->lt[m->sellt]->arrange == monocle)
-            st_make_opaque(dpy, termclass, m);
-        else
-            st_make_transparent(dpy, termclass, m);
     }
 }
 
