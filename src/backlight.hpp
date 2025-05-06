@@ -1,5 +1,5 @@
-#ifndef XBACKLIGHT_XBACKLIGHT_H
-#define XBACKLIGHT_XBACKLIGHT_H
+#ifndef XBACKLIGHT_XBACKLIGHT_HPP
+#define XBACKLIGHT_XBACKLIGHT_HPP
 
 typedef enum {
     BACKLIGHT_INTERNAL_ERROR = -1,
@@ -29,4 +29,4 @@ backlight_error_t bright_set_(double value);
 
 backlight_error_t bright_get_(double *value);
 
-#endif  // XBACKLIGHT_XBACKLIGHT_H
+#endif  // XBACKLIGHT_XBACKLIGHT_HPP

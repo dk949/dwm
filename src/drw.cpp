@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
-#include "drw.h"
+#include "drw.hpp"
 
-#include "util.h"
+#include "util.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>

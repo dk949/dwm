@@ -1,5 +1,5 @@
-#ifndef MAPPING_H
-#define MAPPING_H
+#ifndef MAPPING_HPP
+#define MAPPING_HPP
 
 #include <X11/X.h>
 
@@ -104,4 +104,4 @@ void volumechange(Arg const *arg);
 
 #endif  // ASOUND
 
-#endif  // MAPPING_H
+#endif  // MAPPING_HPP

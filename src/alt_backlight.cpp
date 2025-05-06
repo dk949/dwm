@@ -1,5 +1,5 @@
-#include "backlight.h"
-#include "util.h"
+#include "backlight.hpp"
+#include "util.hpp"
 
 #include <stdio.h>
 #include <string.h>

@@ -1,6 +1,6 @@
-#include "volc.h"
+#include "volc.hpp"
 
-#include "util.h"
+#include "util.hpp"
 
 #include <alsa/asoundlib.h>
 #include <assert.h>

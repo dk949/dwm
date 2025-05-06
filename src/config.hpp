@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details. */
-#include "layout.h"
-#include "mapping.h"
+#include "layout.hpp"
+#include "mapping.hpp"
 
 #include <stdlib.h>
 #include <X11/keysymdef.h>

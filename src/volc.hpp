@@ -1,5 +1,5 @@
-#ifndef VOLC_H
-#define VOLC_H
+#ifndef VOLC_HPP
+#define VOLC_HPP
 
 #define VOLC_DEF_CARD     "default"
 #define VOLC_DEF_SEL      "Master"
@@ -61,4 +61,4 @@ extern void volc_deinit(volc_t *volc);
 extern volc_volume_state_t volc_volume_ctl(
     volc_t *volc, unsigned int channels, volc_volume_t new_volume, channel_switch_t channel_switch);
 
-#endif  // VOLC_H
+#endif  // VOLC_HPP

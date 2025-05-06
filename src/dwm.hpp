@@ -1,7 +1,7 @@
-#ifndef DWM_H
-#define DWM_H
+#ifndef DWM_HPP
+#define DWM_HPP
 
-#include "layout.h"
+#include "layout.hpp"
 
 #include <signal.h>
 #include <X11/X.h>
@@ -54,4 +54,4 @@ struct Client {
 #define ISVISIBLEONTAG(C, T) (((C)->tags & (T)))
 #define ISVISIBLE(C)         ISVISIBLEONTAG(C, (C)->mon->tagset[(C)->mon->seltags])
 
-#endif  // DWM_H
+#endif  // DWM_HPP

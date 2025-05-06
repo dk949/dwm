@@ -16,15 +16,15 @@
  * on each monitor. Each client contains a bit array to indicate the tags of a
  * client.
  *
- * Keys and tagging rules are organized as arrays and defined in config.h.
+ * Keys and tagging rules are organized as arrays and defined in config.hpp.
  *
  * To understand everything else, start reading main().
  */
 
-#include "dwm.h"
+#include "dwm.hpp"
 
-#include "layout.h"
-#include "mapping.h"
+#include "layout.hpp"
+#include "mapping.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -49,14 +49,14 @@
 #    include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
 
-#include "drw.h"
-#include "util.h"
+#include "drw.hpp"
+#include "util.hpp"
 
 #ifdef ASOUND
-#    include "volc.h"
+#    include "volc.hpp"
 #endif /* ASOUND */
 
-#include "backlight.h"
+#include "backlight.hpp"
 
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
@@ -253,7 +253,7 @@ static char *log_dir = NULL;
 FILE *log_file = NULL;
 
 /* configuration, allows nested code to access above variables */
-#include "config.h"
+#include "config.hpp"
 
 struct Pertag {
     unsigned int curtag, prevtag;              /* current and previous tag */
@@ -513,12 +513,12 @@ void unswallow(Client *c) {
 void bright_dec(Arg const *arg) {
     int ret;
     if ((ret = bright_dec_((double)arg->f))) {
-        WARN("Function bright_dec_(const Arg *arg) from backlight.h returned %d", ret);
+        WARN("Function bright_dec_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
     double newval;
     if ((ret = bright_get_(&newval))) {
-        WARN("Function bright_get_(const Arg *arg) from backlight.h returned %d", ret);
+        WARN("Function bright_get_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
@@ -527,12 +527,12 @@ void bright_dec(Arg const *arg) {
 void bright_inc(Arg const *arg) {
     int ret;
     if ((ret = bright_inc_((double)arg->f))) {
-        WARN("Function bright_inc_(const Arg *arg) from backlight.h returned %d", ret);
+        WARN("Function bright_inc_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
     double newval;
     if ((ret = bright_get_(&newval))) {
-        WARN("Function bright_get_(const Arg *arg) from backlight.h returned %d", ret);
+        WARN("Function bright_get_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
@@ -541,7 +541,7 @@ void bright_inc(Arg const *arg) {
 void bright_set(Arg const *arg) {
     int ret;
     if ((ret = bright_set_((double)arg->f))) {
-        WARN("Function bright_set_(const Arg *arg) from backlight.h returned %d", ret);
+        WARN("Function bright_set_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
     drawprogress(100, (unsigned long long)arg->f, SchemeBrightProgress);

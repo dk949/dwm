@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details. */
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef UTIL_HPP
+#define UTIL_HPP
 
 
 #define MAX(A, B)        ((A) > (B) ? (A) : (B))
@@ -120,4 +120,4 @@ char *buildStringDeallocV(char *first, va_list args);
  */
 int mkdirP(char const *dir_name, int mode);
 
-#endif  // UTIL_H
+#endif  // UTIL_HPP
