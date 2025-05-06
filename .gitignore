@@ -7,3 +7,4 @@ out/
 gen_conf.h
 MODE
 .clangd
+.cache
