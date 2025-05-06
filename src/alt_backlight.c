@@ -20,7 +20,7 @@ backlight_error_t bright_get_impl(FILE *fp, int *oldValue) {
     memset(buf, 0, sizeof(buf));
     if (!oldValue) return BACKLIGHT_INTERNAL_ERROR;
 
-    int bytesRead = fread(buf, 1, sizeof(buf), fp);
+    unsigned long bytesRead = fread(buf, 1, sizeof(buf), fp);
     if (bytesRead <= 0) return BACKLIGHT_READ_ERROR;
     *oldValue = -1;
     switch (bytesRead) {
@@ -36,6 +36,7 @@ backlight_error_t bright_get_impl(FILE *fp, int *oldValue) {
 static char const *filename;
 
 backlight_error_t bright_setup(char const *file, int _1, int _2) {
+    (void)_1, (void)_2;
     filename = file;
     return BACKLIGHT_OK;
 }
@@ -53,8 +54,8 @@ backlight_error_t bright_modify(double value, int dir) {
         return ret;
     }
 
-    int iValue = ((value * dir) / 100.) * 255. + oldValue;
-    ret = bright_set_impl(fp, iValue);
+    double iValue = ((value * dir) / 100.) * 255. + oldValue;
+    ret = bright_set_impl(fp, (int)iValue);
     fclose(fp);
     return ret;
 }
@@ -69,7 +70,7 @@ backlight_error_t bright_dec_(double value) {
 
 backlight_error_t bright_set_(double value) {
     FILE *fp = fopen(filename, "w");
-    backlight_error_t ret = bright_set_impl(fp, (value / 100.) * 255);
+    backlight_error_t ret = bright_set_impl(fp, (int)((value / 100.) * 255));
     fclose(fp);
     return ret;
 }

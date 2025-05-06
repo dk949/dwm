@@ -85,7 +85,7 @@ DEBUG_FLAGS    = -Og -g $(if $(USE_SANITIZERS),-fsanitize=address$(COMMA)undefin
 RELEASE_FLAGS  = -O3 -DNDEBUG -flto
 
 ## Flags shared by C and C++
-COMMON_FLAGS = $(CPPFLAGS) $($(MODE)_FLAGS) $(CWARN) $(INC) $(if $(PKG_CONFIG_LIBS),`$(PKG_CONFIG) --cflags $(PKG_CONFIG_LIBS)`,)
+COMMON_FLAGS = $(CPPFLAGS) $($(MODE)_FLAGS) $(CWARN) $(INC) $(if $(PKG_CONFIG_LIBS),$(shell $(PKG_CONFIG) --cflags $(PKG_CONFIG_LIBS)),)
 
 ## C specific flags
 CFLAGS = $(COMMON_FLAGS) -std=c11
@@ -99,7 +99,7 @@ DEBUG_LDFLAGS    = -lg $(if $(USE_SANITIZERS),-fsanitize=address$(COMMA)undefine
 ## Flags to be used in RELEASE mode
 RELEASE_LDFLAGS  = -flto
 
-LDFLAGS = $($(MODE)_LDFLAGS) $(LIBS) $(if $(PKG_CONFIG_LIBS),`$(PKG_CONFIG) --libs $(PKG_CONFIG_LIBS)`,)
+LDFLAGS = $($(MODE)_LDFLAGS) $(LIBS) $(if $(PKG_CONFIG_LIBS),$(shell $(PKG_CONFIG) --libs $(PKG_CONFIG_LIBS)),)
 
 ifdef COMPILE_COMMANDS
 ifeq ($(shell command -v jq &> /dev/null && echo 1),1)

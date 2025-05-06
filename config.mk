@@ -11,7 +11,7 @@ SRC_DIR   = src
 BUILD_DIR = build
 
 # Turn (some) warnings into errors
-WARNINGS_AS_ERRORS=
+WARNINGS_AS_ERRORS=1
 # Use address, leak and UB sanisizers
 USE_SANITIZERS=1
 # allow c and c++ extension

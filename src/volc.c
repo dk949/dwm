@@ -1,21 +1,16 @@
-#ifdef ASOUND
-#    include "volc.h"
+#include "volc.h"
 
-#    include "util.h"
+#include "util.h"
 
-#    include <alsa/asoundlib.h>
-#    include <assert.h>
-#    include <float.h>
-#    include <getopt.h>
-#    include <stdarg.h>
-#    include <stdio.h>
-#    include <stdlib.h>
-#    include <string.h>
-#    include <sys/poll.h>
+#include <alsa/asoundlib.h>
+#include <assert.h>
+#include <float.h>
+#include <getopt.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <sys/poll.h>
 
-#    define CARD_SZ 64
-
-#    define CHECK_RANGE(val, min, max) (((val) < (min)) ? (min) : ((val) > (max)) ? (max) : (val))
+#define CHECK_RANGE(val, min, max) (((val) < (min)) ? (min) : ((val) > (max)) ? (max) : (val))
 
 // Avoiding c math lib
 long vceil(double d) {
@@ -25,11 +20,11 @@ long vceil(double d) {
       */
 
     static double eps = 0.999999999999999;
-    return (d + eps);
+    return (long)(d + eps);
 }
 
 long convert_prange(float val, float min, float max) {
-    return ((long)vceil(val * (max - min) * 0.01f + min));
+    return ((long)vceil((double)(val * (max - min) * 0.01f + min)));
 }
 
 float convert_prange_back(long val, float min, float max) {
@@ -125,7 +120,7 @@ extern volc_volume_state_t volc_volume_ctl(
             case VOLC_CHAN_OFF:
             case VOLC_CHAN_ON:
                 snd_mixer_selem_get_playback_switch(volc->elem, chn, &init_value);
-                if (snd_mixer_selem_set_playback_switch(volc->elem, chn, channel_switch) < 0) {
+                if (snd_mixer_selem_set_playback_switch(volc->elem, chn, (int)channel_switch) < 0) {
                     continue;
                 }
                 break;
@@ -137,6 +132,7 @@ extern volc_volume_state_t volc_volume_ctl(
                     }
                 }
                 break;
+            case VOLC_CHAN_SAME:
             default:;
         }
 
@@ -145,7 +141,7 @@ extern volc_volume_state_t volc_volume_ctl(
         }
 
         snd_mixer_selem_get_playback_switch(volc->elem, chn, &new_value);
-        state.state.switch_pos = new_value;
+        state.state.switch_pos = (channel_switch_t)new_value;
 
         firstchn = 0;
         any_set = 1;
@@ -193,5 +189,3 @@ extern void volc_deinit(volc_t *volc) {
         free(volc);
     }
 }
-
-#endif  // ASOUND

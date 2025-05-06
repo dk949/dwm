@@ -50,7 +50,7 @@ typedef struct DelayPayload {
 
 static void *delay_detached(void *pl) {
     DelayPayload *dpl = (DelayPayload *)pl;
-    usleep(dpl->delay_for);
+    usleep((unsigned)dpl->delay_for);
     dpl->fn(dpl->inner_pl);
     free(dpl);
     return NULL;
@@ -118,7 +118,7 @@ int mkdirP(char const *dir_name, int mode) {
 
     char const *parent = dirname(strdupa(dir_name));
     if (mkdirP(parent, mode)) return -1;
-    return mkdir(dir_name, mode);
+    return mkdir(dir_name, (unsigned)mode);
 }
 
 char *getLogDir(void) {
