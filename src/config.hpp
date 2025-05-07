@@ -1,9 +1,14 @@
-/* See LICENSE file for copyright and license details. */
+#ifndef DWM_CONFIG_HPP
+#define DWM_CONFIG_HPP
+
 #include "layout.hpp"
 #include "mapping.hpp"
 
 #include <stdlib.h>
-#include <X11/keysymdef.h>
+#include <X11/keysym.h>
+
+#include <array>
+
 
 /* appearance */
 
@@ -56,21 +61,23 @@ static const char c_blank[]    = "#000000";
 // clang-format on
 
 /* Color assignment */
-static char const *colors[][3] = {
-  // clang-format off
+static constexpr auto colors = [] {
+    std::array<std::array<char const *, 3>, 10> out;
+    // clang-format off
     /*                      fg          bg              border   */
-    [SchemeNorm]           = { c_active   , c_inactive , c_inactive },
-    [SchemeSel]            = { c_inactive , c_active   , c_active   },
-    [SchemeStatus]         = { c_active   , c_inactive , c_blank    }, // Statusbar right
-    [SchemeTagsSel]        = { c_inactive , c_active   , c_blank    }, // Tagbar left selected
-    [SchemeTagsNorm]       = { c_active   , c_inactive , c_blank    }, // Tagbar left unselected
-    [SchemeInfoSel]        = { c_inactive , c_blue     , c_blank    }, // infobar selected
-    [SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank    }, // infobar unselected
-    [SchemeInfoProgress]   = { c_green    , c_inactive , c_blank    }, // infobar middle progress
-    [SchemeOffProgress]    = { c_red      , c_inactive , c_blank    }, // infobar middle progress
-    [SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank    }, // infobar middle progress
-  // clang-format on
-};
+    out[SchemeNorm]           = { c_active   , c_inactive , c_inactive };
+    out[SchemeSel]            = { c_inactive , c_active   , c_active   };
+    out[SchemeStatus]         = { c_active   , c_inactive , c_blank    }; // Statusbar right
+    out[SchemeTagsSel]        = { c_inactive , c_active   , c_blank    }; // Tagbar left selected
+    out[SchemeTagsNorm]       = { c_active   , c_inactive , c_blank    }; // Tagbar left unselected
+    out[SchemeInfoSel]        = { c_inactive , c_blue     , c_blank    }; // infobar selected
+    out[SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank    }; // infobar unselected
+    out[SchemeInfoProgress]   = { c_green    , c_inactive , c_blank    }; // infobar middle progress
+    out[SchemeOffProgress]    = { c_red      , c_inactive , c_blank    }; // infobar middle progress
+    out[SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank    }; // infobar middle progress
+    // clang-format on
+    return out;
+}();
 
 enum TagTypes {
     TagTerm1 = 0,
@@ -87,34 +94,36 @@ enum TagTypes {
 #define ttype(type) (1 << Tag##type)
 
 /* tagging */
-static char const *tags[] = {
-    [TagTerm1] = "   ",
-    [TagBrowse] = "  ",
-    [TagCode] = " 󰅩 ",
-    [TagEnt] = "  ",
-    [TagSys] = "  ",
-    [TagCreat] = "  ",
-    [TagChat] = " 󰙯 ",
-    [TagTerm2] = "   ",
-    [TagTerm3] = "   ",
-};
+static constexpr auto tags = [] {
+    std::array<char const *, 9> out;
+    out[TagTerm1] = "   ";
+    out[TagBrowse] = "  ";
+    out[TagCode] = " 󰅩 ";
+    out[TagEnt] = "  ";
+    out[TagSys] = "  ";
+    out[TagCreat] = "  ";
+    out[TagChat] = " 󰙯 ";
+    out[TagTerm2] = "   ";
+    out[TagTerm3] = "   ";
+    return out;
+}();
 
 
 
 static Rule const rules[] = {
-  /* xprop(1):
-  *    WM_CLASS(STRING) = instance, class
-  *    WM_NAME(STRING) = title
-  */
-  /*
-  Rules for swicthtotag:
-  - 0 is default behaviour
-  - 1 automatically moves you to the tag of the newly opened application
-  - 2 enables the tag of the newly opened application in addition to your existing enabled tags
-  - 3 as 1, but closing that window reverts the view back to what it was previously (*)
-  - 4 as 2, but closing that window reverts the view back to what it was previously (*)
-  */
-  // clang-format off
+    /* xprop(1):
+     *    WM_CLASS(STRING) = instance, class
+     *    WM_NAME(STRING) = title
+     */
+    /*
+    Rules for swicthtotag:
+    - 0 is default behaviour
+    - 1 automatically moves you to the tag of the newly opened application
+    - 2 enables the tag of the newly opened application in addition to your existing enabled tags
+    - 3 as 1, but closing that window reverts the view back to what it was previously (*)
+    - 4 as 2, but closing that window reverts the view back to what it was previously (*)
+    */
+    // clang-format off
     /* class                     , inst      , title        , tags          , switch , isfloating , isterminal , noswallow , monitor */
     {"firefox"                   , NULL      , NULL         , ttype(Browse) , 3      , 0          , 0          , 0         , -1},
     {"Google-chrome"             , NULL      , NULL         , ttype(Browse) , 3      , 0          , 1          , 1         , -1},
@@ -146,7 +155,7 @@ static Rule const rules[] = {
     {"st-256color"               , NULL      , "neovim"     , 0             , 0      , 1          , 0          , 1         , -1},
     {"st-256color"               , NULL      , NULL         , 0             , 0      , 0          , 1          , 1         , -1},
     {"kitty"                     , NULL      , NULL         , 0             , 0      , 0          , 1          , 1         , -1},
-  // clang-format on
+    // clang-format on
 };
 
 
@@ -156,7 +165,7 @@ static int const nmaster = 1;     /* number of clients in master area */
 static int const resizehints = 1; /* 1 means respect size hints in tiled resizals */
 
 static Layout const layouts[] = {
-  /* symbol      arrange function */
+    /* symbol      arrange function */
     {"[]=",                   tile}, /* first entry is default */
     {"><>",                   NULL}, /* no layout function means floating behavior */
     {"[M]",                monocle},
@@ -199,7 +208,7 @@ static char const *scrdmnu[] = {"screenshot", NULL};  // Screenshot taker
 
 static Key keys[] = {
 
-  // clang-format off
+    // clang-format off
     /* modifier                         key         function       argument */
     // Utility spawners
     {MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
@@ -258,7 +267,7 @@ static Key keys[] = {
     {MODKEY | ShiftMask               , XK_period , tagmon         , {.i = +1}}          ,
     {MODKEY | ShiftMask               , XK_q      , quit           , {0}}                ,
     {MODKEY | ShiftMask               , XK_r      , restart        , {0}}                ,
-  // clang-format on
+    // clang-format on
 
     TAGKEYS(XK_1, 0),
     TAGKEYS(XK_2, 1),
@@ -274,7 +283,7 @@ static Key keys[] = {
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
-  // clang-format off
+    // clang-format off
     /* click       , event mask , button  , function       , argument            , */
     {ClkLtSymbol   , 0          , Button1 , setlayout      , {0}}                ,
     {ClkLtSymbol   , 0          , Button3 , setlayout      , {.v = &layouts[2]}} ,
@@ -286,7 +295,7 @@ static Button buttons[] = {
     {ClkTagBar     , 0          , Button3 , toggleview     , {0}}                ,
     {ClkTagBar     , MODKEY     , Button1 , tag            , {0}}                ,
     {ClkTagBar     , MODKEY     , Button3 , toggletag      , {0}}                ,
-  // clang-format on
+    // clang-format on
 };
 
 static char const *get_bright_file(void) {
@@ -296,3 +305,5 @@ static char const *get_bright_file(void) {
 }
 
 #undef ttype
+
+#endif  // DWM_CONFIG_HPP

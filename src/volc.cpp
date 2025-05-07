@@ -24,7 +24,7 @@ long vceil(double d) {
 }
 
 long convert_prange(float val, float min, float max) {
-    return ((long)vceil((double)(val * (max - min) * 0.01f + min)));
+    return vceil((double)(val * (max - min) * 0.01f + min));
 }
 
 float convert_prange_back(long val, float min, float max) {
@@ -49,13 +49,13 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
         return -1;
     }
 
-    if (volume.action == VOLC_VOL_SAME) {
+    if (volume.action == volc_volume_t::VOLC_VOL_SAME) {
         return convert_prange_back(orig, (float)pmin, (float)pmax);
     }
 
 
     long val = convert_prange(volume.volume, (float)pmin, (float)pmax);
-    if (volume.action == VOLC_VOL_INC) {
+    if (volume.action == volc_volume_t::VOLC_VOL_INC) {
         val += orig;
     }
     val = CHECK_RANGE(val, pmin, pmax);
@@ -96,7 +96,7 @@ static snd_mixer_t *get_handle(int *err, char const *card) {
 extern volc_volume_state_t volc_volume_ctl(
     volc_t *volc, unsigned int channels, volc_volume_t new_volume, channel_switch_t channel_switch) {
 
-    snd_mixer_selem_channel_id_t chn;
+    // snd_mixer_selem_channel_id_t chn;
     volc_volume_state_t state;
 
     if (channels != VOLC_ALL_CHANNELS) {
@@ -105,29 +105,33 @@ extern volc_volume_state_t volc_volume_ctl(
 
     int firstchn = 1;
     int any_set = 0;
-    for (chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++) {
+    for (int chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++) {
         int init_value;
         int new_value;
 
         if (!(channels & (1 << chn))) {
             continue;
         }
-        if (!snd_mixer_selem_has_playback_channel(volc->elem, chn)) {
+        if (!snd_mixer_selem_has_playback_channel(volc->elem, (snd_mixer_selem_channel_id_t)chn)) {
             continue;
         }
 
         switch (channel_switch) {
             case VOLC_CHAN_OFF:
             case VOLC_CHAN_ON:
-                snd_mixer_selem_get_playback_switch(volc->elem, chn, &init_value);
-                if (snd_mixer_selem_set_playback_switch(volc->elem, chn, (int)channel_switch) < 0) {
+                snd_mixer_selem_get_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, &init_value);
+                if (snd_mixer_selem_set_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, (int)channel_switch)
+                    < 0) {
                     continue;
                 }
                 break;
             case VOLC_CHAN_TOGGLE:
                 if (firstchn || !snd_mixer_selem_has_playback_switch_joined(volc->elem)) {
-                    snd_mixer_selem_get_playback_switch(volc->elem, chn, &init_value);
-                    if (snd_mixer_selem_set_playback_switch(volc->elem, chn, init_value ? 0 : 1) < 0) {
+                    snd_mixer_selem_get_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, &init_value);
+                    if (snd_mixer_selem_set_playback_switch(volc->elem,
+                            (snd_mixer_selem_channel_id_t)chn,
+                            init_value ? 0 : 1)
+                        < 0) {
                         continue;
                     }
                 }
@@ -136,11 +140,11 @@ extern volc_volume_state_t volc_volume_ctl(
             default:;
         }
 
-        if ((state.state.volume = get_set_volume(volc->elem, chn, new_volume)) <= 0) {
+        if ((state.state.volume = get_set_volume(volc->elem, (snd_mixer_selem_channel_id_t)chn, new_volume)) <= 0) {
             continue;
         }
 
-        snd_mixer_selem_get_playback_switch(volc->elem, chn, &new_value);
+        snd_mixer_selem_get_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, &new_value);
         state.state.switch_pos = (channel_switch_t)new_value;
 
         firstchn = 0;
@@ -156,7 +160,7 @@ extern volc_volume_state_t volc_volume_ctl(
 
 extern volc_t *volc_init(char const *selector, unsigned int selector_index, char const *card) {
     int err = 0;
-    volc_t *volc = malloc(sizeof(volc_t));
+    volc_t *volc = new volc_t {};
     snd_mixer_selem_id_alloca(&volc->sid);
     volc->card = card;
 
@@ -165,7 +169,7 @@ extern volc_t *volc_init(char const *selector, unsigned int selector_index, char
 
     volc->handle = get_handle(&err, volc->card);
     if (err) {
-        free(volc);
+        delete volc;
         return NULL;
     }
 
@@ -175,7 +179,7 @@ extern volc_t *volc_init(char const *selector, unsigned int selector_index, char
             snd_mixer_selem_id_get_name(volc->sid),
             snd_mixer_selem_id_get_index(volc->sid));
         snd_mixer_close(volc->handle);
-        free(volc);
+        delete volc;
         return NULL;
     }
     return volc;
@@ -183,9 +187,7 @@ extern volc_t *volc_init(char const *selector, unsigned int selector_index, char
 
 extern void volc_deinit(volc_t *volc) {
     if (volc != NULL) {
-        if (volc->handle != NULL) {
-            snd_mixer_close(volc->handle);
-        }
-        free(volc);
+        if (volc->handle != NULL) snd_mixer_close(volc->handle);
+        delete volc;
     }
 }

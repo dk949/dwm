@@ -1,8 +1,10 @@
 /* See LICENSE file for copyright and license details. */
-#ifndef UTIL_HPP
-#define UTIL_HPP
+#ifndef DWM_UTIL_HPP
+#define DWM_UTIL_HPP
 
 
+#include <filesystem>
+#include <optional>
 #define MAX(A, B)        ((A) > (B) ? (A) : (B))
 #define MIN(A, B)        ((A) < (B) ? (A) : (B))
 #define BETWEEN(X, A, B) ((A) <= (X) && (X) <= (B))
@@ -83,28 +85,7 @@ extern FILE *log_file;
  *
  * If an error occurs, `NULL` is returned
  */
-char *getLogDir(void);
-
-/**
- * Concatenates any number of strings until NULL is reached
- *
- * All strings are copied. Caller owns returned memory allocated with `malloc`
- *
- * If `first` is `NULL`, `NULL` is returned
- *
- * NOTE: Even if all strings are empty, a new string of length 1 will be allocated containing the null
- * terminator.
- */
-char *buildString(char const *first, ...);
-
-/// same as `buildString`. but takes a `va_list`
-char *buildStringV(char const *first, va_list args);
-
-/// same as `buildString` but deallocates `first` before retuning
-char *buildStringDealloc(char *first, ...);
-
-/// same as `buildStringV` but deallocates `first` before retuning
-char *buildStringDeallocV(char *first, va_list args);
+std::optional<std::filesystem::path> getLogDir(void);
 
 
 /**
@@ -120,4 +101,4 @@ char *buildStringDeallocV(char *first, va_list args);
  */
 int mkdirP(char const *dir_name, int mode);
 
-#endif  // UTIL_HPP
+#endif  // DWM_UTIL_HPP

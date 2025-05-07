@@ -6,9 +6,9 @@
 #include <signal.h>
 #include <X11/X.h>
 
-typedef struct Pertag Pertag;
-typedef struct Monitor Monitor;
-typedef struct Client Client;
+struct Pertag;
+struct Monitor;
+struct Client;
 
 struct Monitor {
     char layoutSymbol[16];

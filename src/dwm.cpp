@@ -45,6 +45,9 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
+#include <array>
+#include <optional>
+
 #ifdef XINERAMA
 #    include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
@@ -106,6 +109,9 @@ enum {
     // Has to be last
     SelfNotifyLast,
 };
+
+using SelfNotifyCallback = void (*)();
+using NotifyCallback = void (*)(XEvent *);
 
 #define PROGRESS_FADE 0, 0, 0
 
@@ -217,26 +223,31 @@ static int lrpad;                                                      /* sum of
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
 static int notified = SelfNotifyNone;
-static void (*self_notify_handler[SelfNotifyLast])(void) = {
-    [SelfNotifyNone] = NULL,
-    [SelfNotifyFadeBar] = handle_notifyself_fade_anim,
-};
-static void (*handler[LASTEvent])(XEvent *) = {
-    [ButtonPress] = buttonpress,
-    [ClientMessage] = clientmessage,
-    [ConfigureRequest] = configurerequest,
-    [ConfigureNotify] = configurenotify,
-    [DestroyNotify] = destroynotify,
-    [EnterNotify] = enternotify,
-    [Expose] = expose,
-    [FocusIn] = focusin,
-    [KeyPress] = keypress,
-    [MappingNotify] = mappingnotify,
-    [MapRequest] = maprequest,
-    [MotionNotify] = motionnotify,
-    [PropertyNotify] = propertynotify,
-    [UnmapNotify] = unmapnotify,
-};
+static constexpr auto self_notify_handler = [] {
+    std::array<SelfNotifyCallback, 2> out;
+    out[SelfNotifyNone] = NULL;
+    out[SelfNotifyFadeBar] = handle_notifyself_fade_anim;
+    return out;
+}();
+// static void (*handler[LASTEvent])(XEvent *) = {
+static constexpr auto handler = [] {
+    std::array<NotifyCallback, LASTEvent> out {};
+    out[ButtonPress] = buttonpress;
+    out[ClientMessage] = clientmessage;
+    out[ConfigureRequest] = configurerequest;
+    out[ConfigureNotify] = configurenotify;
+    out[DestroyNotify] = destroynotify;
+    out[EnterNotify] = enternotify;
+    out[Expose] = expose;
+    out[FocusIn] = focusin;
+    out[KeyPress] = keypress;
+    out[MappingNotify] = mappingnotify;
+    out[MapRequest] = maprequest;
+    out[MotionNotify] = motionnotify;
+    out[PropertyNotify] = propertynotify;
+    out[UnmapNotify] = unmapnotify;
+    return out;
+}();
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1, need_restart = 0;
 static Cur *cursor[CurLast];
@@ -249,7 +260,7 @@ static Window root, wmcheckwin;
 static volc_t *volc;
 #endif /* ASOUND */
 static xcb_connection_t *xcon;
-static char *log_dir = NULL;
+static std::optional<std::filesystem::path> log_dir;
 FILE *log_file = NULL;
 
 /* configuration, allows nested code to access above variables */
@@ -271,7 +282,7 @@ struct NumTags {
 
 /* function implementations */
 void applyrules(Client *c) {
-    char const *class;
+    char const *class_;
     char const *instance;
     unsigned int i;
     unsigned int newtagset;
@@ -283,12 +294,12 @@ void applyrules(Client *c) {
     c->isfloating = 0;
     c->tags = 0;
     XGetClassHint(dpy, c->win, &ch);
-    class = ch.res_class ? ch.res_class : broken;
+    class_ = ch.res_class ? ch.res_class : broken;
     instance = ch.res_name ? ch.res_name : broken;
 
     for (i = 0; i < LENGTH(rules); i++) {
         r = &rules[i];
-        if ((!r->title || strstr(c->name, r->title)) && (!r->class || strstr(class, r->class))
+        if ((!r->title || strstr(c->name, r->title)) && (!r->class_ || strstr(class_, r->class_))
             && (!r->instance || strstr(instance, r->instance))) {
             c->isterminal = r->isterminal;
             c->isfloating = r->isfloating;
@@ -312,7 +323,7 @@ void applyrules(Client *c) {
                         c->switchtotag = c->mon->tagset[c->mon->seltags];
                     }
                     if (r->switchtotag == 1 || r->switchtotag == 3) {
-                        view(&((Arg) {.ui = newtagset}));
+                        view(Arg {.ui = newtagset});
                     } else {
                         c->mon->tagset[c->mon->seltags] = newtagset;
                         arrange(c->mon);
@@ -498,7 +509,7 @@ void swallow(Client *p, Client *c) {
 void unswallow(Client *c) {
     c->win = c->swallowing->win;
 
-    free(c->swallowing);
+    delete c->swallowing;
     c->swallowing = NULL;
 
     updatetitle(c);
@@ -510,9 +521,9 @@ void unswallow(Client *c) {
     setclientstate(c, NormalState);
 }
 
-void bright_dec(Arg const *arg) {
+void bright_dec(Arg const &arg) {
     int ret;
-    if ((ret = bright_dec_((double)arg->f))) {
+    if ((ret = bright_dec_((double)arg.f))) {
         WARN("Function bright_dec_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
@@ -524,9 +535,9 @@ void bright_dec(Arg const *arg) {
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
 }
 
-void bright_inc(Arg const *arg) {
+void bright_inc(Arg const &arg) {
     int ret;
-    if ((ret = bright_inc_((double)arg->f))) {
+    if ((ret = bright_inc_((double)arg.f))) {
         WARN("Function bright_inc_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
@@ -538,13 +549,13 @@ void bright_inc(Arg const *arg) {
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
 }
 
-void bright_set(Arg const *arg) {
+void bright_set(Arg const &arg) {
     int ret;
-    if ((ret = bright_set_((double)arg->f))) {
+    if ((ret = bright_set_((double)arg.f))) {
         WARN("Function bright_set_(const Arg *arg) from backlight.hpp returned %d", ret);
         return;
     }
-    drawprogress(100, (unsigned long long)arg->f, SchemeBrightProgress);
+    drawprogress(100, (unsigned long long)arg.f, SchemeBrightProgress);
 }
 
 void buttonpress(XEvent *e) {
@@ -587,7 +598,7 @@ void buttonpress(XEvent *e) {
     for (i = 0; i < LENGTH(buttons); i++) {
         if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
             && CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state)) {
-            buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+            buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? arg : buttons[i].arg);
         }
     }
 }
@@ -602,12 +613,11 @@ void checkotherwm(void) {
 }
 
 void cleanup(void) {
-    Arg a = {.ui = ~0u};
     Layout foo = {"", NULL};
     Monitor *m;
     size_t i;
 
-    view(&a);
+    view(Arg {.ui = ~0u});
     selmon->lt[selmon->sellt] = &foo;
     for (m = mons; m; m = m->next) {
         while (m->stack) {
@@ -621,9 +631,10 @@ void cleanup(void) {
     for (i = 0; i < CurLast; i++) {
         drw_cur_free(drw, cursor[i]);
     }
-    for (i = 0; i < LENGTH(colors); i++) {
-        free(scheme[i]);
-    }
+    for (i = 0; i < LENGTH(colors); i++)
+        delete[] scheme[i];
+    delete[] scheme;
+
     XDestroyWindow(dpy, wmcheckwin);
     drw_free(drw);
     XSync(dpy, False);
@@ -632,7 +643,6 @@ void cleanup(void) {
 #ifdef ASOUND
     volc_deinit(volc);
 #endif /* ASOUND */
-    free(log_dir);
     fclose(log_file);
 }
 
@@ -649,7 +659,8 @@ void cleanupmon(Monitor *mon) {
     }
     XUnmapWindow(dpy, mon->barwin);
     XDestroyWindow(dpy, mon->barwin);
-    free(mon);
+    delete mon->pertag;
+    delete mon;
 }
 
 void clientmessage(XEvent *e) {
@@ -775,10 +786,8 @@ void configurerequest(XEvent *e) {
 }
 
 Monitor *createmon(void) {
-    Monitor *m;
-    unsigned int i;
 
-    m = ecalloc(1, sizeof(Monitor));
+    Monitor *m = new Monitor {};
     m->tagset[0] = m->tagset[1] = 1;
     m->mfact = mfact;
     m->nmaster = nmaster;
@@ -787,10 +796,10 @@ Monitor *createmon(void) {
     m->lt[0] = &layouts[0];
     m->lt[1] = &layouts[1 % LENGTH(layouts)];
     strncpy(m->layoutSymbol, layouts[0].symbol, sizeof m->layoutSymbol);
-    m->pertag = ecalloc(1, sizeof(Pertag));
+    m->pertag = new Pertag {};
     m->pertag->curtag = m->pertag->prevtag = 1;
 
-    for (i = 0; i <= LENGTH(tags); i++) {
+    for (unsigned int i = 0; i <= LENGTH(tags); i++) {
         m->pertag->nmasters[i] = m->nmaster;
         m->pertag->mfacts[i] = m->mfact;
 
@@ -1045,13 +1054,13 @@ void focusin(XEvent *e) {
     }
 }
 
-void focusmon(Arg const *arg) {
+void focusmon(Arg const &arg) {
     Monitor *m;
 
     if (!mons->next) {
         return;
     }
-    if ((m = dirtomon(arg->i)) == selmon) {
+    if ((m = dirtomon(arg.i)) == selmon) {
         return;
     }
     unfocus(selmon->sel, 0);
@@ -1062,14 +1071,14 @@ void focusmon(Arg const *arg) {
     focus(NULL);
 }
 
-void focusstack(Arg const *arg) {
+void focusstack(Arg const &arg) {
     Client *c = NULL;
     Client *i;
 
     if (!selmon->sel) {
         return;
     }
-    if (arg->i > 0) {
+    if (arg.i > 0) {
         for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next) {
             ;
         }
@@ -1130,18 +1139,7 @@ long getstate(Window w) {
     unsigned long extra;
     Atom real;
 
-    if (XGetWindowProperty(dpy,
-            w,
-            wmatom[WMState],
-            0L,
-            2L,
-            False,
-            wmatom[WMState],
-            &real,
-            &format,
-            &n,
-            &extra,
-            (unsigned char **)&p)
+    if (XGetWindowProperty(dpy, w, wmatom[WMState], 0L, 2L, False, wmatom[WMState], &real, &format, &n, &extra, &p)
         != Success) {
         return -1;
     }
@@ -1226,18 +1224,18 @@ void grabkeys(void) {
     }
 }
 
-void setmaster(Arg const *arg) {
-    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(arg->i, 0);
+void setmaster(Arg const &arg) {
+    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(arg.i, 0);
     arrange(selmon);
 }
 
-void iconify(Arg const *arg) {
+void iconify(Arg const &arg) {
     (void)arg;
     if (!XIconifyWindow(dpy, selmon->sel->win, screen)) DEBUG_PRINTF("Could not iconify %s", selmon->sel->name);
 }
 
-void incnmaster(Arg const *arg) {
-    setmaster(&(Arg) {.i = MAX(selmon->nmaster + arg->i, 0)});
+void incnmaster(Arg const &arg) {
+    setmaster(Arg {.i = MAX(selmon->nmaster + arg.i, 0)});
 }
 
 #ifdef XINERAMA
@@ -1262,12 +1260,12 @@ void keypress(XEvent *e) {
     keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
     for (i = 0; i < LENGTH(keys); i++) {
         if (keysym == keys[i].keysym && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state) && keys[i].func) {
-            keys[i].func(&(keys[i].arg));
+            keys[i].func((keys[i].arg));
         }
     }
 }
 
-void killclient(Arg const *arg) {
+void killclient(Arg const &arg) {
     (void)arg;
     if (!selmon->sel) {
         return;
@@ -1284,13 +1282,12 @@ void killclient(Arg const *arg) {
 }
 
 void manage(Window w, XWindowAttributes *wa) {
-    Client *c;
     Client *t = NULL;
     Client *term = NULL;
     Window trans = None;
     XWindowChanges wc;
 
-    c = ecalloc(1, sizeof(Client));
+    Client *c = new Client {};
     c->win = w;
     c->pid = winpid(w);
     /* geometry */
@@ -1414,7 +1411,7 @@ void motionnotify(XEvent *e) {
     mon = m;
 }
 
-void movemouse(Arg const *arg) {
+void movemouse(Arg const &arg) {
     (void)arg;
     int x;
     int y;
@@ -1448,7 +1445,7 @@ void movemouse(Arg const *arg) {
         switch (ev.type) {
             case ConfigureRequest:
             case Expose:
-            case MapRequest: handler[ev.type](&ev); break;
+            case MapRequest: handler[(size_t)ev.type](&ev); break;
             case MotionNotify:
                 if ((ev.xmotion.time - lasttime) <= (1000 / 60)) {
                     continue;
@@ -1469,7 +1466,7 @@ void movemouse(Arg const *arg) {
                 }
                 if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
                     && ((unsigned)abs(nx - c->x) > snap || (unsigned)abs(ny - c->y) > snap)) {
-                    togglefloating(NULL);
+                    togglefloating({});
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
                     resize(c, nx, ny, c->w, c->h, 1);
@@ -1510,7 +1507,7 @@ void pop(Client *c) {
 
 static void print_event_stats(void) {
     static long calls = 0;
-    static struct timespec last_print = {0};
+    static timespec last_print {};
 
 
     struct timespec now;
@@ -1562,14 +1559,14 @@ void propertynotify(XEvent *e) {
     }
 }
 
-void quit(Arg const *arg) {
+void quit(Arg const &arg) {
     (void)arg;
     running = 0;
     need_restart = 0;
     LOG("Initiating shutdowd");
 }
 
-void restart(Arg const *arg) {
+void restart(Arg const &arg) {
     (void)arg;
     running = 0;
     need_restart = 1;
@@ -1636,7 +1633,7 @@ void resizeclient(Client *c, int x, int y, int w, int h) {
     XSync(dpy, False);
 }
 
-void resizemouse(Arg const *arg) {
+void resizemouse(Arg const &arg) {
     (void)arg;
     int ocx;
     int ocy;
@@ -1666,7 +1663,7 @@ void resizemouse(Arg const *arg) {
         switch (ev.type) {
             case ConfigureRequest:
             case Expose:
-            case MapRequest: handler[ev.type](&ev); break;
+            case MapRequest: handler[(size_t)ev.type](&ev); break;
             case MotionNotify:
                 if ((ev.xmotion.time - lasttime) <= (1000 / 60)) {
                     continue;
@@ -1679,7 +1676,7 @@ void resizemouse(Arg const *arg) {
                     && c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh) {
                     if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
                         && ((unsigned)abs(nw - c->w) > snap || (unsigned)abs(nh - c->h) > snap)) {
-                        togglefloating(NULL);
+                        togglefloating({});
                     }
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
@@ -1729,7 +1726,7 @@ void restack(Monitor *m) {
     }
 }
 
-void rotatestack(Arg const *arg) {
+void rotatestack(Arg const &arg) {
     Client *c = NULL;
     Client *f;
 
@@ -1737,7 +1734,7 @@ void rotatestack(Arg const *arg) {
         return;
     }
     f = selmon->sel;
-    if (arg->i > 0) {
+    if (arg.i > 0) {
         for (c = nexttiled(selmon->clients); c && nexttiled(c->next); c = nexttiled(c->next)) {
             ;
         }
@@ -1771,10 +1768,10 @@ void run(void) {
         if (!running) break;
         // Only handle self notify events if no X events need handling
         if (notified && XPending(dpy) == 0) {
-            if (self_notify_handler[notified]) self_notify_handler[notified]();
+            if (self_notify_handler[(size_t)notified]) self_notify_handler[(size_t)notified]();
         } else {
             if (XNextEvent(dpy, &ev)) break;
-            if (handler[ev.type]) handler[ev.type](&ev); /* call handler */
+            if (handler[(size_t)ev.type]) handler[(size_t)ev.type](&ev); /* call handler */
         }
         IF_EVENT_TRACE {
             print_event_stats();
@@ -1912,12 +1909,12 @@ void setfullscreen(Client *c, int fullscreen) {
     }
 }
 
-void setlayout(Arg const *arg) {
-    if (!arg || !arg->v || arg->v != selmon->lt[selmon->sellt]) {
+void setlayout(Arg const &arg) {
+    if (!arg.v || arg.v != selmon->lt[selmon->sellt]) {
         selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1;
     }
-    if (arg && arg->v) {
-        selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)arg->v;
+    if (arg.v) {
+        selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)arg.v;
     }
     strncpy(selmon->layoutSymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->layoutSymbol);
     if (selmon->sel) {
@@ -1927,17 +1924,17 @@ void setlayout(Arg const *arg) {
     }
 }
 
-void setcfact(Arg const *arg) {
+void setcfact(Arg const &arg) {
     float f;
     Client *c;
 
     c = selmon->sel;
 
-    if (!arg || !c || !selmon->lt[selmon->sellt]->arrange) {
+    if (!c || !selmon->lt[selmon->sellt]->arrange) {
         return;
     }
-    f = arg->f + c->cfact;
-    if (arg->f == 0.0f) {
+    f = arg.f + c->cfact;
+    if (arg.f == 0.0f) {
         f = 1.0;
     } else if (f < 0.25f || f > 4.0f) {
         return;
@@ -1947,13 +1944,13 @@ void setcfact(Arg const *arg) {
 }
 
 /* arg > 1.0 will set mfact absolutely */
-void setmfact(Arg const *arg) {
+void setmfact(Arg const &arg) {
     float f;
 
-    if (!arg || !selmon->lt[selmon->sellt]->arrange) {
+    if (!selmon->lt[selmon->sellt]->arrange) {
         return;
     }
-    f = arg->f < 1.0f ? arg->f + selmon->mfact : arg->f - 1.0f;
+    f = arg.f < 1.0f ? arg.f + selmon->mfact : arg.f - 1.0f;
     if (f < 0.05f || f > 0.95f) {
         return;
     }
@@ -1964,7 +1961,7 @@ void setmfact(Arg const *arg) {
     arrange(selmon);
 }
 
-void resetmcfact(Arg const *unused) {
+void resetmcfact(Arg const &unused) {
     (void)unused;
     if (!selmon->lt[selmon->sellt]->arrange) return;
 
@@ -1982,10 +1979,9 @@ void setup(void) {
 
     /*Set up logging*/
     log_dir = getLogDir();
-    {
-        char *log_file_name = buildString(log_dir, "dwm.log", NULL);
-        log_file = fopen(log_file_name, "a");
-        free(log_file_name);
+    if (log_dir) {
+        auto log_file_name = *log_dir / "dwm.log";
+        log_file = fopen(log_file_name.c_str(), "a");
         if (!log_file) die("could not open log file:");
     }
 
@@ -2040,9 +2036,9 @@ void setup(void) {
     cursor[CurResize] = drw_cur_create(drw, XC_sizing);
     cursor[CurMove] = drw_cur_create(drw, XC_fleur);
     /* init appearance */
-    scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
-    for (unsigned i = 0; i < LENGTH(colors); i++) {
-        scheme[i] = drw_scm_create(drw, colors[i], 3);
+    scheme = new Clr *[LENGTH(colors)];
+    for (size_t i = 0; i < LENGTH(colors); i++) {
+        scheme[i] = drw_scm_create(drw, colors[i]);
     }
 
     {
@@ -2116,50 +2112,52 @@ void sigchld(int unused) {
 }
 
 void redirectChildLog(char **argv) {
-    char *file_name = buildString(log_dir, "/", argv[0], ".log", NULL);
+    if (!log_dir) return;
+    auto file_name = *log_dir / argv[0];
+    file_name.replace_extension(".log");
 
-    int child_fd = open(file_name, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+    int child_fd = open(file_name.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
     if (child_fd < 0) {
-        die("Could not set up logging for child processes %s: %s", argv[0], strerror(errno));
+        WARN("Could not set up logging for child processes %s: %s", argv[0], strerror(errno));
         return;
     }
     char const div[] = "________________________________________________________________________________\n";
     if (write(child_fd, div, sizeof(div)) < 0) {
-        die("Could not write to child log file %s: %s", file_name, strerror(errno));
+        close(child_fd);
+        WARN("Could not write to child log file %s: %s", file_name.c_str(), strerror(errno));
         goto exit;
     }
 
     if (dup2(child_fd, STDOUT_FILENO) < 0) {
-        die("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
+        WARN("Could not redirect child stdout to log file %s: %s", file_name.c_str(), strerror(errno));
         goto exit;
     }
     if (dup2(child_fd, STDERR_FILENO) < 0) {
-        die("Could not redirect child stdout to log file %s: %s", file_name, strerror(errno));
+        WARN("Could not redirect child stdout to log file %s: %s", file_name.c_str(), strerror(errno));
         goto exit;
     }
 exit:
     close(child_fd);
-    free(file_name);
 }
 
-void spawn(Arg const *arg) {
-    if (arg->v == dmenucmd) {
+void spawn(Arg const &arg) {
+    if (arg.v == dmenucmd) {
         dmenumon[0] = '0' + (char)selmon->num;
     }
     if (fork() == 0) {
         if (dpy) {
             close(ConnectionNumber(dpy));
         }
-        redirectChildLog((char **)arg->v);
+        redirectChildLog((char **)arg.v);
         setsid();
-        execvp(((char **)arg->v)[0], (char **)arg->v);
-        die("failed to spawn %s:", ((char **)arg->v)[0]);
+        execvp(((char **)arg.v)[0], (char **)arg.v);
+        die("failed to spawn %s:", ((char **)arg.v)[0]);
     }
 }
 
-void tag(Arg const *arg) {
-    if (selmon->sel && arg->ui & TAGMASK) {
-        selmon->sel->tags = arg->ui & TAGMASK;
+void tag(Arg const &arg) {
+    if (selmon->sel && arg.ui & TAGMASK) {
+        selmon->sel->tags = arg.ui & TAGMASK;
         if (selmon->sel->switchtotag) {
             selmon->sel->switchtotag = 0;
         }
@@ -2168,11 +2166,11 @@ void tag(Arg const *arg) {
     }
 }
 
-void tagmon(Arg const *arg) {
+void tagmon(Arg const &arg) {
     if (!selmon->sel || !mons->next) {
         return;
     }
-    sendmon(selmon->sel, dirtomon(arg->i));
+    sendmon(selmon->sel, dirtomon(arg.i));
 }
 
 void tile(Monitor *m) {
@@ -2236,7 +2234,7 @@ double timespecdiff(const struct timespec *a, const struct timespec *b) {
     return (diff >= 0) ? diff : -diff;
 }
 
-void togglebar(Arg const *arg) {
+void togglebar(Arg const &arg) {
     (void)arg;
     selmon->showbar = selmon->pertag->showbars[selmon->pertag->curtag] = !selmon->showbar;
     updatebarpos(selmon);
@@ -2244,7 +2242,7 @@ void togglebar(Arg const *arg) {
     arrange(selmon);
 }
 
-void togglefloating(Arg const *arg) {
+void togglefloating(Arg const &arg) {
     (void)arg;
     if (!selmon->sel) return;
 
@@ -2258,19 +2256,19 @@ void togglefloating(Arg const *arg) {
     arrange(selmon);
 }
 
-void togglefs(Arg const *arg) {
+void togglefs(Arg const &arg) {
     (void)arg;
     if (!selmon->sel) return;
     setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
 }
 
-void toggletag(Arg const *arg) {
+void toggletag(Arg const &arg) {
     unsigned int newtags;
 
     if (!selmon->sel) {
         return;
     }
-    newtags = selmon->sel->tags ^ (arg->ui & TAGMASK);
+    newtags = selmon->sel->tags ^ (arg.ui & TAGMASK);
     if (newtags) {
         selmon->sel->tags = newtags;
         focus(NULL);
@@ -2278,8 +2276,8 @@ void toggletag(Arg const *arg) {
     }
 }
 
-void toggleview(Arg const *arg) {
-    unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg->ui & TAGMASK);
+void toggleview(Arg const &arg) {
+    unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg.ui & TAGMASK);
     int i;
 
     if (newtagset) {
@@ -2307,7 +2305,7 @@ void toggleview(Arg const *arg) {
         selmon->lt[selmon->sellt ^ 1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1];
 
         if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag]) {
-            togglebar(NULL);
+            togglebar({});
         }
 
         focus(NULL);
@@ -2351,7 +2349,7 @@ void unmanage(Client *c, int destroyed) {
 
     Client *s = swallowingclient(c->win);
     if (s) {
-        free(s->swallowing);
+        delete s->swallowing;
         s->swallowing = NULL;
         arrange(m);
         focus(NULL);
@@ -2371,13 +2369,13 @@ void unmanage(Client *c, int destroyed) {
         XSetErrorHandler(xerror);
         XUngrabServer(dpy);
     }
-    free(c);
+    delete c;
     if (!s) {
         arrange(m);
         focus(NULL);
         updateclientlist();
         if (switchtotag) {
-            view(&((Arg) {.ui = switchtotag}));
+            view(Arg {.ui = switchtotag});
         }
     }
 
@@ -2402,10 +2400,28 @@ void unmapnotify(XEvent *e) {
 
 void updatebars(void) {
     Monitor *m;
-    XSetWindowAttributes wa = {.override_redirect = True,
+    XSetWindowAttributes wa = {
         .background_pixmap = ParentRelative,
-        .event_mask = ButtonPressMask | ExposureMask};
-    XClassHint ch = {"dwm", "dwm"};
+        .background_pixel = 0,
+        .border_pixmap = 0,
+        .border_pixel = 0,
+        .bit_gravity = 0,
+        .win_gravity = 0,
+        .backing_store = 0,
+        .backing_planes = 0,
+        .backing_pixel = 0,
+        .save_under = 0,
+        .event_mask = ButtonPressMask | ExposureMask,
+        .do_not_propagate_mask = 0,
+        .override_redirect = True,
+        .colormap = 0,
+        .cursor = 0,
+    };
+
+
+
+    char dwm_class_name[] = "dwm";
+    XClassHint ch = {dwm_class_name, dwm_class_name};
     for (m = mons; m; m = m->next) {
         if (m->barwin) {
             continue;
@@ -2464,13 +2480,12 @@ int updategeom(void) {
         Client *c;
         Monitor *m;
         XineramaScreenInfo *info = XineramaQueryScreens(dpy, &nn);
-        XineramaScreenInfo *unique = NULL;
 
         for (n = 0, m = mons; m; m = m->next, n++) {
             ;
         }
         /* only consider unique geometries as separate screens */
-        unique = ecalloc((size_t)nn, sizeof(XineramaScreenInfo));
+        XineramaScreenInfo *unique = new XineramaScreenInfo[(size_t)nn];
         for (i = 0, j = 0; i < nn; i++) {
             if (isuniquegeom(unique, (size_t)j, &info[i])) {
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
@@ -2521,7 +2536,7 @@ int updategeom(void) {
                 cleanupmon(m);
             }
         }
-        free(unique);
+        delete[] unique;
     } else
 #endif /* XINERAMA */
     {  /* default monitor setup */
@@ -2653,22 +2668,22 @@ void updatewmhints(Client *c) {
     }
 }
 
-void view(Arg const *arg) {
+void view(Arg const &arg) {
     int i;
     unsigned int tmptag;
 
-    if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags]) {
+    if ((arg.ui & TAGMASK) == selmon->tagset[selmon->seltags]) {
         return;
     }
     selmon->seltags ^= 1; /* toggle sel tagset */
-    if (arg->ui & TAGMASK) {
-        selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
+    if (arg.ui & TAGMASK) {
+        selmon->tagset[selmon->seltags] = arg.ui & TAGMASK;
         selmon->pertag->prevtag = selmon->pertag->curtag;
 
-        if (arg->ui == ~0u) {
+        if (arg.ui == ~0u) {
             selmon->pertag->curtag = 0;
         } else {
-            for (i = 0; !(arg->ui & 1 << i); i++) {
+            for (i = 0; !(arg.ui & 1 << i); i++) {
                 ;
             }
             selmon->pertag->curtag = (unsigned)(i + 1);
@@ -2686,7 +2701,7 @@ void view(Arg const *arg) {
     selmon->lt[selmon->sellt ^ 1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1];
 
     if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag]) {
-        togglebar(NULL);
+        togglebar({});
     }
 
     focus(NULL);
@@ -2694,12 +2709,12 @@ void view(Arg const *arg) {
 }
 
 #ifdef ASOUND
-void volumechange(Arg const *arg) {
+void volumechange(Arg const &arg) {
     volc_volume_state_t state;
-    if (arg->i == VOL_MT) {
+    if (arg.i == VOL_MT) {
         state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE);
     } else {
-        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC((float)arg->i), VOLC_CHAN_ON);
+        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC((float)arg.i), VOLC_CHAN_ON);
     }
 
     if (state.err < 0) return;
@@ -2714,7 +2729,7 @@ void volumechange(Arg const *arg) {
 pid_t winpid(Window w) {
     pid_t result = 0;
 
-    xcb_res_client_id_spec_t spec = {0};
+    xcb_res_client_id_spec_t spec {};
     spec.client = (uint32_t)w;
     spec.mask = XCB_RES_CLIENT_ID_MASK_LOCAL_CLIENT_PID;
 
@@ -2722,9 +2737,8 @@ pid_t winpid(Window w) {
     xcb_res_query_client_ids_cookie_t c = xcb_res_query_client_ids(xcon, 1, &spec);
     xcb_res_query_client_ids_reply_t *r = xcb_res_query_client_ids_reply(xcon, c, &e);
 
-    if (!r) {
-        return (pid_t)0;
-    }
+    if (!r) return 0;
+
 
     xcb_res_client_id_value_iterator_t i = xcb_res_query_client_ids_ids_iterator(r);
     for (; i.rem; xcb_res_client_id_value_next(&i)) {
@@ -2738,9 +2752,8 @@ pid_t winpid(Window w) {
 
     free(r);
 
-    if (result == (pid_t)-1) {
-        result = 0;
-    }
+    if (result == -1) result = 0;
+
     return result;
 }
 
@@ -2783,7 +2796,7 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
 
        */
     long offset = 0, length = 0;
-    Bool delete = False;
+    Bool delete_ = False;
     Atom req_type = XA_CARDINAL;
     Atom actual_type;
     int format;
@@ -2794,7 +2807,7 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
         netatom[NetWMIcon],
         offset,
         length,
-        delete,
+        delete_,
         req_type,
         &actual_type,
         &format,
@@ -2810,7 +2823,7 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
         netatom[NetWMIcon],
         offset,
         length,
-        delete,
+        delete_,
         req_type,
         &actual_type,
         &format,
@@ -2981,7 +2994,7 @@ int xerrorstart(Display *_dpy, XErrorEvent *_ee) {
     return -1;
 }
 
-void zoom(Arg const *arg) {
+void zoom(Arg const &arg) {
     (void)arg;
     Client *c = selmon->sel;
 

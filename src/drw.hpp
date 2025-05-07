@@ -1,27 +1,29 @@
 /* See LICENSE file for copyright and license details. */
-#ifndef DRW_HPP
-#define DRW_HPP
+#ifndef DWM_DRW_HPP
+#define DWM_DRW_HPP
 
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib.h>
 
-typedef struct {
-    Cursor cursor;
-} Cur;
+#include <span>
 
-typedef struct Fnt {
+struct Cur {
+    Cursor cursor;
+};
+
+struct Fnt {
     Display *dpy;
     unsigned int h;
     XftFont *xfont;
     FcPattern *pattern;
     struct Fnt *next;
-} Fnt;
+};
 
 enum { ColFg, ColBg, ColBorder }; /* Clr scheme index */
 
-typedef XftColor Clr;
+using Clr = XftColor;
 
-typedef struct {
+struct Drw {
     unsigned int w, h;
     Display *dpy;
     int screen;
@@ -30,7 +32,7 @@ typedef struct {
     GC gc;
     Clr *scheme;
     Fnt *fonts;
-} Drw;
+};
 
 /* Drawable abstraction */
 Drw *drw_create(Display *dpy, int screen, Window win, unsigned int w, unsigned int h);
@@ -45,7 +47,7 @@ void drw_font_getexts(Fnt *font, char const *text, unsigned int len, unsigned in
 
 /* Colorscheme abstraction */
 void drw_clr_create(Drw *drw, Clr *dest, char const *clrname);
-Clr *drw_scm_create(Drw *drw, char const *clrnames[], size_t clrcount);
+Clr *drw_scm_create(Drw *drw, std::span<char const *const> clrnames);
 
 /* Cursor abstraction */
 Cur *drw_cur_create(Drw *drw, int shape);
@@ -62,4 +64,4 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
 /* Map functions */
 void drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h);
 
-#endif  // DRW_HPP
+#endif  // DWM_DRW_HPP

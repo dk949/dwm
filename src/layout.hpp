@@ -1,17 +1,17 @@
-#ifndef LAYOUT_H
-#define LAYOUT_H
+#ifndef DWM_LAYOUT_HPP
+#define DWM_LAYOUT_HPP
 
 
 struct Monitor;
 
-typedef struct Layout {
+struct Layout {
     char const *symbol;
     void (*arrange)(struct Monitor *);
-} Layout;
+};
 
 void tile(struct Monitor *);
 void monocle(struct Monitor *);
 void centeredmaster(struct Monitor *);
 void centeredfloatingmaster(struct Monitor *);
 
-#endif  // LAYOUT_H
+#endif  // DWM_LAYOUT_HPP

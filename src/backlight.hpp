@@ -1,7 +1,7 @@
-#ifndef XBACKLIGHT_XBACKLIGHT_HPP
-#define XBACKLIGHT_XBACKLIGHT_HPP
+#ifndef DWM_XBACKLIGHT_HPP
+#define DWM_XBACKLIGHT_HPP
 
-typedef enum {
+enum backlight_error_t {
     BACKLIGHT_INTERNAL_ERROR = -1,
     BACKLIGHT_OK = 0,
     BACKLIGHT_OPEN_ERROR = 1,
@@ -10,7 +10,7 @@ typedef enum {
     BACKLIGHT_XRANDR_ERROR = 4,
     BACKLIGHT_ATOM_ERROR = 5,
     BACKLIGHT_PROPERTY_ERROR = 6,
-} backlight_error_t;
+};
 
 // dpy_name is the display to be used, If set to NULL, will use DISPLAY env variable
 // If using alt_backlight dpy_name is the filename of the brightness file
@@ -29,4 +29,4 @@ backlight_error_t bright_set_(double value);
 
 backlight_error_t bright_get_(double *value);
 
-#endif  // XBACKLIGHT_XBACKLIGHT_HPP
+#endif  // DWM_XBACKLIGHT_HPP

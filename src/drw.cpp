@@ -65,7 +65,7 @@ static size_t utf8decode(char const *c, long *u, size_t clen) {
 }
 
 Drw *drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned int h) {
-    Drw *drw = ecalloc(1, sizeof(Drw));
+    Drw *drw = new Drw {};
 
     drw->dpy = dpy;
     drw->screen = screen;
@@ -96,7 +96,7 @@ void drw_free(Drw *drw) {
     XFreePixmap(drw->dpy, drw->drawable);
     XFreeGC(drw->dpy, drw->gc);
     drw_fontset_free(drw->fonts);
-    free(drw);
+    delete drw;
 }
 
 /* This function is an implementation detail. Library users should use
@@ -144,7 +144,7 @@ static Fnt *xfont_create(Drw *drw, char const *fontname, FcPattern *fontpattern)
         return NULL;
     }
 
-    font = ecalloc(1, sizeof(Fnt));
+    font = new Fnt {};
     font->xfont = xfont;
     font->pattern = pattern;
     font->h = (unsigned)(xfont->ascent + xfont->descent);
@@ -161,7 +161,7 @@ static void xfont_free(Fnt *font) {
         FcPatternDestroy(font->pattern);
     }
     XftFontClose(font->dpy, font->xfont);
-    free(font);
+    delete font;
 }
 
 Fnt *drw_fontset_create(Drw *drw, char const *fonts[], size_t fontcount) {
@@ -205,16 +205,17 @@ void drw_clr_create(Drw *drw, Clr *dest, char const *clrname) {
 
 /* Wrapper to create color schemes. The caller has to call free(3) on the
  * returned color scheme when done using it. */
-Clr *drw_scm_create(Drw *drw, char const *clrnames[], size_t clrcount) {
+Clr *drw_scm_create(Drw *drw, std::span<char const *const> clrnames) {
     size_t i;
     Clr *ret;
 
     /* need at least two colors for a scheme */
-    if (!drw || !clrnames || clrcount < 2 || !(ret = ecalloc(clrcount, sizeof(XftColor)))) {
+    if (!drw || clrnames.size() < 2) {
         return NULL;
     }
+    ret = new XftColor[clrnames.size()];
 
-    for (i = 0; i < clrcount; i++) {
+    for (i = 0; i < clrnames.size(); i++) {
         drw_clr_create(drw, &ret[i], clrnames[i]);
     }
     return ret;
@@ -425,9 +426,10 @@ void drw_font_getexts(Fnt *font, char const *text, unsigned int len, unsigned in
 Cur *drw_cur_create(Drw *drw, int shape) {
     Cur *cur;
 
-    if (!drw || !(cur = ecalloc(1, sizeof(Cur)))) {
+    if (!drw) {
         return NULL;
     }
+    cur = new Cur {};
 
     cur->cursor = XCreateFontCursor(drw->dpy, (unsigned)shape);
 
@@ -440,5 +442,5 @@ void drw_cur_free(Drw *drw, Cur *cursor) {
     }
 
     XFreeCursor(drw->dpy, cursor->cursor);
-    free(cursor);
+    delete cursor;
 }

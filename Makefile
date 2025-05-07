@@ -74,7 +74,7 @@ CWARN = -Wall -Wextra -Wshadow -Wcast-align -Wunused -Wunused-result            
 		$(if $(USE_EXTENSIONS),,-Wpedantic -pedantic-errors)
 
 ## C++ specific extra errors
-CXXWARN = -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual \
+CXXWARN = -Wnon-virtual-dtor -Wno-old-style-cast -Woverloaded-virtual \
 		  -Wctad-maybe-unsupported -Weffc++ -Wsuggest-override     \
 		  $(if $(findstring clang,$(CXX)),$(CLANG_CXXWARN),)       \
 		  $(if $(findstring clang,$(CXX)),,$(GCC_CXXWARN))         \
@@ -90,7 +90,7 @@ COMMON_FLAGS = $(CPPFLAGS) $($(MODE)_FLAGS) $(CWARN) $(INC) $(if $(PKG_CONFIG_LI
 ## C specific flags
 CFLAGS = $(COMMON_FLAGS) -std=c11
 ## C++ specific flags
-CXXFLAGS = $(COMMON_FLAGS) $(CXXWARN) -std=c++20
+CXXFLAGS = $(COMMON_FLAGS) $(CXXWARN) -std=c++23
 
 # Linker flags
 
