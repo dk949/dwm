@@ -15,9 +15,9 @@ struct Monitor {
     float mfact;
     int nmaster;
     int num;
-    int by;             /* bar geometry */
-    int mx, my, mw, mh; /* screen size */
-    int wx, wy, ww, wh; /* window area  */
+    int bar_y;          /* bar geometry */
+    int monitor_x, monitor_y, monitor_width, monitor_height; /* screen size */
+    int window_x, window_y, window_width, window_height;
     unsigned int seltags;
     unsigned int sellt;
     unsigned int tagset[2];
