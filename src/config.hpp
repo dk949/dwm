@@ -206,7 +206,7 @@ static char const *grkdmnu[] = {"greek", NULL};       // Mathematical symbol sel
 static char const *scrdmnu[] = {"screenshot", NULL};  // Screenshot taker
 
 
-static Key keys[] = {
+static Key const keys[] = {
 
     // clang-format off
     /* modifier                         key         function       argument */
@@ -282,7 +282,7 @@ static Key keys[] = {
 
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
-static Button buttons[] = {
+static Button const buttons[] = {
     // clang-format off
     /* click       , event mask , button  , function       , argument            , */
     {ClkLtSymbol   , 0          , Button1 , setlayout      , {0}}                ,

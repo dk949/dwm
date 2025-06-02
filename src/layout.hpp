@@ -9,7 +9,7 @@ struct Layout {
     void (*arrange)(struct Monitor *);
 };
 
-void tile(struct Monitor *);
+void tile(struct Monitor *m);
 void monocle(struct Monitor *);
 void centeredmaster(struct Monitor *);
 void centeredfloatingmaster(struct Monitor *);

@@ -39,6 +39,7 @@ struct Client {
     int x, y, w, h;
     int oldx, oldy, oldw, oldh;
     int basew, baseh, incw, inch, maxw, maxh, minw, minh;
+    int hintsvalid;
     int bw, oldbw;
     unsigned int tags;
     unsigned int switchtotag;
