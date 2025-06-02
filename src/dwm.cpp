@@ -1982,6 +1982,8 @@ void setup(void) {
         auto log_file_name = *log_dir / "dwm.log";
         log_file = fopen(log_file_name.c_str(), "a");
         if (!log_file) die("could not open log file:");
+    } else {
+        die("Could not obtain log dir");
     }
 
 
