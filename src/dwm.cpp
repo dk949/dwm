@@ -79,8 +79,8 @@
 #define HEIGHT(X) ((unsigned)(X)->h + 2 * (unsigned)(X)->bw + gappx)
 #define TAGMASK   ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)  (drw_fontset_getwidth(drw, (X)) + (unsigned)lrpad)
-#ifndef VERSION
-#    define VERSION "unknown"
+#ifndef dwm_version
+#    define dwm_version "unknown"
 #endif
 
 /* enums */
@@ -185,7 +185,6 @@ static void setfullscreen(Client *c, int fullscreen);
 static void setup(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
-static void sigchld(int unused);
 static Client *swallowingclient(Window w);
 static Client *termforwin(Client const *c);
 static double timespecdiff(const struct timespec *a, const struct timespec *b);
@@ -1209,22 +1208,29 @@ void grabbuttons(Client *c, int focused) {
 
 void grabkeys(void) {
     updatenumlockmask();
-    {
-        unsigned int i;
-        unsigned int j;
-        unsigned int modifiers[] = {0, LockMask, numlockmask, numlockmask | LockMask};
-        KeyCode code;
-        XK_r;
+    unsigned int modifiers[] = {
+        0,
+        LockMask,
+        numlockmask,
+        numlockmask | LockMask,
+    };
+    int start, end, skip;
 
-        XUngrabKey(dpy, AnyKey, AnyModifier, root);
-        for (i = 0; i < LENGTH(keys); i++) {
-            if ((code = XKeysymToKeycode(dpy, keys[i].keysym))) {
-                for (j = 0; j < LENGTH(modifiers); j++) {
-                    XGrabKey(dpy, code, keys[i].mod | modifiers[j], root, True, GrabModeAsync, GrabModeAsync);
+    XUngrabKey(dpy, AnyKey, AnyModifier, root);
+    XDisplayKeycodes(dpy, &start, &end);
+    KeySym *syms = XGetKeyboardMapping(dpy, (KeyCode)start, end - start + 1, &skip);
+    if (!syms) return;
+    for (int k = start; k <= end; k++) {
+        for (auto const &key : keys) {
+            /* skip modifier codes, we do that ourselves */
+            if (key.keysym == syms[(k - start) * skip]) {
+                for (auto const &mod : modifiers) {
+                    XGrabKey(dpy, k, key.mod | mod, root, True, GrabModeAsync, GrabModeAsync);
                 }
             }
         }
     }
+    XFree(syms);
 }
 
 void setmaster(Arg const &arg) {
@@ -1972,9 +1978,16 @@ void resetmcfact(Arg const &unused) {
 void setup(void) {
     XSetWindowAttributes wa;
     Atom utf8string;
+    struct sigaction sa;
 
-    /* clean up any zombies immediately */
-    sigchld(0);
+    /* do not transform children into zombies when they terminate */
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_NOCLDSTOP | SA_NOCLDWAIT | SA_RESTART;
+    sa.sa_handler = SIG_IGN;
+    sigaction(SIGCHLD, &sa, NULL);
+
+    /* clean up any zombies (inherited from .xinitrc etc) immediately */
+    while (waitpid(-1, NULL, WNOHANG)) { }
 
     /*Set up logging*/
     log_dir = getLogDir();
@@ -2102,16 +2115,6 @@ void showhide(Client *c) {
     }
 }
 
-void sigchld(int unused) {
-    (void)unused;
-    if (signal(SIGCHLD, sigchld) == SIG_ERR) {
-        die("can't install SIGCHLD handler:");
-    }
-    while (0 < waitpid(-1, NULL, WNOHANG)) {
-        ;
-    }
-}
-
 void redirectChildLog(char **argv) {
     if (!log_dir) return;
     auto file_name = *log_dir / argv[0];
@@ -2142,12 +2145,19 @@ exit:
 }
 
 void spawn(Arg const &arg) {
+    struct sigaction sa;
+    if (arg.v == dmenucmd) dmenumon[0] = (char)('0' + selmon->num);
+
     if (fork() == 0) {
         if (dpy) {
             close(ConnectionNumber(dpy));
         }
         redirectChildLog((char **)arg.v);
         setsid();
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        sa.sa_handler = SIG_DFL;
+        sigaction(SIGCHLD, &sa, NULL);
         execvp(((char **)arg.v)[0], (char **)arg.v);
         die("failed to spawn %s:", ((char **)arg.v)[0]);
     }
@@ -2629,7 +2639,7 @@ void updatesizehints(Client *c) {
 
 void updatestatus(void) {
     if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
-        strcpy(stext, "dwm-" VERSION);
+        strcpy(stext, "dwm-" dwm_version);
     }
     drawbar(selmon);
 }
@@ -3013,7 +3023,7 @@ void zoom(Arg const &arg) {
 
 int main(int argc, char *argv[]) {
     if (argc == 2 && !strcmp("-v", argv[1])) {
-        puts("dwm-" VERSION);
+        puts("dwm-" dwm_version);
         return 0;
     } else if (argc != 1) {
         fputs("usage: dwm [-v]", stderr);

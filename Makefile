@@ -43,7 +43,7 @@ endif
 ############################ Detailed configuration ############################
 # Preprocessor flags
 
-CPPFLAGS = -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D$(OUT_NAME)_version=\"$(VERSION)\"
+CPPFLAGS = -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_XOPEN_SOURCE=700L -D$(OUT_NAME)_version=\"$(VERSION)\"
 
 # Compiler flags
 
