@@ -82,13 +82,14 @@ int mkdirP(char const *dir_name, int mode) {
 }
 
 std::optional<std::filesystem::path> getLogDir(void) {
-    auto logsubdir = "/dwm/log/";
+    auto logsubdir = "dwm/log/";
 
     char const *xdg_cache_home = getenv("XDG_CACHE_HOME");
     if (xdg_cache_home) {
         auto path = std::filesystem::path(xdg_cache_home) / logsubdir;
         std::error_code ec;
-        std::filesystem::create_directories(path, ec);
+        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
+
         if (ec == std::errc {}) return path;
         WARN("Failed to get XDG_CACHE_HOME (%s): %s", path.c_str(), strerror(errno));
     }
@@ -97,7 +98,8 @@ std::optional<std::filesystem::path> getLogDir(void) {
     if (home) {
         auto path = std::filesystem::path(home) / ".cache" / logsubdir;
         std::error_code ec;
-        std::filesystem::create_directories(path, ec);
+        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
+
         if (ec == std::errc {}) return path;
         WARN("Failed to get $HOME/.cache directory (%s): %s", path.c_str(), strerror(errno));
     }
