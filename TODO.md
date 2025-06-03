@@ -24,4 +24,4 @@ List of things I'd like to implement but don't have time for
 * [X] Check if `util` functions are still needed
 * [X] Replace all `NULL` with `nullptr`
 * [X] Remove `XBACKLIGHT`
-* [ ] Use add notifications
+* [ ] Add notifications
