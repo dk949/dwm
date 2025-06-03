@@ -6,6 +6,6 @@ ASOUNDLIBS  = $(shell pkg-config alsa --libs --silence-errors)
 
 PKG_CONFIG_LIBS = x11 x11-xcb xcb-res xft fontconfig
 # Include directories (-I/dir/name or -isystem/dir/name)
-INC=$(XINERAMAFLAGS) $(ASOUNDFLAGS)
+INC=$(XINERAMAFLAGS) $(ASOUNDFLAGS) -I$(NB_INC)
 # Libraries to be linked (-llibname or -L/dir/name)
-LIBS=$(XINERAMALIBS) $(ASOUNDLIBS)
+LIBS=$(XINERAMALIBS) $(ASOUNDLIBS) -L$(NB_LDIR) -l$(NB_LIB)

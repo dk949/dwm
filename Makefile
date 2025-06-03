@@ -1,3 +1,4 @@
+include vendor.mk
 include config.mk
 
 ############################## Collecting sources ##############################
@@ -122,8 +123,8 @@ REAL_OUT_NAME= $(REAL_BUILD_DIR)/$(OUT_DIR)/$(OUT_NAME)
 INSTALL_NAME = "$(REAL_OUT_NAME)"
 
 all: $(REAL_OUT_NAME) $(COMPILE_COMMANDS_FILE)
-$(CXX_OBJ): $(REAL_BUILD_DIR)/MODE
-$(C_OBJ): $(REAL_BUILD_DIR)/MODE
+$(CXX_OBJ): $(REAL_BUILD_DIR)/MODE $(NB_OUT)
+$(C_OBJ): $(REAL_BUILD_DIR)/MODE $(NB_OUT)
 
 install: all
 	@mkdir -p "$(DESTDIR)$(PREFIX)/$(OUT_DIR)"
