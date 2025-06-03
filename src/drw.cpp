@@ -233,17 +233,13 @@ void drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled
 }
 
 int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, unsigned invert) {
-    int i, ty, ellipsis_x = 0;
-    unsigned int tmpw, ew, ellipsis_w = 0, ellipsis_len;
+    int ellipsis_x = 0;
+    unsigned int tmpw, ellipsis_w = 0;
     XftDraw *d = NULL;
-    Fnt *usedfont;
     Fnt *curfont;
     Fnt *nextfont;
-    int utf8strlen;
-    int utf8charlen;
     int render = x || y || w || h;
     long utf8codepoint = 0;
-    char const *utf8str;
     FcCharSet *fccharset;
     FcPattern *fcpattern;
     FcPattern *match;
@@ -277,25 +273,25 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
         w -= lpad;
     }
 
-    usedfont = drw->fonts;
+    Fnt *usedfont = drw->fonts;
     if (!ellipsis_width && render) ellipsis_width = drw_fontset_getwidth(drw, "...");
-    while (1) {
-        ew = 0;
-        ellipsis_len = 0;
-        utf8strlen = 0;
-        utf8str = text;
+    while (true) {
+        unsigned ew = 0;
+        std::size_t ellipsis_len = 0;
+        std::size_t utf8strlen = 0;
+        char const *utf8str = text;
         nextfont = NULL;
         while (*text) {
-            utf8charlen = (int)utf8decode(text, &utf8codepoint, UTF_SIZ);
+            auto utf8charlen = utf8decode(text, &utf8codepoint, UTF_SIZ);
             for (curfont = drw->fonts; curfont; curfont = curfont->next) {
                 charexists = charexists || XftCharExists(drw->dpy, curfont->xfont, (FcChar32)utf8codepoint);
                 if (charexists) {
-                    drw_font_getexts(curfont, text, (unsigned)utf8charlen, &tmpw, NULL);
+                    drw_font_getexts(curfont, text, utf8charlen, &tmpw, NULL);
                     if (ew + ellipsis_width <= w) {
                         /* keep track where the ellipsis still fits */
                         ellipsis_x = (int)((unsigned)x + ew);
                         ellipsis_w = w - ew;
-                        ellipsis_len = (unsigned)utf8strlen;
+                        ellipsis_len = utf8strlen;
                     }
 
                     if (ew + tmpw > w) {
@@ -306,7 +302,7 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
                         if (!render)
                             x += (int)tmpw;
                         else
-                            utf8strlen = (int)ellipsis_len;
+                            utf8strlen = ellipsis_len;
                     } else if (curfont == usedfont) {
                         utf8strlen += utf8charlen;
                         text += utf8charlen;
@@ -326,14 +322,14 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
 
         if (utf8strlen) {
             if (render) {
-                ty = (int)((unsigned)y + (h - usedfont->h) / 2 + (unsigned)usedfont->xfont->ascent);
+                auto ty = (unsigned)y + (h - usedfont->h) / 2 + (unsigned)usedfont->xfont->ascent;
                 XftDrawStringUtf8(d,
                     &drw->scheme[invert ? ColBg : ColFg],
                     usedfont->xfont,
                     x,
-                    ty,
+                    (int)ty,
                     (XftChar8 *)utf8str,
-                    utf8strlen);
+                    (int)utf8strlen);
             }
             x += (int)ew;
             w -= ew;
@@ -350,7 +346,7 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
              * character must be drawn. */
             charexists = 1;
 
-            for (i = 0; i < nomatches_len; ++i) {
+            for (int i = 0; i < nomatches_len; ++i) {
                 /* avoid calling XftFontMatch if we know we won't find a match */
                 if (utf8codepoint == nomatches.codepoint[i]) goto no_match;
             }
@@ -420,7 +416,7 @@ unsigned int drw_fontset_getwidth_clamp(Drw *drw, char const *text, unsigned int
     return MIN(n, tmp);
 }
 
-void drw_font_getexts(Fnt *font, char const *text, unsigned int len, unsigned int *w, unsigned int *h) {
+void drw_font_getexts(Fnt *font, char const *text, std::size_t len, unsigned int *w, unsigned int *h) {
     XGlyphInfo ext;
 
     if (!font || !text) {
