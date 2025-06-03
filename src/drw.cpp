@@ -250,7 +250,7 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
     XftResult result;
     int charexists = 0, overflow = 0;
 
-    // TODO: use an actual UTF-8 library
+    // TODO(dk949): use an actual UTF-8 library
 
     /* keep track of a couple codepoints for which we have no match. */
     static constexpr auto nomatches_len = 64;

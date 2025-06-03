@@ -867,8 +867,8 @@ Monitor *dirtomon(int dir) {
     return m;
 }
 
-// TODO: handle the case where the tags overlap with status
-//       (common if monitor is vertical)
+// TODO(dk949): handle the case where the tags overlap with status
+//              (common if monitor is vertical)
 void drawbar(Monitor *m) {
     int x;
     int w;
