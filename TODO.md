@@ -21,3 +21,7 @@ List of things I'd like to implement but don't have time for
   * This will likely need something like doing a double high bar 🤷
 * [ ] Check what happens with too many clients on different layouts
 * [ ] Make sure `centeredmaster` is `cfact` aware.
+* [X] Check if `util` functions are still needed
+* [ ] Replace all `NULL` with `nullptr`
+* [ ] Remove `XBACKLIGHT`
+* [ ] Use add notifications
