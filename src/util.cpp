@@ -7,9 +7,7 @@
 #include <libgen.h>
 #include <pthread.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -24,7 +22,7 @@ static void *delay_detached(void *pl) {
     usleep((unsigned)dpl->delay_for);
     dpl->fn(dpl->inner_pl);
     delete dpl;
-    return NULL;
+    return nullptr;
 }
 
 void delay(int delay_for, void (*fn)(void *), void *arg) {

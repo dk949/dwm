@@ -3,7 +3,7 @@
 #include <cstring>
 
 namespace lg {
-FILE *log_file = NULL;
+FILE *log_file = nullptr;
 
 std::optional<std::filesystem::path> getLogDir(void) {
     auto logsubdir = "dwm/log/";
@@ -35,7 +35,7 @@ namespace detail {
     char const *datetime(void) {
         static char buf[26];
 
-        time_t timer = time(NULL);
+        time_t timer = time(nullptr);
         strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&timer));
         return buf;
     }

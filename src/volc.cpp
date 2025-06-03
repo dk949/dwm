@@ -70,23 +70,23 @@ static snd_mixer_t *get_handle(int *err, char const *card) {
     {
         if ((*err = snd_mixer_open(&handle, 0)) < 0) {
             lg::error(" Mixer {} open error: {}", card, snd_strerror(*err));
-            return NULL;
+            return nullptr;
         }
         if ((*err = snd_mixer_attach(handle, card)) < 0) {
             lg::error(" Mixer attach {} error: {}", card, snd_strerror(*err));
             snd_mixer_close(handle);
-            return NULL;
+            return nullptr;
         }
-        if ((*err = snd_mixer_selem_register(handle, NULL, NULL)) < 0) {
+        if ((*err = snd_mixer_selem_register(handle, nullptr, nullptr)) < 0) {
             lg::error(" Mixer register error: {}", snd_strerror(*err));
             snd_mixer_close(handle);
-            return NULL;
+            return nullptr;
         }
         *err = snd_mixer_load(handle);
         if (*err < 0) {
             lg::error(" Mixer {} load error: {}", card, snd_strerror(*err));
             snd_mixer_close(handle);
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -170,7 +170,7 @@ extern volc_t *volc_init(char const *selector, unsigned int selector_index, char
     volc->handle = get_handle(&err, volc->card);
     if (err) {
         delete volc;
-        return NULL;
+        return nullptr;
     }
 
     volc->elem = snd_mixer_find_selem(volc->handle, volc->sid);
@@ -180,14 +180,14 @@ extern volc_t *volc_init(char const *selector, unsigned int selector_index, char
             snd_mixer_selem_id_get_index(volc->sid));
         snd_mixer_close(volc->handle);
         delete volc;
-        return NULL;
+        return nullptr;
     }
     return volc;
 }
 
 extern void volc_deinit(volc_t *volc) {
-    if (volc != NULL) {
-        if (volc->handle != NULL) snd_mixer_close(volc->handle);
+    if (volc != nullptr) {
+        if (volc->handle != nullptr) snd_mixer_close(volc->handle);
         delete volc;
     }
 }

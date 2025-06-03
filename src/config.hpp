@@ -36,7 +36,7 @@ static int const bright_steps = 20; /* number of steps it takes to move between 
    in the get_bright_file function. If bright_file is not NULL get_bright_file
    may return NULL, but one of them has to be a valid pointer.
 */
-static char const *bright_file = NULL;
+static char const *bright_file = nullptr;
 
 
 static double const progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
@@ -123,36 +123,36 @@ static Rule const rules[] = {
     */
     // clang-format off
     /* class                     , inst      , title        , tags          , switch , isfloating , isterminal , noswallow , monitor */
-    {"firefox"                   , NULL      , NULL         , ttype(Browse) , 3      , 0          , 0          , 0         , -1},
-    {"Google-chrome"             , NULL      , NULL         , ttype(Browse) , 3      , 0          , 1          , 1         , -1},
-    {"jetbrains-clion"           , NULL      , NULL         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
-    {"jetbrains-webstorm"        , NULL      , NULL         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
-    {"jetbrains-idea"            , NULL      , NULL         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
-    {"jetbrains-pycharm"         , NULL      , NULL         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
-    {"jetbrains-studio"          , NULL      , NULL         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
-    {"Steam"                     , NULL      , NULL         , ttype(Ent)    , 3      , 1          , 0          , 0         , -1},
-    {"Spotify"                   , NULL      , NULL         , ttype(Ent)    , 1      , 0          , 0          , 0         , -1},
-    {"st-256color"               , NULL      , "spotify"    , ttype(Ent)    , 3      , 0          , 0          , 1         , -1},
-    {"st-256color"               , NULL      , "sysmon"     , ttype(Sys)    , 3      , 0          , 0          , 1         , -1},
-    {"VirtualBox Machine"        , NULL      , NULL         , ttype(Sys)    , 1      , 0          , 0          , 0         , -1},
-    {"qemu-system-i386"          , NULL      , NULL         , ttype(Sys)    , 0      , 1          , 1          , 1         , -1},
-    {"Gimp"                      , NULL      , NULL         , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
-    {"Blender"                   , NULL      , NULL         , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
-    {"Darktable"                 , NULL      , NULL         , ttype(Creat)  , 1      , 0          , 0          , 0         , -1},
-    {"MuseScore3"                , NULL      , NULL         , ttype(Creat)  , 1      , 0          , 0          , 0         , -1},
-    {"discord"                   , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
-    {"Slack"                     , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
-    {"Mattermost"                , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
-    {"Microsoft Teams - Preview" , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
-    {"thunderbird"               , NULL      , "Msgcompose" , ttype(Chat)   , 1      , 0          , 1          , 1         , -1},
-    {"thunderbird"               , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
-    {"Zulip"                     , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
-    {"zoom"                      , NULL      , NULL         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
-    {"testing"                   , NULL      , NULL         , 0             , 0      , 1          , 1          , 1         , -1},
-    {"Xephyr"                    , NULL      , NULL         , 0             , 0      , 1          , 1          , 1         , -1},
-    {"st-256color"               , NULL      , "neovim"     , 0             , 0      , 1          , 0          , 1         , -1},
-    {"st-256color"               , NULL      , NULL         , 0             , 0      , 0          , 1          , 1         , -1},
-    {"kitty"                     , NULL      , NULL         , 0             , 0      , 0          , 1          , 1         , -1},
+    {"firefox"                   , nullptr      , nullptr         , ttype(Browse) , 3      , 0          , 0          , 0         , -1},
+    {"Google-chrome"             , nullptr      , nullptr         , ttype(Browse) , 3      , 0          , 1          , 1         , -1},
+    {"jetbrains-clion"           , nullptr      , nullptr         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-webstorm"        , nullptr      , nullptr         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-idea"            , nullptr      , nullptr         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-pycharm"         , nullptr      , nullptr         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"jetbrains-studio"          , nullptr      , nullptr         , ttype(Code)   , 1      , 0          , 0          , 0         , -1},
+    {"Steam"                     , nullptr      , nullptr         , ttype(Ent)    , 3      , 1          , 0          , 0         , -1},
+    {"Spotify"                   , nullptr      , nullptr         , ttype(Ent)    , 1      , 0          , 0          , 0         , -1},
+    {"st-256color"               , nullptr      , "spotify"       , ttype(Ent)    , 3      , 0          , 0          , 1         , -1},
+    {"st-256color"               , nullptr      , "sysmon"        , ttype(Sys)    , 3      , 0          , 0          , 1         , -1},
+    {"VirtualBox Machine"        , nullptr      , nullptr         , ttype(Sys)    , 1      , 0          , 0          , 0         , -1},
+    {"qemu-system-i386"          , nullptr      , nullptr         , ttype(Sys)    , 0      , 1          , 1          , 1         , -1},
+    {"Gimp"                      , nullptr      , nullptr         , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
+    {"Blender"                   , nullptr      , nullptr         , ttype(Creat)  , 3      , 0          , 0          , 0         , -1},
+    {"Darktable"                 , nullptr      , nullptr         , ttype(Creat)  , 1      , 0          , 0          , 0         , -1},
+    {"MuseScore3"                , nullptr      , nullptr         , ttype(Creat)  , 1      , 0          , 0          , 0         , -1},
+    {"discord"                   , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Slack"                     , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Mattermost"                , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Microsoft Teams - Preview" , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"thunderbird"               , nullptr      , "Msgcompose"    , ttype(Chat)   , 1      , 0          , 1          , 1         , -1},
+    {"thunderbird"               , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Zulip"                     , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"zoom"                      , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"testing"                   , nullptr      , nullptr         , 0             , 0      , 1          , 1          , 1         , -1},
+    {"Xephyr"                    , nullptr      , nullptr         , 0             , 0      , 1          , 1          , 1         , -1},
+    {"st-256color"               , nullptr      , "neovim"        , 0             , 0      , 1          , 0          , 1         , -1},
+    {"st-256color"               , nullptr      , nullptr         , 0             , 0      , 0          , 1          , 1         , -1},
+    {"kitty"                     , nullptr      , nullptr         , 0             , 0      , 0          , 1          , 1         , -1},
     // clang-format on
 };
 
@@ -165,7 +165,7 @@ static int const resizehints = 1; /* 1 means respect size hints in tiled resizal
 static Layout const layouts[] = {
     /* symbol      arrange function */
     {"[]=",                   tile}, /* first entry is default */
-    {"><>",                   NULL}, /* no layout function means floating behavior */
+    {"><>",                nullptr}, /* no layout function means floating behavior */
     {"[M]",                monocle},
     {"|M|",         centeredmaster},
     {">M>", centeredfloatingmaster},
@@ -184,24 +184,24 @@ static Layout const layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static char const *dmenucmd[] = {
-    "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", NULL};
+    "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", nullptr};
 
-static char const *termcmd[] = {"kitty", "-1", NULL};
+static char const *termcmd[] = {"kitty", "-1", nullptr};
 
-static char const *lockcmd[] = {"slock", NULL};    // Lock the screen with slock
-static char const *powrcmd[] = {"turnoff", NULL};  // Lock the screen with slock
-static char const *brwscmd[] = {"firefox", NULL};  // Firefox browser
-static char const *musccmd[] = {"spotify", NULL};  // spotify-tui
-static char const *htopcmd[] = {"sysmon", NULL};   // system monitor aka htop
-static char const *nvimcmd[] = {"neovim", NULL};   // opens neovim
-static char const *chatcmd[] = {"disc", NULL};     // does discord
-// static char const *mttrmst[] = {"mattermost-desktop", NULL};  // mattermost
-// static char const *zulpcmd[] = {"zulip", NULL};               // zulip
+static char const *lockcmd[] = {"slock", nullptr};    // Lock the screen with slock
+static char const *powrcmd[] = {"turnoff", nullptr};  // Lock the screen with slock
+static char const *brwscmd[] = {"firefox", nullptr};  // Firefox browser
+static char const *musccmd[] = {"spotify", nullptr};  // spotify-tui
+static char const *htopcmd[] = {"sysmon", nullptr};   // system monitor aka htop
+static char const *nvimcmd[] = {"neovim", nullptr};   // opens neovim
+static char const *chatcmd[] = {"disc", nullptr};     // does discord
+// static char const *mttrmst[] = {"mattermost-desktop", nullptr};  // mattermost
+// static char const *zulpcmd[] = {"zulip", nullptr};               // zulip
 
 
-static char const *symdmnu[] = {"sym", NULL};         // Mathematical symbol selection
-static char const *grkdmnu[] = {"greek", NULL};       // Mathematical symbol selection
-static char const *scrdmnu[] = {"screenshot", NULL};  // Screenshot taker
+static char const *symdmnu[] = {"sym", nullptr};         // Mathematical symbol selection
+static char const *grkdmnu[] = {"greek", nullptr};       // Mathematical symbol selection
+static char const *scrdmnu[] = {"screenshot", nullptr};  // Screenshot taker
 
 
 static Key const keys[] = {

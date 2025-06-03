@@ -78,7 +78,7 @@ void fatal(std::format_string<Args...> fmt, Args &&...args) {
  *
  * Caller owns returned string
  *
- * If an error occurs, `NULL` is returned
+ * If an error occurs, nullopt` is returned
  */
 std::optional<std::filesystem::path> getLogDir(void);
 
