@@ -21,13 +21,28 @@ namespace detail {
             default: return "[!!!]";
         }
     }
+
+    template<typename T>
+    decltype(auto) checkForNull(T &&arg) {
+        if constexpr (std::is_same_v<std::remove_cvref_t<T>, char const *>) {
+            static auto null = "(null)";
+            if (!arg) return std::forward<T>(null);
+        }
+        if constexpr (std::is_same_v<std::remove_cvref_t<T>, char *>) {
+            static char _null[] = "(null)";
+            static auto null = &_null[0];
+            if (!arg) return std::forward<T>(null);
+        }
+        return std::forward<T>(arg);
+    }
+
 }  // namespace detail
 
 template<Level level, typename... Args>
 void log(std::format_string<Args...> fmt, Args &&...args) {
     auto file = log_file ? log_file : stderr;
     std::print(file, "{} {}: ", detail::datetime(), detail::log_level_str(level));
-    std::println(file, fmt, std::forward<Args>(args)...);
+    std::println(file, fmt, std::forward<Args>(detail::checkForNull(args))...);
     if (!log_file) fputs("NOTE: logfile unavailable", file);
     fflush(file);
 
