@@ -18,7 +18,7 @@ namespace detail {
             case Level::Warn: return "[DWM WARN]";
             case Level::Error:
             case Level::Fatal: return "[DWM ERROR]"; ;
-            default: std::abort();
+            default: return "[!!!]";
         }
     }
 }  // namespace detail
@@ -27,7 +27,7 @@ template<Level level, typename... Args>
 void log(std::format_string<Args...> fmt, Args &&...args) {
     auto file = log_file ? log_file : stderr;
     std::print(file, "{} {}: ", detail::datetime(), detail::log_level_str(level));
-    std::println(fmt, std::forward<Args>(args)...);
+    std::println(file, fmt, std::forward<Args>(args)...);
     if (!log_file) fputs("NOTE: logfile unavailable", file);
     fflush(file);
 
