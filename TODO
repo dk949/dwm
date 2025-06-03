@@ -12,3 +12,4 @@ List of things I'd like to implement but don't have time for
 * [ ] Some cool new patches (more for inspiration than anything else):
     * http://dwm.suckless.org/patches/windowmap/
     * http://dwm.suckless.org/patches/statuscolors/
+* [ ] In monocle mode, only draw the top window
