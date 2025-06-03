@@ -40,17 +40,3 @@ void delay(int delay_for, void (*fn)(void *), void *arg) {
     dpl->delay_for = delay_for;
     pthread_create(&tid, &attr, delay_detached, dpl);
 }
-
-int mkdirP(char const *dir_name, int mode) {
-    struct stat st {};
-    if (stat(dir_name, &st) != -1) {
-        if (S_ISDIR(st.st_mode)) return 0;
-        errno = EEXIST;
-        return -1;
-    }
-
-    char const *parent = dirname(strdupa(dir_name));
-    if (mkdirP(parent, mode)) return -1;
-    return mkdir(dir_name, (unsigned)mode);
-}
-

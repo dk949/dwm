@@ -25,18 +25,4 @@
 
 void delay(int delay_for, void (*fn)(void *), void *arg);
 
-/**
- * Like mkdir -p
- *
- * If directory exists does nothing and returns 0
- *
- * If directory does not exist tries to create all directories leading up to it.
- *
- * If any errors occur, returns -1 and sets `errno` appropriatly.
- *
- * If part of the intermediate path is not a directory, sets errno to EEXISTS
- */
-int mkdirP(char const *dir_name, int mode);
-
-
 #endif  // DWM_UTIL_HPP
