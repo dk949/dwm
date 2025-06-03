@@ -45,8 +45,6 @@ void log(std::format_string<Args...> fmt, Args &&...args) {
     std::println(file, fmt, std::forward<Args>(detail::checkForNull(args))...);
     if (!log_file) fputs("NOTE: logfile unavailable", file);
     fflush(file);
-
-    exit(1);
 }
 
 template<typename... Args>
