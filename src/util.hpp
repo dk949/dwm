@@ -72,7 +72,6 @@
 __attribute__((format(printf, 1, 2)))
 #endif
 void die(char const *fmt, ...);
-void *ecalloc(size_t nmemb, size_t size);
 void delay(int delay_for, void (*fn)(void *), void *arg);
 char const *datetime(void);
 

@@ -12,14 +12,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-void *ecalloc(size_t nmemb, size_t size) {
-    void *p;
-
-    if (!(p = calloc(nmemb, size))) die("calloc:");
-
-    return p;
-}
-
 void die(char const *fmt, ...) {
     FILE *file = log_file ? log_file : stderr;
     va_list ap;
