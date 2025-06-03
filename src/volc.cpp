@@ -1,6 +1,6 @@
 #include "volc.hpp"
 
-#include "util.hpp"
+#include "log.hpp"
 
 #include <alsa/asoundlib.h>
 #include <assert.h>
@@ -69,22 +69,22 @@ static snd_mixer_t *get_handle(int *err, char const *card) {
     snd_mixer_t *handle;
     {
         if ((*err = snd_mixer_open(&handle, 0)) < 0) {
-            WARN(" Mixer %s open error: %s", card, snd_strerror(*err));
+            lg::error(" Mixer {} open error: {}", card, snd_strerror(*err));
             return NULL;
         }
         if ((*err = snd_mixer_attach(handle, card)) < 0) {
-            WARN(" Mixer attach %s error: %s", card, snd_strerror(*err));
+            lg::error(" Mixer attach {} error: {}", card, snd_strerror(*err));
             snd_mixer_close(handle);
             return NULL;
         }
         if ((*err = snd_mixer_selem_register(handle, NULL, NULL)) < 0) {
-            WARN(" Mixer register error: %s", snd_strerror(*err));
+            lg::error(" Mixer register error: {}", snd_strerror(*err));
             snd_mixer_close(handle);
             return NULL;
         }
         *err = snd_mixer_load(handle);
         if (*err < 0) {
-            WARN(" Mixer %s load error: %s", card, snd_strerror(*err));
+            lg::error(" Mixer {} load error: {}", card, snd_strerror(*err));
             snd_mixer_close(handle);
             return NULL;
         }
@@ -151,7 +151,7 @@ extern volc_volume_state_t volc_volume_ctl(
         any_set = 1;
     }
     if (!any_set) {
-        WARN(" failed to set any chanels");
+        lg::warn(" failed to set any chanels");
         state.err = -1;
     }
 
@@ -175,7 +175,7 @@ extern volc_t *volc_init(char const *selector, unsigned int selector_index, char
 
     volc->elem = snd_mixer_find_selem(volc->handle, volc->sid);
     if (!volc->elem) {
-        WARN(" Unable to find simple control '%s',%i",
+        lg::warn(" Unable to find simple control '{}',{}",
             snd_mixer_selem_id_get_name(volc->sid),
             snd_mixer_selem_id_get_index(volc->sid));
         snd_mixer_close(volc->handle);

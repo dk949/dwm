@@ -1,6 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 #include "util.hpp"
 
+#include "log.hpp"
+
 #include <dirent.h>
 #include <errno.h>
 #include <libgen.h>
@@ -11,27 +13,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-void die(char const *fmt, ...) {
-    FILE *file = log_file ? log_file : stderr;
-    va_list ap;
-
-    va_start(ap, fmt);
-    fputs("[DWM ERROR]: ", file);
-    vfprintf(file, fmt, ap);
-    va_end(ap);
-
-    if (fmt[0] && fmt[strlen(fmt) - 1] == ':') {
-        fputc(' ', file);
-        fputs(strerror(errno), file);
-    } else {
-        fputc('\n', file);
-    }
-    if (!log_file) fputs("NOTE: logfile unavailable", file);
-    fflush(file);
-
-    exit(1);
-}
 
 struct DelayPayload {
     void (*fn)(void *);
@@ -73,35 +54,3 @@ int mkdirP(char const *dir_name, int mode) {
     return mkdir(dir_name, (unsigned)mode);
 }
 
-std::optional<std::filesystem::path> getLogDir(void) {
-    auto logsubdir = "dwm/log/";
-
-    char const *xdg_cache_home = getenv("XDG_CACHE_HOME");
-    if (xdg_cache_home) {
-        auto path = std::filesystem::path(xdg_cache_home) / logsubdir;
-        std::error_code ec;
-        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
-
-        if (ec == std::errc {}) return path;
-        WARN("Failed to get XDG_CACHE_HOME (%s): %s", path.c_str(), strerror(errno));
-    }
-
-    char const *home = getenv("HOME");
-    if (home) {
-        auto path = std::filesystem::path(home) / ".cache" / logsubdir;
-        std::error_code ec;
-        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
-
-        if (ec == std::errc {}) return path;
-        WARN("Failed to get $HOME/.cache directory (%s): %s", path.c_str(), strerror(errno));
-    }
-    return {};
-}
-
-char const *datetime(void) {
-    static char buf[26];
-
-    time_t timer = time(NULL);
-    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&timer));
-    return buf;
-}

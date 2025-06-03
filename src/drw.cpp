@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include "drw.hpp"
 
+#include "log.hpp"
 #include "util.hpp"
 
 #include <stdio.h>
@@ -114,21 +115,21 @@ static Fnt *xfont_create(Drw *drw, char const *fontname, FcPattern *fontpattern)
          * behaviour whereas the former just results in missing-character
          * rectangles being drawn, at least with some fonts. */
         if (!(xfont = XftFontOpenName(drw->dpy, drw->screen, fontname))) {
-            WARN("cannot load font from name: '%s'\n", fontname);
+            lg::warn("cannot load font from name: '{}'", fontname);
             return NULL;
         }
         if (!(pattern = FcNameParse((FcChar8 *)fontname))) {
-            WARN("cannot parse font name to pattern: '%s'\n", fontname);
+            lg::warn("cannot parse font name to pattern: '{}'", fontname);
             XftFontClose(drw->dpy, xfont);
             return NULL;
         }
     } else if (fontpattern) {
         if (!(xfont = XftFontOpenPattern(drw->dpy, fontpattern))) {
-            WARN("error, cannot load font from pattern.\n");
+            lg::warn("error, cannot load font from pattern.");
             return NULL;
         }
     } else {
-        die("no font specified.");
+        lg::fatal("no font specified.");
     }
 
     font = new Fnt {};
@@ -186,7 +187,7 @@ void drw_clr_create(Drw *drw, Clr *dest, char const *clrname) {
             DefaultColormap(drw->dpy, drw->screen),
             clrname,
             dest)) {
-        die("error, cannot allocate color '%s'", clrname);
+        lg::fatal("error, cannot allocate color '{}'", clrname);
     }
 }
 
@@ -358,7 +359,7 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
 
             if (!drw->fonts->pattern) {
                 /* Refer to the comment in xfont_create for more information. */
-                die("the first font in the cache must be loaded from a font string.");
+                lg::fatal("the first font in the cache must be loaded from a font string.");
             }
 
             fcpattern = FcPatternDuplicate(drw->fonts->pattern);

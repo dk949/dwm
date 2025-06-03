@@ -24,6 +24,7 @@
 #include "dwm.hpp"
 
 #include "layout.hpp"
+#include "log.hpp"
 #include "mapping.hpp"
 
 #include <errno.h>
@@ -46,6 +47,7 @@
 #include <X11/Xutil.h>
 
 #include <array>
+#include <cstring>
 #include <optional>
 
 #ifdef XINERAMA
@@ -260,7 +262,6 @@ static volc_t *volc;
 #endif /* ASOUND */
 static xcb_connection_t *xcon;
 static std::optional<std::filesystem::path> log_dir;
-FILE *log_file = NULL;
 
 /* configuration, allows nested code to access above variables */
 #include "config.hpp"
@@ -524,12 +525,12 @@ void unswallow(Client *c) {
 void bright_dec(Arg const &arg) {
     int ret;
     if ((ret = bright_dec_((double)arg.f))) {
-        WARN("Function bright_dec_(const Arg *arg) from backlight.hpp returned %d", ret);
+        lg::warn("Function bright_dec_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
     double newval;
     if ((ret = bright_get_(&newval))) {
-        WARN("Function bright_get_(const Arg *arg) from backlight.hpp returned %d", ret);
+        lg::warn("Function bright_get_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
@@ -538,12 +539,12 @@ void bright_dec(Arg const &arg) {
 void bright_inc(Arg const &arg) {
     int ret;
     if ((ret = bright_inc_((double)arg.f))) {
-        WARN("Function bright_inc_(const Arg *arg) from backlight.hpp returned %d", ret);
+        lg::warn("Function bright_inc_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
     double newval;
     if ((ret = bright_get_(&newval))) {
-        WARN("Function bright_get_(const Arg *arg) from backlight.hpp returned %d", ret);
+        lg::warn("Function bright_get_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
     drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
@@ -552,7 +553,7 @@ void bright_inc(Arg const &arg) {
 void bright_set(Arg const &arg) {
     int ret;
     if ((ret = bright_set_((double)arg.f))) {
-        WARN("Function bright_set_(const Arg *arg) from backlight.hpp returned %d", ret);
+        lg::warn("Function bright_set_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
     drawprogress(100, (unsigned long long)arg.f, SchemeBrightProgress);
@@ -643,7 +644,7 @@ void cleanup(void) {
 #ifdef ASOUND
     volc_deinit(volc);
 #endif /* ASOUND */
-    fclose(log_file);
+    fclose(lg::log_file);
 }
 
 void cleanupmon(Monitor *mon) {
@@ -831,7 +832,7 @@ void detach(Client *c) {
 
     for (tc = &c->mon->clients; *tc && *tc != c; tc = &(*tc)->next) { }
 
-    if (!*tc) WARN("Client `%s` was not attached, c->next %s!!!", c->name, c->next ? "is not null" : "is null");
+    if (!*tc) lg::warn("Client `{}` was not attached, c->next {}!!!", c->name, c->next ? "is not null" : "is null");
     *tc = c->next;
 }
 
@@ -1240,7 +1241,7 @@ void setmaster(Arg const &arg) {
 
 void iconify(Arg const &arg) {
     (void)arg;
-    if (!XIconifyWindow(dpy, selmon->sel->win, screen)) DEBUG_PRINTF("Could not iconify %s", selmon->sel->name);
+    if (!XIconifyWindow(dpy, selmon->sel->win, screen)) lg::debug("Could not iconify {}", selmon->sel->name);
 }
 
 void incnmaster(Arg const &arg) {
@@ -1475,7 +1476,7 @@ void movemouse(Arg const &arg) {
                     resize(c, nx, ny, c->w, c->h, 1);
                 }
                 break;
-            default: WARN("Unexpected event type %d in movemouse", ev.type); break;
+            default: lg::warn("Unexpected event type {} in movemouse", ev.type); break;
         }
     } while (ev.type != ButtonRelease);
     XUngrabPointer(dpy, CurrentTime);
@@ -1521,7 +1522,7 @@ static void print_event_stats(void) {
 
     if (timespecdiff(&now, &last_print) < 1.0) return;
 
-    DEBUG_PRINTF("%li events/s", calls);
+    lg::debug("{} events/s", calls);
     calls = 0;
     last_print = now;
 }
@@ -1566,7 +1567,7 @@ void quit(Arg const &arg) {
     (void)arg;
     running = 0;
     need_restart = 0;
-    LOG("Initiating shutdowd");
+    lg::info("Initiating shutdowd");
 }
 
 void restart(Arg const &arg) {
@@ -1688,7 +1689,7 @@ void resizemouse(Arg const &arg) {
                     resize(c, c->x, c->y, nw, nh, 1);
                 }
                 break;
-            default: WARN("Unknown event type %d in resizemouse", ev.type); break;
+            default: lg::warn("Unknown event type {} in resizemouse", ev.type); break;
         }
     } while (ev.type != ButtonRelease);
     XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
@@ -1990,13 +1991,13 @@ void setup(void) {
     while (waitpid(-1, NULL, WNOHANG)) { }
 
     /*Set up logging*/
-    log_dir = getLogDir();
+    log_dir = lg::getLogDir();
     if (log_dir) {
         auto log_file_name = *log_dir / "dwm.log";
-        log_file = fopen(log_file_name.c_str(), "a");
-        if (!log_file) die("could not open log file:");
+        lg::log_file = fopen(log_file_name.c_str(), "a");
+        if (!lg::log_file) lg::fatal("could not open log file: {}", std::strerror(errno));
     } else {
-        die("Could not obtain log dir");
+        lg::fatal("Could not obtain log dir");
     }
 
 
@@ -2007,7 +2008,7 @@ void setup(void) {
     root = RootWindow(dpy, screen);
     drw = drw_create(dpy, screen, root, (unsigned)sw, (unsigned)sh);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts))) {
-        die("no fonts could be loaded.");
+        lg::fatal("no fonts could be loaded.");
     }
 
 #ifdef XBACKLIGHT
@@ -2016,11 +2017,11 @@ void setup(void) {
     if (bright_setup(bright_file ? bright_file : get_bright_file(), 0, 0))
 #endif  // XBACKLIGHT
     {
-        die("backlight setup failed");
+        lg::fatal("backlight setup failed");
     }
 
 #ifdef ASOUND
-    if (!(volc = volc_init(VOLC_ALL_DEFULTS))) die("volc setup failed");
+    if (!(volc = volc_init(VOLC_ALL_DEFULTS))) lg::fatal("volc setup failed");
 
 #endif /* ASOUND */
 
@@ -2122,22 +2123,22 @@ void redirectChildLog(char **argv) {
 
     int child_fd = open(file_name.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
     if (child_fd < 0) {
-        WARN("Could not set up logging for child processes %s: %s", argv[0], strerror(errno));
+        lg::warn("Could not set up logging for child processes {}: {}", argv[0], strerror(errno));
         return;
     }
     char const div[] = "________________________________________________________________________________\n";
     if (write(child_fd, div, sizeof(div)) < 0) {
         close(child_fd);
-        WARN("Could not write to child log file %s: %s", file_name.c_str(), strerror(errno));
+        lg::warn("Could not write to child log file {}: {}", file_name.c_str(), strerror(errno));
         goto exit;
     }
 
     if (dup2(child_fd, STDOUT_FILENO) < 0) {
-        WARN("Could not redirect child stdout to log file %s: %s", file_name.c_str(), strerror(errno));
+        lg::warn("Could not redirect child stdout to log file {}: {}", file_name.c_str(), strerror(errno));
         goto exit;
     }
     if (dup2(child_fd, STDERR_FILENO) < 0) {
-        WARN("Could not redirect child stdout to log file %s: %s", file_name.c_str(), strerror(errno));
+        lg::warn("Could not redirect child stdout to log file {}: {}", file_name.c_str(), strerror(errno));
         goto exit;
     }
 exit:
@@ -2159,7 +2160,7 @@ void spawn(Arg const &arg) {
         sa.sa_handler = SIG_DFL;
         sigaction(SIGCHLD, &sa, NULL);
         execvp(((char **)arg.v)[0], (char **)arg.v);
-        die("failed to spawn %s:", ((char **)arg.v)[0]);
+        lg::fatal("failed to spawn {}:", ((char **)arg.v)[0]);
     }
 }
 
@@ -2340,7 +2341,7 @@ void unfocus(Client *c, int setfocus) {
 }
 
 static void uniconifyclient(Client *c) {
-    DEBUG_PRINTF("restoring iconified cliend %s", c->name);
+    lg::debug("restoring iconified cliend {}", c->name);
     updatetitle(c);
     updatesizehints(c);
     arrange(c->mon);
@@ -2782,14 +2783,14 @@ pid_t getparentprocess(pid_t p) {
     snprintf(buf, sizeof(buf) - 1, "/proc/%u/stat", (unsigned)p);
 
     if (!(f = fopen(buf, "r"))) {
-        WARN("failed to open stat file %s for process %d: %s", buf, p, strerror(errno));
+        lg::warn("failed to open stat file {} for process {}: {}", buf, p, strerror(errno));
         return 0;
     }
 
     int res = fscanf(f, "%*u %*s %*c %u", &v);
     fclose(f);
     if (res != 1) {
-        WARN("failed to get child process of %d: %s", p, strerror(errno));
+        lg::warn("failed to get child process of {}: {}", p, strerror(errno));
         return 0;
     }
 #endif /* __linux__ */
@@ -2807,8 +2808,8 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
      bytes_left = N - (Offs + BytesToReturn)
 
     The  returned  value starts at byte index Offs in the property (indexing from zero), and its length in bytes is L.
-    If the value for long_offset causes L to be negative, a BadValue error results.  The value of bytes_after_return is
-    A, giving the number of trailing unread bytes in the stored property.
+    If the value for long_offset causes L to be negative, a BadValue error results.  The value of bytes_after_return
+    is A, giving the number of trailing unread bytes in the stored property.
 
        */
     long offset = 0, length = 0;
@@ -2830,9 +2831,9 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
         &nitems,
         &bytes_left,
         &data);
-    if (format != 32) DEBUG_PRINTF("wrong format: %d", format);
-    if (req_type != actual_type) DEBUG_PRINTF("wrong type:  expected %lu got %lu", req_type, actual_type);
-    DEBUG_PRINTF("nitems = %lu, bytes_left = %lu", nitems, bytes_left);
+    if (format != 32) lg::debug("wrong format: {}", format);
+    if (req_type != actual_type) lg::debug("wrong type:  expected {} got {}", req_type, actual_type);
+    lg::debug("nitems = {}, bytes_left = {}", nitems, bytes_left);
     *size = (unsigned long)(length = (long)bytes_left);
     XGetWindowProperty(dpy,
         c->win,
@@ -2861,7 +2862,7 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
 static __attribute_maybe_unused__ void dump_raw(uint8_t *data, size_t size, char const *path) {
     FILE *fp = fopen(path, "w");
     if (!fp) {
-        DEBUG_PRINTF("Could not open file %s for writing", path);
+        lg::debug("Could not open file {} for writing", path);
         return;
     }
 
@@ -2873,7 +2874,7 @@ static __attribute_maybe_unused__ void dump_raw(uint8_t *data, size_t size, char
 static void iconifyclient(Client *c) {
     char *icon_name;
     XGetIconName(dpy, c->win, &icon_name);
-    DEBUG_PRINTF("%s wants to iconify. Icon name: %s", c->name, icon_name);
+    lg::debug("{} wants to iconify. Icon name: {}", c->name, icon_name);
     XFree(icon_name);
 
     detach(c);
@@ -2887,10 +2888,10 @@ static void iconifyclient(Client *c) {
     unsigned long size;
     uint32_t *icon;
     if ((icon = geticon(c, &size))) {
-        DEBUG_PRINTF("icon is %dx%d, %lu bytes", (int)icon[0], (int)icon[1], size);
+        lg::debug("icon is {}x{}, {} bytes", (int)icon[0], (int)icon[1], size);
         XFree(icon);
     } else {
-        DEBUG_PRINTF("No icon for client %s", c->name);
+        lg::debug("No icon for client {}", c->name);
     }
 
     delay(1000000 * 5, (void (*)(void *))uniconifyclient, c);
@@ -2993,7 +2994,7 @@ int xerror(Display *d, XErrorEvent *ee) {
         || (ee->request_code == X_CopyArea && ee->error_code == BadDrawable)) {
         return 0;
     }
-    WARN("fatal error: request code=%d, error code=%d", ee->request_code, ee->error_code);
+    lg::warn("fatal error: request code={}, error code={}", ee->request_code, ee->error_code);
     return xerrorxlib(d, ee); /* may call exit */
 }
 
@@ -3006,7 +3007,7 @@ int xerrordummy(Display *_dpy, XErrorEvent *_ee) {
  * is already running. */
 int xerrorstart(Display *_dpy, XErrorEvent *_ee) {
     (void)_dpy, (void)_ee;
-    die("another window manager is already running");
+    lg::fatal("another window manager is already running");
     return -1;
 }
 
@@ -3030,13 +3031,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale()) {
-        WARN("no locale support");
+        lg::warn("no locale support");
     }
     if (!(dpy = XOpenDisplay(NULL))) {
-        die("cannot open display");
+        lg::fatal("cannot open display");
     }
     if (!(xcon = XGetXCBConnection(dpy))) {
-        die("cannot get xcb connection");
+        lg::fatal("cannot get xcb connection");
     }
     checkotherwm();
     setup();
@@ -3044,17 +3045,17 @@ int main(int argc, char *argv[]) {
     if (pledge("stdio rpath proc exec", NULL) == -1) die("pledge");
 #endif /* __OpenBSD__ */
     scan();
-    LOG("Starting DWM");
+    lg::info("Starting DWM");
     run();
     cleanup();
     XCloseDisplay(dpy);
     if (need_restart) {
-        LOG("Restarting dwm\n"
-            "________________________________________________________________________________\n");
-        if (execvp(argv[0], argv)) die("could not restart dwm:");
+        lg::info("Restarting dwm\n"
+                 "________________________________________________________________________________\n");
+        if (execvp(argv[0], argv)) lg::fatal("could not restart dwm:");
     }
 
-    LOG("Shutdown complete");
+    lg::info("Shutdown complete");
     return EXIT_SUCCESS;
 }
 
