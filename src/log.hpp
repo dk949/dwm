@@ -48,8 +48,10 @@ void log(std::format_string<Args...> fmt, Args &&...args) {
 }
 
 template<typename... Args>
-void debug(std::format_string<Args...> fmt, Args &&...args) {
+void debug([[maybe_unused]] std::format_string<Args...> fmt, [[maybe_unused]] Args &&...args) {
+#ifndef NDEBUG
     return log<Level::Debug, Args...>(fmt, std::forward<Args>(args)...);
+#endif
 }
 
 template<typename... Args>
