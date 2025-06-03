@@ -23,5 +23,5 @@ List of things I'd like to implement but don't have time for
 * [ ] Make sure `centeredmaster` is `cfact` aware.
 * [X] Check if `util` functions are still needed
 * [ ] Replace all `NULL` with `nullptr`
-* [ ] Remove `XBACKLIGHT`
+* [X] Remove `XBACKLIGHT`
 * [ ] Use add notifications

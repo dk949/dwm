@@ -2012,12 +2012,7 @@ void setup(void) {
         lg::fatal("no fonts could be loaded.");
     }
 
-#ifdef XBACKLIGHT
-    if (bright_setup(NULL, bright_steps, bright_time))
-#else
-    if (bright_setup(bright_file ? bright_file : get_bright_file(), 0, 0))
-#endif  // XBACKLIGHT
-    {
+    if (bright_setup(bright_file ? bright_file : get_bright_file(), 0, 0)) {
         lg::fatal("backlight setup failed");
     }
 

@@ -12,9 +12,7 @@ enum backlight_error_t {
     BACKLIGHT_PROPERTY_ERROR = 6,
 };
 
-// dpy_name is the display to be used, If set to NULL, will use DISPLAY env variable
-// If using alt_backlight dpy_name is the filename of the brightness file
-backlight_error_t bright_setup(char const *dpy_name, int step_conf, int time_conf);
+backlight_error_t bright_setup(char const *bright_file, int step_conf, int time_conf);
 
 // Backlight values go from 0 to 100
 
