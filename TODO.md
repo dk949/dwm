@@ -1,8 +1,10 @@
+ ```
  _____ ___  ____   ___
 |_   _/ _ \|  _ \ / _ \
   | || | | | | | | | | |
   | || |_| | |_| | |_| |
   |_| \___/|____/ \___/
+```
 
 List of things I'd like to implement but don't have time for
 
