@@ -4,7 +4,6 @@
 #include "log.hpp"
 
 #include <dirent.h>
-#include <errno.h>
 #include <libgen.h>
 #include <pthread.h>
 #include <stdarg.h>

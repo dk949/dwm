@@ -1,15 +1,12 @@
 #include "backlight.hpp"
-#include "util.hpp"
 
 #include <stdio.h>
 #include <string.h>
 
-
-
-#define CLAMP(X, LO, HI) MIN(MAX((X), (LO)), (HI))
+#include <algorithm>
 
 backlight_error_t bright_set_impl(FILE *fp, int value) {
-    if (fprintf(fp, "%d\n", CLAMP(value, 0, 255)) < 0)
+    if (fprintf(fp, "%d\n", std::clamp(value, 0, 255)) < 0)
         return BACKLIGHT_WRITE_ERROR;
     else
         return BACKLIGHT_OK;

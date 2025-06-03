@@ -3,10 +3,6 @@
 #define DWM_UTIL_HPP
 
 
-#define MAX(A, B)        ((A) > (B) ? (A) : (B))
-#define MIN(A, B)        ((A) < (B) ? (A) : (B))
-#define BETWEEN(X, A, B) ((A) <= (X) && (X) <= (B))
-
 
 #ifndef NDEBUG
 #    define IF_DEBUG if (true)
@@ -22,6 +18,10 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+
+constexpr auto between(auto x, auto a, auto b) {
+    return a <= x && x <= b;
+}
 
 void delay(int delay_for, void (*fn)(void *), void *arg);
 

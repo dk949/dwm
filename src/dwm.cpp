@@ -46,6 +46,7 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <optional>
@@ -72,9 +73,9 @@
 #define CLEANMASK(mask)                 \
     ((mask) & ~(numlockmask | LockMask) \
         & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
-#define INTERSECT(x, y, w, h, m)                                                         \
-    (MAX(0, MIN((x) + (w), (m)->window_x + (m)->window_width) - MAX((x), (m)->window_x)) \
-        * MAX(0, MIN((y) + (h), (m)->window_y + (m)->window_height) - MAX((y), (m)->window_y)))
+#define INTERSECT(x, y, w, h, m)                                                                        \
+    (std::max(0, std::min((x) + (w), (m)->window_x + (m)->window_width) - std::max((x), (m)->window_x)) \
+        * std::max(0, std::min((y) + (h), (m)->window_y + (m)->window_height) - std::max((y), (m)->window_y)))
 #define LENGTH(X) (sizeof(X) / sizeof(X)[0])
 #define MOUSEMASK (BUTTONMASK | PointerMotionMask)
 #define WIDTH(X)  ((unsigned)(X)->w + 2 * (unsigned)(X)->bw + gappx)
@@ -346,8 +347,8 @@ int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact) {
     Monitor *m = c->mon;
 
     /* set minimum possible */
-    *w = MAX(1, *w);
-    *h = MAX(1, *h);
+    *w = std::max(1, *w);
+    *h = std::max(1, *h);
     if (interact) {
         if (*x > sw) {
             *x = (int)((unsigned)sw - WIDTH(c));
@@ -409,13 +410,13 @@ int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact) {
             *h -= *h % c->inch;
         }
         /* restore base dimensions */
-        *w = MAX(*w + c->basew, c->minw);
-        *h = MAX(*h + c->baseh, c->minh);
+        *w = std::max(*w + c->basew, c->minw);
+        *h = std::max(*h + c->baseh, c->minh);
         if (c->maxw) {
-            *w = MIN(*w, c->maxw);
+            *w = std::min(*w, c->maxw);
         }
         if (c->maxh) {
-            *h = MIN(*h, c->maxh);
+            *h = std::min(*h, c->maxh);
         }
     }
     return *x != c->x || *y != c->y || *w != c->w || *h != c->h;
@@ -1235,7 +1236,7 @@ void grabkeys(void) {
 }
 
 void setmaster(Arg const &arg) {
-    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(arg.i, 0);
+    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = std::max(arg.i, 0);
     arrange(selmon);
 }
 
@@ -1245,7 +1246,7 @@ void iconify(Arg const &arg) {
 }
 
 void incnmaster(Arg const &arg) {
-    setmaster(Arg {.i = MAX(selmon->nmaster + arg.i, 0)});
+    setmaster(Arg {.i = std::max(selmon->nmaster + arg.i, 0)});
 }
 
 #ifdef XINERAMA
@@ -1322,8 +1323,8 @@ void manage(Window w, XWindowAttributes *wa) {
         c->x = (int)((unsigned)(c->mon->window_x + c->mon->window_width) - WIDTH(c));
     if ((unsigned)c->y + HEIGHT(c) > (unsigned)(c->mon->window_y + c->mon->window_height))
         c->y = (int)((unsigned)(c->mon->window_y + c->mon->window_height) - HEIGHT(c));
-    c->x = MAX(c->x, c->mon->window_x);
-    c->y = MAX(c->y, c->mon->window_y);
+    c->x = std::max(c->x, c->mon->window_x);
+    c->y = std::max(c->y, c->mon->window_y);
 
 
 
@@ -1674,8 +1675,8 @@ void resizemouse(Arg const &arg) {
                 }
                 lasttime = ev.xmotion.time;
 
-                nw = MAX(ev.xmotion.x - ocx - 2 * c->bw + 1, 1);
-                nh = MAX(ev.xmotion.y - ocy - 2 * c->bw + 1, 1);
+                nw = std::max(ev.xmotion.x - ocx - 2 * c->bw + 1, 1);
+                nh = std::max(ev.xmotion.y - ocy - 2 * c->bw + 1, 1);
                 if (c->mon->window_x + nw >= selmon->window_x
                     && c->mon->window_x + nw <= selmon->window_x + selmon->window_width
                     && c->mon->window_y + nh >= selmon->window_y
@@ -2804,7 +2805,7 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
      N = actual length of the stored property in bytes (even if the format is 16 or 32)
      Offs = 4 * offset
      T = N - Offs
-     ButesToReturn = MINIMUM(T, 4 * long_length)
+     ButesToReturn = std::minIMUM(T, 4 * long_length)
      bytes_left = N - (Offs + BytesToReturn)
 
     The  returned  value starts at byte index Offs in the property (indexing from zero), and its length in bytes is L.
@@ -3103,7 +3104,7 @@ void centeredmaster(Monitor *m) {
         if (i < (unsigned)m->nmaster) {
             /* nmaster clients are stacked vertically, in the center
              * of the screen */
-            h = ((unsigned)m->window_height - my) / (MIN(n, (unsigned)m->nmaster) - i);
+            h = ((unsigned)m->window_height - my) / (std::min(n, (unsigned)m->nmaster) - i);
             resize(c,
                 (int)((unsigned)m->window_x + mx),
                 (int)((unsigned)m->window_y + my),
@@ -3187,7 +3188,7 @@ void centeredfloatingmaster(Monitor *m) {
         if (i < (unsigned)m->nmaster) {
             /* nmaster clients are stacked horizontally, in the center
              * of the screen */
-            w = (mw + mxo - mx) / (MIN(n, (unsigned)m->nmaster) - i);
+            w = (mw + mxo - mx) / (std::min(n, (unsigned)m->nmaster) - i);
             resize(c,
                 (int)((unsigned)m->window_x + mx),
                 (int)((unsigned)m->window_y + my),

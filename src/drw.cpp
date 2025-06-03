@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define UTF_INVALID 0xFFFD
-#define UTF_SIZ     4
+#define UTF_SIZ     4uz
 
 static unsigned char const utfbyte[UTF_SIZ + 1] = {0x80, 0, 0xC0, 0xE0, 0xF0};
 static unsigned char const utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
@@ -26,7 +26,7 @@ static long utf8decodebyte(char const c, size_t *i) {
 }
 
 static size_t utf8validate(long *u, size_t i) {
-    if (!BETWEEN(*u, utfmin[i], utfmax[i]) || BETWEEN(*u, 0xD800, 0xDFFF)) {
+    if (!between(*u, utfmin[i], utfmax[i]) || between(*u, 0xD800, 0xDFFF)) {
         *u = UTF_INVALID;
     }
     for (i = 1; *u > utfmax[i]; ++i) {
@@ -47,7 +47,7 @@ static size_t utf8decode(char const *c, long *u, size_t clen) {
         return 0;
     }
     udecoded = utf8decodebyte(c[0], &len);
-    if (!BETWEEN(len, 1, UTF_SIZ)) {
+    if (!between(len, 1uz, UTF_SIZ)) {
         return 1;
     }
     for (i = 1, j = 1; i < clen && j < len; ++i, ++j) {
@@ -414,7 +414,7 @@ unsigned int drw_fontset_getwidth(Drw *drw, char const *text) {
 unsigned int drw_fontset_getwidth_clamp(Drw *drw, char const *text, unsigned int n) {
     unsigned int tmp = 0;
     if (drw && drw->fonts && text && n) tmp = (unsigned)drw_text(drw, 0, 0, 0, 0, 0, text, n);
-    return MIN(n, tmp);
+    return std::min(n, tmp);
 }
 
 void drw_font_getexts(Fnt *font, char const *text, std::size_t len, unsigned int *w, unsigned int *h) {
