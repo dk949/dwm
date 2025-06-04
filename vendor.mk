@@ -17,6 +17,6 @@ vendor/noticeboard/ready: vendor/noticeboard.zip
 
 
 $(NB_OUT): vendor/noticeboard/ready
-	cmake -S vendor/noticeboard --preset default -B vendor/noticeboard/build
-	cmake --build vendor/noticeboard/build
+	CPPFLAGS= CXXFLAGS= CFLAGS= LDFLAGS= cmake -S vendor/noticeboard --preset default -B vendor/noticeboard/build -DCMAKE_BUILD_TYPE=Release
+	CPPFLAGS= CXXFLAGS= CFLAGS= LDFLAGS= cmake --build vendor/noticeboard/build
 	cmake --install vendor/noticeboard/build --prefix vendor/noticeboard/out
