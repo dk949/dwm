@@ -1,4 +1,7 @@
+include deps.sh
+ifndef NOVENDOR
 include vendor.mk
+endif
 include config.mk
 
 ############################## Collecting sources ##############################
@@ -44,7 +47,7 @@ endif
 ############################ Detailed configuration ############################
 # Preprocessor flags
 
-CPPFLAGS = -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_XOPEN_SOURCE=700L -D$(OUT_NAME)_version=\"$(VERSION)\" -DICONDIR=\"$(ICONPREFIX)\"
+CPPFLAGS = -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_XOPEN_SOURCE=700L -D$(OUT_NAME)_version=\"$(VERSION)\" -DICONDIR=\"$(ICONDIR)\"
 
 # Compiler flags
 

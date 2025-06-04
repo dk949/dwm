@@ -1,22 +1,17 @@
-all: vendor/noticeboard/out/lib/libnoticeboard.a
-NB_LINK=https://github.com/dk949/noticeboard/archive/3a0f5617a348bf007ef594903a68554f67777ed6.zip
-NB_OUT = vendor/noticeboard/out/lib/libnoticeboard.a
-NB_INC = $(shell realpath vendor/noticeboard/out/include)
-NB_LIB = noticeboard
-NB_LDIR = $(realpath vendor/noticeboard/out/lib/)
+all: $(VENDORDIR)/noticeboard/out/lib/libnoticeboard.a
 
-vendor/noticeboard.zip:
-	@mkdir -p vendor
+$(VENDORDIR)/noticeboard.zip:
+	@mkdir -p $(VENDORDIR)
 	curl -L $(NB_LINK) -o '$@'
 
 
-vendor/noticeboard/ready: vendor/noticeboard.zip
-	cd vendor && unzip noticeboard.zip
-	mv vendor/noticeboard-* vendor/noticeboard
+$(VENDORDIR)/noticeboard/ready: $(VENDORDIR)/noticeboard.zip
+	cd $(VENDORDIR) && unzip noticeboard.zip
+	mv $(VENDORDIR)/noticeboard-* $(VENDORDIR)/noticeboard
 	touch $@
 
 
-$(NB_OUT): vendor/noticeboard/ready
-	cmake -S vendor/noticeboard --preset default -B vendor/noticeboard/build
-	cmake --build vendor/noticeboard/build
-	cmake --install vendor/noticeboard/build --prefix vendor/noticeboard/out
+$(NB_OUT): $(VENDORDIR)/noticeboard/ready
+	CPPFLAGS= CXXFLAGS= CFLAGS= LDFLAGS= cmake -S $(VENDORDIR)/noticeboard --preset default -B $(VENDORDIR)/noticeboard/build -DCMAKE_BUILD_TYPE=Release
+	CPPFLAGS= CXXFLAGS= CFLAGS= LDFLAGS= cmake --build $(VENDORDIR)/noticeboard/build
+	cmake --install $(VENDORDIR)/noticeboard/build --prefix $(VENDORDIR)/noticeboard/out
