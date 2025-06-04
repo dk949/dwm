@@ -1,9 +1,70 @@
 #include "log.hpp"
 
+#include "noticeboard/backend.hpp"
+#include "noticeboard/noticeboard.hpp"
+
+#include <X11/Xlib.h>
+
 #include <cstring>
+#include <format>
+#include <optional>
+
+std::optional<nb::Notice> null_notice;
+std::optional<nb::Notice> info_notice;
+std::optional<nb::Notice> warn_notice;
+std::optional<nb::Notice> error_notice;
+
+std::string_view getIcon(lg::Level l) {
+    switch (l) {
+        case lg::Level::Debug:
+        case lg::Level::Info: return ICONDIR "/dwm-icon.svg";
+        case lg::Level::Warn: return ICONDIR "/dwm-warning.svg";
+        case lg::Level::Error:
+        case lg::Level::Fatal: return ICONDIR "/dwm-error.svg";
+        default: std::abort();
+    }
+}
+
+nb::Notice &getNotice(lg::Level l) {
+    switch (l) {
+        case lg::Level::Debug:
+            if (!null_notice) null_notice = nb::Notice {"dwm", nb::Backend::Null};
+            return *null_notice;
+        case lg::Level::Info:
+            if (!info_notice) {
+                info_notice = nb::Notice {"dwm"};
+                info_notice->icon = getIcon(l);
+                info_notice->expire_time = 900;
+            }
+            return *info_notice;
+        case lg::Level::Warn:
+            if (!warn_notice) {
+                warn_notice = nb::Notice {"dwm"};
+                warn_notice->urgency = nb::Urgency::Critical;
+                warn_notice->icon = getIcon(l);
+            }
+            return *warn_notice;
+        case lg::Level::Error:
+        case lg::Level::Fatal:
+            if (!error_notice) {
+                error_notice = nb::Notice {"dwm"};
+                error_notice->urgency = nb::Urgency::Critical;
+                error_notice->icon = getIcon(l);
+            }
+            return *error_notice;
+        default: std::abort();
+    }
+}
 
 namespace lg {
 FILE *log_file = nullptr;
+
+void sendNotice(Level l, std::string_view header, std::string_view body) {
+    // TODO(dk949): handle exception properly
+    try {
+        getNotice(l).send(header, body);
+    } catch (...) { }
+}
 
 std::optional<std::filesystem::path> getLogDir(void) {
     auto logsubdir = "dwm/log/";

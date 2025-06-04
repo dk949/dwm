@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
@@ -38,13 +39,17 @@ namespace detail {
 
 }  // namespace detail
 
+void sendNotice(Level l, std::string_view header, std::string_view body = {});
+
 template<Level level, typename... Args>
 void log(std::format_string<Args...> fmt, Args &&...args) {
     auto file = log_file ? log_file : stderr;
     std::print(file, "{} {}: ", detail::datetime(), detail::log_level_str(level));
-    std::println(file, fmt, std::forward<Args>(detail::checkForNull(args))...);
+    auto msg = std::format(fmt, std::forward<Args>(detail::checkForNull(args))...) + '\n';
+    std::fputs(msg.c_str(), file);
     if (!log_file) fputs("NOTE: logfile unavailable", file);
     fflush(file);
+    sendNotice(level, msg);
 }
 
 template<typename... Args>
