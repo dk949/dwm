@@ -44,7 +44,7 @@ endif
 ############################ Detailed configuration ############################
 # Preprocessor flags
 
-CPPFLAGS = -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_XOPEN_SOURCE=700L -D$(OUT_NAME)_version=\"$(VERSION)\"
+CPPFLAGS = -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_XOPEN_SOURCE=700L -D$(OUT_NAME)_version=\"$(VERSION)\" -DICONDIR=\"$(ICONPREFIX)\"
 
 # Compiler flags
 
@@ -132,6 +132,8 @@ install: all
 	@mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	sed "s/VERSION/$(VERSION)/g" < $(OUT_NAME).1 > $(DESTDIR)$(MANPREFIX)/man1/$(OUT_NAME).1
 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/$(OUT_NAME).1
+	@mkdir -p $(ICONPREFIX)
+	cp ./icons/dwm*.svg $(ICONPREFIX)
 
 uninstall:
 	rm -f "$(DESTDIR)$(PREFIX)/$(OUT_DIR)/$(OUT_NAME)" \
