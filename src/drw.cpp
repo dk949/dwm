@@ -71,8 +71,8 @@ Drw *drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned 
     drw->dpy = dpy;
     drw->screen = screen;
     drw->root = root;
-    drw->w = w;
-    drw->h = h;
+    drw->screen_width = w;
+    drw->screen_height = h;
     drw->drawable = XCreatePixmap(dpy, root, w, h, (unsigned)DefaultDepth(dpy, screen));
     drw->gc = XCreateGC(dpy, root, 0, nullptr);
     XSetLineAttributes(dpy, drw->gc, 1, LineSolid, CapButt, JoinMiter);
@@ -85,8 +85,8 @@ void drw_resize(Drw *drw, unsigned int w, unsigned int h) {
         return;
     }
 
-    drw->w = w;
-    drw->h = h;
+    drw->screen_width = w;
+    drw->screen_height = h;
     if (drw->drawable) {
         XFreePixmap(drw->dpy, drw->drawable);
     }

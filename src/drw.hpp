@@ -24,7 +24,8 @@ enum { ColFg, ColBg, ColBorder }; /* Clr scheme index */
 using Clr = XftColor;
 
 struct Drw {
-    unsigned int w, h;
+    unsigned int screen_width;
+    unsigned int screen_height;
     Display *dpy;
     int screen;
     Window root;
