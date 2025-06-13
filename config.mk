@@ -32,5 +32,5 @@ include libs.mk
 DESTDIR ?= ./
 PREFIX  ?= out
 MANPREFIX  = $(PREFIX)/share/man
-ICONPREFIX ?= $(DESTDIR)$(PREFIX)/share/pixmap
+ICONPREFIX ?= $(DESTDIR)$(PREFIX)/share/pixmaps
 ICONDIR ?= $(ICONPREFIX)
