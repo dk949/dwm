@@ -1438,6 +1438,9 @@ void movemouse(Arg const &arg) {
     do {
         XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
         switch (ev.type) {
+            // TODO(dk949): make sure these don't actually need special treatment
+            case ButtonRelease:
+            case NoExpose: break;
             case ConfigureRequest:
             case Expose:
             case MapRequest: handler[(size_t)ev.type](&ev); break;
@@ -1656,6 +1659,9 @@ void resizemouse(Arg const &arg) {
     do {
         XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
         switch (ev.type) {
+            // TODO(dk949): make sure these don't actually need special treatment
+            case ButtonRelease:
+            case NoExpose: break;
             case ConfigureRequest:
             case Expose:
             case MapRequest: handler[(size_t)ev.type](&ev); break;
