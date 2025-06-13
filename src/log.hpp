@@ -75,6 +75,7 @@ void error(std::format_string<Args...> fmt, Args &&...args) {
 }
 
 template<typename... Args>
+[[noreturn]]
 void fatal(std::format_string<Args...> fmt, Args &&...args) {
     log<Level::Fatal, Args...>(fmt, std::forward<Args>(args)...);
     std::exit(1);
@@ -88,5 +89,7 @@ void fatal(std::format_string<Args...> fmt, Args &&...args) {
  * If an error occurs, nullopt` is returned
  */
 std::optional<std::filesystem::path> getLogDir(void);
+
+std::filesystem::path setupLogging();
 
 }  // namespace lg

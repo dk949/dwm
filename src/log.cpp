@@ -91,6 +91,18 @@ std::optional<std::filesystem::path> getLogDir(void) {
     return {};
 }
 
+std::filesystem::path setupLogging() {
+    auto log_dir = lg::getLogDir();
+    if (log_dir) {
+        auto log_file_name = *log_dir / "dwm.log";
+        lg::log_file = fopen(log_file_name.c_str(), "a");
+        if (!lg::log_file) lg::fatal("could not open log file: {}", std::strerror(errno));
+        return *log_dir;
+    } else {
+        lg::fatal("Could not obtain log dir");
+    }
+}
+
 namespace detail {
 
     char const *datetime(void) {

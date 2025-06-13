@@ -49,7 +49,6 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
-#include <optional>
 
 #ifdef XINERAMA
 #    include <X11/extensions/Xinerama.h>
@@ -258,7 +257,7 @@ static Window root, wmcheckwin;
 static volc_t *volc;
 #endif /* ASOUND */
 static xcb_connection_t *xcon;
-static std::optional<std::filesystem::path> log_dir;
+static std::filesystem::path log_dir;
 
 /* configuration, allows nested code to access above variables */
 #include "config.hpp"
@@ -638,7 +637,6 @@ void cleanup(void) {
 #ifdef ASOUND
     volc_deinit(volc);
 #endif /* ASOUND */
-    fclose(lg::log_file);
 }
 
 void cleanupmon(Monitor *mon) {
@@ -1983,16 +1981,6 @@ void setup(void) {
     /* clean up any zombies (inherited from .xinitrc etc) immediately */
     while (waitpid(-1, nullptr, WNOHANG)) { }
 
-    /*Set up logging*/
-    log_dir = lg::getLogDir();
-    if (log_dir) {
-        auto log_file_name = *log_dir / "dwm.log";
-        lg::log_file = fopen(log_file_name.c_str(), "a");
-        if (!lg::log_file) lg::fatal("could not open log file: {}", std::strerror(errno));
-    } else {
-        lg::fatal("Could not obtain log dir");
-    }
-
 
     /* init screen */
     screen = DefaultScreen(dpy);
@@ -2101,8 +2089,7 @@ void showhide(Client *c) {
 }
 
 void redirectChildLog(char **argv) {
-    if (!log_dir) return;
-    auto file_name = *log_dir / argv[0];
+    auto file_name = log_dir / argv[0];
     file_name.replace_extension(".log");
 
     int child_fd = open(file_name.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
@@ -3007,6 +2994,9 @@ void zoom(Arg const &arg) {
 }
 
 int main(int argc, char *argv[]) {
+    log_dir = lg::setupLogging();
+    lg::debug("Setup logging");
+
     if (argc == 2 && !strcmp("-v", argv[1])) {
         puts("dwm-" dwm_version);
         return 0;
@@ -3034,12 +3024,13 @@ int main(int argc, char *argv[]) {
     cleanup();
     XCloseDisplay(dpy);
     if (need_restart) {
-        lg::info("Restarting dwm\n"
-                 "________________________________________________________________________________\n");
+        lg::info("Restarting dwm\n");
+        fclose(lg::log_file);
         if (execvp(argv[0], argv)) lg::fatal("could not restart dwm:");
     }
 
     lg::info("Shutdown complete");
+    fclose(lg::log_file);
     return EXIT_SUCCESS;
 }
 
