@@ -81,7 +81,7 @@
 #define WIDTH(X)  ((unsigned)(X)->w + 2 * (unsigned)(X)->bw + gappx)
 #define HEIGHT(X) ((unsigned)(X)->h + 2 * (unsigned)(X)->bw + gappx)
 #define TAGMASK   ((1 << LENGTH(tags)) - 1)
-#define TEXTW(X)  (drw_fontset_getwidth(drw, (X)) + (unsigned)lrpad)
+#define TEXTW(X)  (drw->fontset_getwidth((X)) + (unsigned)lrpad)
 #ifndef dwm_version
 #    define dwm_version "unknown"
 #endif
@@ -630,15 +630,12 @@ void cleanup(void) {
     while (mons) {
         cleanupmon(mons);
     }
-    for (i = 0; i < CurLast; i++) {
-        drw_cur_free(drw, cursor[i]);
-    }
     for (i = 0; i < LENGTH(colors); i++)
         delete[] scheme[i];
     delete[] scheme;
 
     XDestroyWindow(dpy, wmcheckwin);
-    drw_free(drw);
+    delete drw;
     XSync(dpy, False);
     XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
     XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
@@ -716,7 +713,7 @@ void configurenotify(XEvent *e) {
         sw = ev->width;
         sh = ev->height;
         if (updategeom() || dirty) {
-            drw_resize(drw, (unsigned)sw, (unsigned)bar_height);
+            drw->resize((unsigned)sw, (unsigned)bar_height);
             updatebars();
             for (m = mons; m; m = m->next) {
                 for (c = m->clients; c; c = c->next) {
@@ -875,8 +872,8 @@ void drawbar(Monitor *m) {
     int x;
     int w;
     int text_width = 0;
-    int boxs = (int)(drw->fonts->h / 9u);
-    int boxw = (int)(drw->fonts->h / 6u + 2u);
+    int boxs = (int)(drw->fonts()->h / 9u);
+    int boxw = (int)(drw->fonts()->h / 6u + 2u);
     unsigned int i;
     unsigned int occ = 0;
     unsigned int urg = 0;
@@ -885,9 +882,9 @@ void drawbar(Monitor *m) {
 
     /* draw status first so it can be overdrawn by tags later */
     if (m == selmon) { /* status is only drawn on selected monitor */
-        drw_setscheme(drw, scheme[SchemeStatus]);
+        drw->set_scheme(scheme[SchemeStatus]);
         text_width = (int)(TEXTW(stext) - (unsigned)lrpad + 2); /* 2px right padding */
-        drw_text(drw, m->window_width - text_width, 0, (unsigned)text_width, (unsigned)bar_height, 0, stext, 0);
+        drw->draw_text(m->window_width - text_width, 0, (unsigned)text_width, (unsigned)bar_height, 0, stext, 0);
     }
 
     for (Client *c = m->clients; c; c = c->next) {
@@ -899,11 +896,10 @@ void drawbar(Monitor *m) {
     x = 0;
     for (i = 0; i < LENGTH(tags); i++) {
         w = (int)TEXTW(tags[i]);
-        drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeTagsSel : SchemeTagsNorm]);
-        drw_text(drw, x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), tags[i], urg & 1 << i);
+        drw->set_scheme(scheme[m->tagset[m->seltags] & 1 << i ? SchemeTagsSel : SchemeTagsNorm]);
+        drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), tags[i], urg & 1 << i);
         if (occ & 1 << i) {
-            drw_rect(drw,
-                x + boxs,
+            drw->draw_rect(x + boxs,
                 boxs,
                 (unsigned)boxw,
                 (unsigned)boxw,
@@ -913,26 +909,26 @@ void drawbar(Monitor *m) {
         x += w;
     }
     w = (int)TEXTW(m->layoutSymbol);
-    drw_setscheme(drw, scheme[SchemeTagsNorm]);
-    x = drw_text(drw, x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol, 0);
+    drw->set_scheme(scheme[SchemeTagsNorm]);
+    x = drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol, 0);
 
     if ((w = m->window_width - text_width - x) > bar_height) {
         if (m->sel) {
-            drw_setscheme(drw, scheme[m == selmon ? SchemeInfoSel : SchemeInfoNorm]);
-            drw_text(drw, x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name, 0);
+            drw->set_scheme(scheme[m == selmon ? SchemeInfoSel : SchemeInfoNorm]);
+            drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name, 0);
             if (m->sel->isfloating) {
-                drw_rect(drw, x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->isfixed, 0);
+                drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->isfixed, 0);
             }
         } else {
-            drw_setscheme(drw, scheme[SchemeInfoNorm]);
-            drw_rect(drw, x, 0, (unsigned)w, (unsigned)bar_height, 1, 1);
+            drw->set_scheme(scheme[SchemeInfoNorm]);
+            drw->draw_rect(x, 0, (unsigned)w, (unsigned)bar_height, 1, 1);
         }
     }
     if (m == selmon) {
         sel_bar_name_x = x;
         sel_bar_name_width = w;
     }
-    drw_map(drw, m->barwin, 0, 0, (unsigned)m->window_width, (unsigned)bar_height);
+    drw->map(m->barwin, 0, 0, (unsigned)m->window_width, (unsigned)bar_height);
     drawprogress(PROGRESS_FADE);
 }
 
@@ -964,12 +960,12 @@ void drawprogress(unsigned long long t, unsigned long long c, int s) {
         int x = sel_bar_name_x, y = 0, w = sel_bar_name_width, h = bar_height; /*progress rectangle*/
         int fg = 0;
         int bg = 1;
-        drw_setscheme(drw, scheme[cscheme]);
+        drw->set_scheme(scheme[cscheme]);
 
-        drw_rect(drw, x, y, (unsigned)w, (unsigned)h, 1, bg);
-        drw_rect(drw, x, y, (unsigned)(((double)w * (double)current) / (double)total), (unsigned)h, 1, fg);
+        drw->draw_rect(x, y, (unsigned)w, (unsigned)h, 1, bg);
+        drw->draw_rect(x, y, (unsigned)(((double)w * (double)current) / (double)total), (unsigned)h, 1, fg);
 
-        drw_map(drw, selmon->barwin, x, y, (unsigned)w, (unsigned)h);
+        drw->map(selmon->barwin, x, y, (unsigned)w, (unsigned)h);
         notifyself(SelfNotifyFadeBar);
     }
 }
@@ -2007,8 +2003,8 @@ void setup(void) {
     sw = DisplayWidth(dpy, screen);
     sh = DisplayHeight(dpy, screen);
     root = RootWindow(dpy, screen);
-    drw = drw_create(dpy, screen, root, (unsigned)sw, (unsigned)sh);
-    if (!drw_fontset_create(drw, fonts, LENGTH(fonts))) {
+    drw = new Drw(dpy, screen, root, (unsigned)sw, (unsigned)sh);
+    if (!drw->fontset_create(fonts, LENGTH(fonts))) {
         lg::fatal("no fonts could be loaded.");
     }
 
@@ -2021,8 +2017,8 @@ void setup(void) {
 
 #endif /* ASOUND */
 
-    lrpad = (int)drw->fonts->h;
-    bar_height = (int)drw->fonts->h + 2;
+    lrpad = (int)drw->fonts()->h;
+    bar_height = (int)drw->fonts()->h + 2;
     updategeom();
     /* init atoms */
     utf8string = XInternAtom(dpy, "UTF8_STRING", False);
@@ -2042,14 +2038,10 @@ void setup(void) {
     netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
     netatom[NetWMIcon] = XInternAtom(dpy, "_NET_WM_ICON", False);
 
-    /* init cursors */
-    cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
-    cursor[CurResize] = drw_cur_create(drw, XC_sizing);
-    cursor[CurMove] = drw_cur_create(drw, XC_fleur);
     /* init appearance */
     scheme = new Clr *[LENGTH(colors)];
     for (size_t i = 0; i < LENGTH(colors); i++) {
-        scheme[i] = drw_scm_create(drw, colors[i]);
+        scheme[i] = drw->scm_create(colors[i]);
     }
 
     {

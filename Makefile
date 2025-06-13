@@ -79,7 +79,7 @@ CWARN = -Wall -Wextra -Wshadow -Wcast-align -Wunused -Wunused-result            
 
 ## C++ specific extra errors
 CXXWARN = -Wnon-virtual-dtor -Wno-old-style-cast -Woverloaded-virtual \
-		  -Wctad-maybe-unsupported -Weffc++ -Wsuggest-override     \
+		  -Wctad-maybe-unsupported -Wsuggest-override              \
 		  $(if $(findstring clang,$(CXX)),$(CLANG_CXXWARN),)       \
 		  $(if $(findstring clang,$(CXX)),,$(GCC_CXXWARN))         \
 
