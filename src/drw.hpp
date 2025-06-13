@@ -32,22 +32,18 @@ public:
 
     [[nodiscard]]
     Cursor resize() const {
-        return m_normal.get();
+        return m_resize.get();
     }
 
     [[nodiscard]]
     Cursor move() const {
-        return m_normal.get();
+        return m_move.get();
     }
 
     explicit Cursors(Display *dpy)
             : m_normal(dpy, XCreateFontCursor(dpy, std::to_underlying(CurShape::Normal)), freeCursor)
-            , m_resize(dpy, XCreateFontCursor(dpy, std::to_underlying(CurShape::Normal)), freeCursor)
-            , m_move(dpy, XCreateFontCursor(dpy, std::to_underlying(CurShape::Normal)), freeCursor) { };
-};
-
-struct Cur {
-    Cursor cursor;
+            , m_resize(dpy, XCreateFontCursor(dpy, std::to_underlying(CurShape::Resize)), freeCursor)
+            , m_move(dpy, XCreateFontCursor(dpy, std::to_underlying(CurShape::Move)), freeCursor) { };
 };
 
 struct Fnt {
@@ -102,6 +98,11 @@ public:
 
     inline Fnt const *fonts() const {
         return m_fonts;
+    }
+
+    [[nodiscard]]
+    Cursors const &cursors() const {
+        return m_cursors;
     }
 
 private:

@@ -86,9 +86,6 @@
 #    define dwm_version "unknown"
 #endif
 
-/* enums */
-enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-
 enum {
     NetSupported,
     NetWMName,
@@ -252,7 +249,6 @@ static constexpr auto handler = [] {
 }();
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1, need_restart = 0;
-static Cur *cursor[CurLast];
 static Clr **scheme;
 static Display *dpy;
 static Drw *drw;
@@ -1434,7 +1430,7 @@ void movemouse(Arg const &arg) {
     restack(selmon);
     ocx = c->x;
     ocy = c->y;
-    if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, cursor[CurMove]->cursor, CurrentTime)
+    if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, drw->cursors().move(), CurrentTime)
         != GrabSuccess) {
         return;
     }
@@ -1654,7 +1650,7 @@ void resizemouse(Arg const &arg) {
     restack(selmon);
     ocx = c->x;
     ocy = c->y;
-    if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, cursor[CurResize]->cursor, CurrentTime)
+    if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, drw->cursors().resize(), CurrentTime)
         != GrabSuccess) {
         return;
     }
@@ -2065,7 +2061,7 @@ void setup(void) {
     XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)netatom, NetLast);
     XDeleteProperty(dpy, root, netatom[NetClientList]);
     /* select events */
-    wa.cursor = cursor[CurNormal]->cursor;
+    wa.cursor = drw->cursors().normal();
     wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask
                   | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask;
     XChangeWindowAttributes(dpy, root, CWEventMask | CWCursor, &wa);
@@ -2443,7 +2439,7 @@ void updatebars(void) {
             DefaultVisual(dpy, screen),
             CWOverrideRedirect | CWBackPixmap | CWEventMask,
             &wa);
-        XDefineCursor(dpy, m->barwin, cursor[CurNormal]->cursor);
+        XDefineCursor(dpy, m->barwin, drw->cursors().normal());
         XMapRaised(dpy, m->barwin);
         XSetClassHint(dpy, m->barwin, &ch);
     }
