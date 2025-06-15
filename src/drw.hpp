@@ -76,10 +76,13 @@ public:
     ~Drw();
 
     void resize(unsigned int w, unsigned int h);
+    [[nodiscard]]
     unsigned int fontset_getwidth_clamp(char const *text, unsigned int n);
     Fnt *fontset_create(char const *fonts[], size_t fontcount);
 
     void clr_create(Clr *dest, char const *clrname);
+
+    [[nodiscard]]
     Clr *scm_create(std::span<char const *const> clrnames);
 
     unsigned int fontset_getwidth(char const *text);
@@ -96,6 +99,7 @@ public:
         m_scheme = scm;
     }
 
+    [[nodiscard]]
     inline Fnt const *fonts() const {
         return m_fonts;
     }
