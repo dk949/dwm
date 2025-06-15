@@ -141,7 +141,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static void drawprogress(unsigned long long total, unsigned long long current, int scheme);
+static void drawprogress(unsigned long long total, unsigned long long current, std::size_t scheme);
 static void enqueue(Client *c);
 static void enqueuestack(Client *c);
 static void enternotify(XEvent *e);
@@ -211,6 +211,9 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 
+/* configuration, allows nested code to access above variables */
+#include "config.hpp"
+
 /* variables */
 static char const broken[] = "broken";
 static char stext[256];
@@ -248,7 +251,7 @@ static constexpr auto handler = [] {
 }();
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1, need_restart = 0;
-static Clr **scheme;
+static std::array<Clr *, LENGTH(colors)> scheme;
 static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
@@ -258,9 +261,6 @@ static volc_t *volc;
 #endif /* ASOUND */
 static xcb_connection_t *xcon;
 static std::filesystem::path log_dir;
-
-/* configuration, allows nested code to access above variables */
-#include "config.hpp"
 
 struct Pertag {
     unsigned int curtag, prevtag;              /* current and previous tag */
@@ -627,7 +627,6 @@ void cleanup(void) {
     }
     for (i = 0; i < LENGTH(colors); i++)
         delete[] scheme[i];
-    delete[] scheme;
 
     XDestroyWindow(dpy, wmcheckwin);
     delete drw;
@@ -932,11 +931,11 @@ void drawbars(void) {
     }
 }
 
-void drawprogress(unsigned long long t, unsigned long long c, int s) {
+void drawprogress(unsigned long long t, unsigned long long c, std::size_t s) {
     static unsigned long long total;
     static unsigned long long current;
     static struct timespec last;
-    static int cscheme;
+    static std::size_t cscheme;
 
     if (sel_bar_name_x <= 0 || sel_bar_name_width <= 0) return;
 
@@ -2029,7 +2028,6 @@ void setup(void) {
     netatom[NetWMIcon] = XInternAtom(dpy, "_NET_WM_ICON", False);
 
     /* init appearance */
-    scheme = new Clr *[LENGTH(colors)];
     for (size_t i = 0; i < LENGTH(colors); i++) {
         scheme[i] = drw->scm_create(colors[i]);
     }
