@@ -141,7 +141,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static void drawprogress(unsigned long long total, unsigned long long current, std::size_t scheme);
+static void drawprogress(unsigned long long total, unsigned long long current, Color const *color);
 static void enqueue(Client *c);
 static void enqueuestack(Client *c);
 static void enternotify(XEvent *e);
@@ -251,7 +251,6 @@ static constexpr auto handler = [] {
 }();
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1, need_restart = 0;
-static std::array<Clr *, LENGTH(colors)> scheme;
 static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
@@ -529,7 +528,7 @@ void bright_dec(Arg const &arg) {
         lg::warn("Function bright_get_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
-    drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
+    drawprogress(100, (unsigned long long)newval, &drw->scheme().bright_progress);
 }
 
 void bright_inc(Arg const &arg) {
@@ -543,7 +542,7 @@ void bright_inc(Arg const &arg) {
         lg::warn("Function bright_get_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
-    drawprogress(100, (unsigned long long)newval, SchemeBrightProgress);
+    drawprogress(100, (unsigned long long)newval, &drw->scheme().bright_progress);
 }
 
 void bright_set(Arg const &arg) {
@@ -552,7 +551,7 @@ void bright_set(Arg const &arg) {
         lg::warn("Function bright_set_(const Arg *arg) from backlight.hpp returned {}", ret);
         return;
     }
-    drawprogress(100, (unsigned long long)arg.f, SchemeBrightProgress);
+    drawprogress(100, (unsigned long long)arg.f, &drw->scheme().bright_progress);
 }
 
 void buttonpress(XEvent *e) {
@@ -612,7 +611,6 @@ void checkotherwm(void) {
 void cleanup(void) {
     Layout foo = {"", nullptr};
     Monitor *m;
-    size_t i;
 
     view(Arg {.ui = ~0u});
     selmon->lt[selmon->sellt] = &foo;
@@ -625,8 +623,6 @@ void cleanup(void) {
     while (mons) {
         cleanupmon(mons);
     }
-    for (i = 0; i < LENGTH(colors); i++)
-        delete[] scheme[i];
 
     XDestroyWindow(dpy, wmcheckwin);
     delete drw;
@@ -875,7 +871,7 @@ void drawbar(Monitor *m) {
 
     /* draw status first so it can be overdrawn by tags later */
     if (m == selmon) { /* status is only drawn on selected monitor */
-        drw->set_scheme(scheme[SchemeStatus]);
+        drw->setColor(&drw->scheme().status);
         text_width = (int)(TEXTW(stext) - (unsigned)lrpad + 2); /* 2px right padding */
         drw->draw_text(m->window_width - text_width, 0, (unsigned)text_width, (unsigned)bar_height, 0, stext, 0);
     }
@@ -889,7 +885,11 @@ void drawbar(Monitor *m) {
     x = 0;
     for (i = 0; i < LENGTH(tags); i++) {
         w = (int)TEXTW(tags[i]);
-        drw->set_scheme(scheme[m->tagset[m->seltags] & 1 << i ? SchemeTagsSel : SchemeTagsNorm]);
+        if (m->tagset[m->seltags] & 1 << i)
+            drw->setColor(&drw->scheme().tags_sel);
+        else
+            drw->setColor(&drw->scheme().tags_norm);
+
         drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), tags[i], urg & 1 << i);
         if (occ & 1 << i) {
             drw->draw_rect(x + boxs,
@@ -902,18 +902,18 @@ void drawbar(Monitor *m) {
         x += w;
     }
     w = (int)TEXTW(m->layoutSymbol);
-    drw->set_scheme(scheme[SchemeTagsNorm]);
+    drw->setColor(&drw->scheme().tags_norm);
     x = drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol, 0);
 
     if ((w = m->window_width - text_width - x) > bar_height) {
         if (m->sel) {
-            drw->set_scheme(scheme[m == selmon ? SchemeInfoSel : SchemeInfoNorm]);
+            drw->setColor(m == selmon ? &drw->scheme().info_sel : &drw->scheme().info_norm);
             drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name, 0);
             if (m->sel->isfloating) {
                 drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->isfixed, 0);
             }
         } else {
-            drw->set_scheme(scheme[SchemeInfoNorm]);
+            drw->setColor(&drw->scheme().info_norm);
             drw->draw_rect(x, 0, (unsigned)w, (unsigned)bar_height, 1, 1);
         }
     }
@@ -931,11 +931,11 @@ void drawbars(void) {
     }
 }
 
-void drawprogress(unsigned long long t, unsigned long long c, std::size_t s) {
+void drawprogress(unsigned long long t, unsigned long long c, Color const *color) {
     static unsigned long long total;
     static unsigned long long current;
     static struct timespec last;
-    static std::size_t cscheme;
+    static Color const *cscheme;
 
     if (sel_bar_name_x <= 0 || sel_bar_name_width <= 0) return;
 
@@ -946,14 +946,14 @@ void drawprogress(unsigned long long t, unsigned long long c, std::size_t s) {
         total = t;
         current = c;
         last = now;
-        cscheme = s;
+        cscheme = color;
     }
 
     if (total > 0 && (timespecdiff(&now, &last) < progress_fade_time)) {
         int x = sel_bar_name_x, y = 0, w = sel_bar_name_width, h = bar_height; /*progress rectangle*/
         int fg = 0;
         int bg = 1;
-        drw->set_scheme(scheme[cscheme]);
+        drw->setColor(cscheme);
 
         drw->draw_rect(x, y, (unsigned)w, (unsigned)h, 1, bg);
         drw->draw_rect(x, y, (unsigned)(((double)w * (double)current) / (double)total), (unsigned)h, 1, fg);
@@ -1030,7 +1030,7 @@ void focus(Client *c) {
         detachstack(c);
         attachstack(c);
         grabbuttons(c, 1);
-        XSetWindowBorder(dpy, c->win, scheme[SchemeSel][ColBorder].pixel);
+        XSetWindowBorder(dpy, c->win, drw->scheme().sel.border.pixel);
         setfocus(c);
     } else {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
@@ -1321,7 +1321,7 @@ void manage(Window w, XWindowAttributes *wa) {
 
     wc.border_width = c->bw;
     XConfigureWindow(dpy, w, CWBorderWidth, &wc);
-    XSetWindowBorder(dpy, w, scheme[SchemeNorm][ColBorder].pixel);
+    XSetWindowBorder(dpy, w, drw->scheme().norm.border.pixel);
     configure(c); /* propagates border_width, if size doesn't change */
     updatewindowtype(c);
     updatesizehints(c);
@@ -2027,10 +2027,7 @@ void setup(void) {
     netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
     netatom[NetWMIcon] = XInternAtom(dpy, "_NET_WM_ICON", False);
 
-    /* init appearance */
-    for (size_t i = 0; i < LENGTH(colors); i++) {
-        scheme[i] = drw->scm_create(colors[i]);
-    }
+    drw->setColorScheme(colors);
 
     {
         // In multimonitor setups with Xinerama, the value of `sh` becomes very
@@ -2308,7 +2305,7 @@ void unfocus(Client *c, int setfocus) {
     if (!c) return;
 
     grabbuttons(c, 0);
-    XSetWindowBorder(dpy, c->win, scheme[SchemeNorm][ColBorder].pixel);
+    XSetWindowBorder(dpy, c->win, drw->scheme().norm.border.pixel);
     if (setfocus) {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
@@ -2713,7 +2710,7 @@ void volumechange(Arg const &arg) {
 
     drawprogress(100,
         (unsigned long long)state.state.volume,
-        state.state.switch_pos ? SchemeInfoProgress : SchemeOffProgress);
+        state.state.switch_pos ? &drw->scheme().info_progress : &drw->scheme().off_progress);
 }
 #endif
 

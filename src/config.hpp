@@ -1,6 +1,7 @@
 #ifndef DWM_CONFIG_HPP
 #define DWM_CONFIG_HPP
 
+#include "colors.hpp"
 #include "layout.hpp"
 #include "mapping.hpp"
 
@@ -59,23 +60,20 @@ static const char c_blank[]    = "#000000";
 // clang-format on
 
 /* Color assignment */
-static constexpr auto colors = [] {
-    std::array<std::array<char const *, 3>, 10> out;
-    // clang-format off
-    /*                      fg          bg              border   */
-    out[SchemeNorm]           = { c_active   , c_inactive , c_inactive };
-    out[SchemeSel]            = { c_inactive , c_active   , c_active   };
-    out[SchemeStatus]         = { c_active   , c_inactive , c_blank    }; // Statusbar right
-    out[SchemeTagsSel]        = { c_inactive , c_active   , c_blank    }; // Tagbar left selected
-    out[SchemeTagsNorm]       = { c_active   , c_inactive , c_blank    }; // Tagbar left unselected
-    out[SchemeInfoSel]        = { c_inactive , c_blue     , c_blank    }; // infobar selected
-    out[SchemeInfoNorm]       = { c_blue     , c_inactive , c_blank    }; // infobar unselected
-    out[SchemeInfoProgress]   = { c_green    , c_inactive , c_blank    }; // infobar middle progress
-    out[SchemeOffProgress]    = { c_red      , c_inactive , c_blank    }; // infobar middle progress
-    out[SchemeBrightProgress] = { c_yellow   , c_inactive , c_blank    }; // infobar middle progress
-    // clang-format on
-    return out;
-}();
+// clang-format off
+constexpr ColorSchemeName colors {
+    .norm            = { .fg = c_active,   .bg = c_inactive, .border = c_inactive },
+    .sel             = { .fg = c_inactive, .bg = c_active,   .border = c_active   },
+    .status          = { .fg = c_active,   .bg = c_inactive, .border = c_blank    },
+    .tags_sel        = { .fg = c_inactive, .bg = c_active,   .border = c_blank    },
+    .tags_norm       = { .fg = c_active,   .bg = c_inactive, .border = c_blank    },
+    .info_sel        = { .fg = c_inactive, .bg = c_blue,     .border = c_blank    },
+    .info_norm       = { .fg = c_blue,     .bg = c_inactive, .border = c_blank    },
+    .info_progress   = { .fg = c_green,    .bg = c_inactive, .border = c_blank    },
+    .off_progress    = { .fg = c_red,      .bg = c_inactive, .border = c_blank    },
+    .bright_progress = { .fg = c_yellow,   .bg = c_inactive, .border = c_blank    },
+};
+// clang-format on
 
 enum TagTypes {
     TagTerm1 = 0,

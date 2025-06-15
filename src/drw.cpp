@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include "drw.hpp"
 
+#include "colors.hpp"
 #include "log.hpp"
 #include "util.hpp"
 
@@ -169,35 +170,35 @@ void drw_fontset_free(Fnt *font) {
     }
 }
 
-void Drw::clr_create(Clr *dest, char const *clrname) {
-    if (!dest || !clrname) return;
+Clr Drw::clr_create(char const *clrname) const {
+    Clr out;
 
-
-    if (!XftColorAllocName(m_dpy, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen), clrname, dest)) {
+    if (!XftColorAllocName(m_dpy, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen), clrname, &out))
         lg::fatal("error, cannot allocate color '{}'", clrname);
-    }
+
+    return out;
 }
+
+Color Drw::nameToColor(ColorName const &name) const {
+    Color out;
+#undef DRW_COLOR_FIELDS_DO
+#define DRW_COLOR_FIELDS_DO(f) out.f = clr_create(name.f);
+    DRW_COLOR_FIELDS_FOREACH()
+    return out;
+};
 
 /* Wrapper to create color schemes. The caller has to call free(3) on the
  * returned color scheme when done using it. */
-Clr *Drw::scm_create(std::span<char const *const> clrnames) {
-
-    /* need at least two colors for a scheme */
-    if (clrnames.size() < 2) {
-        return nullptr;
-    }
-    Clr *ret = new XftColor[clrnames.size()];
-
-    for (std::size_t i = 0; i < clrnames.size(); i++)
-        clr_create(&ret[i], clrnames[i]);
-
-    return ret;
+void Drw::setColorScheme(ColorSchemeName clrnames) {
+#undef DRW_COLOR_SCHEME_FIELDS_DO
+#define DRW_COLOR_SCHEME_FIELDS_DO(f) m_scheme.f = nameToColor(clrnames.f);
+    DRW_COLOR_SCHEME_FIELDS_FOREACH()
 }
 
 void Drw::draw_rect(int x, int y, unsigned int w, unsigned int h, int filled, int invert) {
-    if (!m_scheme) return;
+    if (!m_current_color) return;
 
-    XSetForeground(m_dpy, m_gc, invert ? m_scheme[ColBg].pixel : m_scheme[ColFg].pixel);
+    XSetForeground(m_dpy, m_gc, invert ? currentColor().bg.pixel : currentColor().fg.pixel);
     if (filled)
         XFillRectangle(m_dpy, m_drawable, m_gc, x, y, w, h);
     else
@@ -230,12 +231,12 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
 
     static unsigned int ellipsis_width = 0;
 
-    if ((render && (!m_scheme || !w)) || !text || !m_fonts) return 0;
+    if ((render && (!m_current_color || !w)) || !text || !m_fonts) return 0;
 
     if (!render) {
         w = invert ? invert : ~invert;
     } else {
-        XSetForeground(m_dpy, m_gc, m_scheme[invert ? ColFg : ColBg].pixel);
+        XSetForeground(m_dpy, m_gc, currentColor().invert(invert).bg.pixel);
         XFillRectangle(m_dpy, m_drawable, m_gc, x, y, w, h);
         d = XftDrawCreate(m_dpy, m_drawable, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen));
         x += (int)lpad;
@@ -293,7 +294,7 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
             if (render) {
                 auto ty = (unsigned)y + (h - usedfont->h) / 2 + (unsigned)usedfont->xfont->ascent;
                 XftDrawStringUtf8(d,
-                    &m_scheme[invert ? ColBg : ColFg],
+                    &currentColor().invert(invert).fg,
                     usedfont->xfont,
                     x,
                     (int)ty,

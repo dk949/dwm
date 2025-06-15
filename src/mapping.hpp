@@ -53,19 +53,6 @@ enum {
     ClkLast,
 }; /* clicks */
 
-enum {
-    SchemeNorm,
-    SchemeSel,
-    SchemeStatus,
-    SchemeTagsSel,
-    SchemeTagsNorm,
-    SchemeInfoSel,
-    SchemeInfoNorm,
-    SchemeInfoProgress,
-    SchemeOffProgress,
-    SchemeBrightProgress,
-}; /* color schemes */
-
 #ifdef ASOUND
 enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
 #endif  // ASOUND
