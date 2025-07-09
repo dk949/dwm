@@ -519,38 +519,28 @@ void unswallow(Client *c) {
 
 void bright_dec(Arg const &arg) {
     int ret;
-    if ((ret = bright_dec_((double)arg.f))) {
-        lg::warn("Function bright_dec_(const Arg *arg) from backlight.hpp returned {}", ret);
-        return;
-    }
+    if ((ret = bright_dec_((double)arg.f))) return;
+
     double newval;
-    if ((ret = bright_get_(&newval))) {
-        lg::warn("Function bright_get_(const Arg *arg) from backlight.hpp returned {}", ret);
-        return;
-    }
+    if ((ret = bright_get_(&newval))) return;
+
     drawprogress(100, (unsigned long long)newval, &drw->scheme().bright_progress);
 }
 
 void bright_inc(Arg const &arg) {
     int ret;
-    if ((ret = bright_inc_((double)arg.f))) {
-        lg::warn("Function bright_inc_(const Arg *arg) from backlight.hpp returned {}", ret);
-        return;
-    }
+    if ((ret = bright_inc_((double)arg.f))) return;
+
     double newval;
-    if ((ret = bright_get_(&newval))) {
-        lg::warn("Function bright_get_(const Arg *arg) from backlight.hpp returned {}", ret);
-        return;
-    }
+    if ((ret = bright_get_(&newval))) return;
+
     drawprogress(100, (unsigned long long)newval, &drw->scheme().bright_progress);
 }
 
 void bright_set(Arg const &arg) {
     int ret;
-    if ((ret = bright_set_((double)arg.f))) {
-        lg::warn("Function bright_set_(const Arg *arg) from backlight.hpp returned {}", ret);
-        return;
-    }
+    if ((ret = bright_set_((double)arg.f))) return;
+
     drawprogress(100, (unsigned long long)arg.f, &drw->scheme().bright_progress);
 }
 
