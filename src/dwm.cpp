@@ -1987,7 +1987,7 @@ void setup(void) {
         lg::fatal("no fonts could be loaded.");
     }
 
-    if (bright_setup(bright_file ? bright_file : get_bright_file(), 0, 0)) {
+    if (bright_setup(get_bright_set_file(), get_bright_get_file(), get_bright_max_file())) {
         lg::fatal("backlight setup failed");
     }
 

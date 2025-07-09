@@ -10,9 +10,10 @@ enum backlight_error_t {
     BACKLIGHT_XRANDR_ERROR = 4,
     BACKLIGHT_ATOM_ERROR = 5,
     BACKLIGHT_PROPERTY_ERROR = 6,
+    BACKLIGHT_FORMAT_ERROR = 7,
 };
 
-backlight_error_t bright_setup(char const *bright_file, int step_conf, int time_conf);
+backlight_error_t bright_setup(char const *bright_file, char const *actual_brightness, char const *scale_file);
 
 // Backlight values go from 0 to 100
 

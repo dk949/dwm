@@ -33,13 +33,6 @@ static char const dmenufont[] = "JetBrains Mono:size=" FONT_SIZE ":antialias=tru
 static int const bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
 static int const bright_steps = 20; /* number of steps it takes to move between brightness values */
 
-/* Either provide the name of the file here, or set this to NULL and provide it
-   in the get_bright_file function. If bright_file is not NULL get_bright_file
-   may return NULL, but one of them has to be a valid pointer.
-*/
-static char const *bright_file = nullptr;
-
-
 static double const progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
 
 
@@ -294,10 +287,22 @@ static Button const buttons[] = {
     // clang-format on
 };
 
-static char const *get_bright_file(void) {
-    char const *filename = getenv("DWM_BACKLIGHT_FILE");
+static char const *get_bright_set_file(void) {
+    char const *filename = getenv("DWM_BACKLIGHT_SET_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/brightness";
+}
+
+static char const *get_bright_get_file(void) {
+    char const *filename = getenv("DWM_BACKLIGHT_GET_FILE");
+    if (filename) return filename;
+    return "/sys/class/backlight/amdgpu_bl1/actual_brightness";
+}
+
+static char const *get_bright_max_file(void) {
+    char const *filename = getenv("DWM_BACKLIGHT_MAX_FILE");
+    if (filename) return filename;
+    return "/sys/class/backlight/amdgpu_bl1/max_brightness";
 }
 
 #undef ttype
