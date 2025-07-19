@@ -3010,7 +3010,7 @@ int main(int argc, char *argv[]) {
     if (pledge("stdio rpath proc exec", nullptr) == -1) die("pledge");
 #endif /* __OpenBSD__ */
     scan();
-    lg::info("Starting DWM");
+    lg::info("DWM ({}{})", dwm_version, DWM_DEBUG ? "-debug" : "");
     run();
     cleanup();
     XCloseDisplay(dpy);
