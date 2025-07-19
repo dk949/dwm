@@ -84,9 +84,9 @@ CXXWARN = -Wnon-virtual-dtor -Wno-old-style-cast -Woverloaded-virtual \
 		  $(if $(findstring clang,$(CXX)),,$(GCC_CXXWARN))         \
 
 ## Flags to be used in DEBUG mode
-DEBUG_FLAGS    = -Og -g $(if $(USE_SANITIZERS),-fsanitize=address$(COMMA)undefined$(COMMA)leak,)
+DEBUG_FLAGS    = -Og -DDWM_DEBUG=true -g $(if $(USE_SANITIZERS),-fsanitize=address$(COMMA)undefined$(COMMA)leak,)
 ## Flags to be used in RELEASE mode
-RELEASE_FLAGS  = -O3 -DNDEBUG -flto
+RELEASE_FLAGS  = -O3 -DNDEBUG -DDWM_DEBUG=false -flto
 
 ## Flags shared by C and C++
 COMMON_FLAGS = $(CPPFLAGS) $($(MODE)_FLAGS) $(CWARN) $(INC) $(if $(PKG_CONFIG_LIBS),$(shell $(PKG_CONFIG) --cflags $(PKG_CONFIG_LIBS)),)
