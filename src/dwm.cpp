@@ -851,8 +851,8 @@ void drawbar(Monitor *m) {
     int x;
     int w;
     int text_width = 0;
-    int boxs = (int)(drw->fonts()->h / 9u);
-    int boxw = (int)(drw->fonts()->h / 6u + 2u);
+    int boxs = (int)(drw->fonts().h / 9u);
+    int boxw = (int)(drw->fonts().h / 6u + 2u);
     unsigned int i;
     unsigned int occ = 0;
     unsigned int urg = 0;
@@ -1996,8 +1996,8 @@ void setup(void) {
 
 #endif /* ASOUND */
 
-    lrpad = (int)drw->fonts()->h;
-    bar_height = (int)drw->fonts()->h + 2;
+    lrpad = (int)drw->fonts().h;
+    bar_height = (int)drw->fonts().h + 2;
     updategeom();
     /* init atoms */
     utf8string = XInternAtom(dpy, "UTF8_STRING", False);

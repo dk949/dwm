@@ -9,6 +9,7 @@
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib.h>
 
+#include <optional>
 #include <utility>
 
 enum struct CurShape : unsigned { Normal = XC_left_ptr, Resize = XC_sizing, Move = XC_fleur };
@@ -49,9 +50,9 @@ public:
 struct Fnt {
     Display *dpy;
     unsigned int h;
-    XftFont *xfont;
-    FcPattern *pattern;
-    struct Fnt *next;
+    XftFont *xfont = nullptr;
+    FcPattern *pattern = nullptr;
+    bool operator==(Fnt const &) const = default;
 };
 
 enum { ColFg, ColBg, ColBorder }; /* Clr scheme index */
@@ -69,7 +70,7 @@ private:
     Window m_root;
     Drawable m_drawable;
     GC m_gc;
-    Fnt *m_fonts;
+    std::vector<Fnt> m_fonts;
     Cursors m_cursors;
 
 public:
@@ -83,7 +84,7 @@ public:
     void resize(unsigned int w, unsigned int h);
     [[nodiscard]]
     unsigned int fontset_getwidth_clamp(char const *text, unsigned int n);
-    Fnt *fontset_create(char const *fonts[], size_t fontcount);
+    bool fontset_create(char const *fonts[], size_t fontcount);
 
 
     void setColorScheme(ColorSchemeName clrnames);
@@ -93,10 +94,6 @@ public:
     int draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, unsigned invert);
     void draw_rect(int x, int y, unsigned int w, unsigned int h, int filled, int invert);
     void map(Window win, int x, int y, unsigned int w, unsigned int h);
-
-    inline void set_fontset(Fnt *set) {
-        m_fonts = set;
-    }
 
     inline void setColor(Color const *col) {
         m_current_color = col;
@@ -113,8 +110,8 @@ public:
     }
 
     [[nodiscard]]
-    inline Fnt const *fonts() const {
-        return m_fonts;
+    inline Fnt const &fonts() const {
+        return m_fonts.front();
     }
 
     [[nodiscard]]
@@ -123,13 +120,13 @@ public:
     }
 
 private:
-    Fnt *xfont_create(char const *fontname, FcPattern *fontpattern);
+    std::optional<Fnt> xfont_create(char const *fontname, FcPattern *fontpattern);
     Clr clr_create(char const *clrname) const;
     Color nameToColor(ColorName const &name) const;
 };
 
 /* Fnt abstraction */
-void drw_fontset_free(Fnt *set);
+void drw_fontset_free(std::vector<Fnt> &set);
 void drw_font_getexts(Fnt *font, char const *text, std::size_t len, unsigned int *w, unsigned int *h);
 
 #endif  // DWM_DRW_HPP
