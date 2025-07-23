@@ -96,39 +96,46 @@ void Drw::resize(unsigned int w, unsigned int h) {
 /* This function is an implementation detail. Library users should use
  * drw_fontset_create instead.
  */
-std::optional<Fnt> Drw::xfont_create(char const *fontname, FcPattern *fontpattern) {
-    // TODO(dk949): make 2 overloads instead of checking if fontname is set
+std::optional<Fnt> Drw::xfont_create(char const *fontname) {
     // TODO(dk949): consider making this the constructor for Fnt
     Fnt font;
 
-    if (fontname) {
-        /* Using the pattern found at font->xfont->pattern does not yield the
-         * same substitution results as using the pattern returned by
-         * FcNameParse; using the latter results in the desired fallback
-         * behaviour whereas the former just results in missing-character
-         * rectangles being drawn, at least with some fonts. */
-        if (auto xfont = XftFontOpenName(m_dpy, m_screen, fontname)) {
-            font.xfont = xfont;
-        } else {
-            lg::warn("cannot load font from name: '{}'", fontname);
-            return std::nullopt;
-        }
-        if (auto pattern = FcNameParse((FcChar8 *)fontname)) {
-            font.pattern = pattern;
-        } else {
-            lg::warn("cannot parse font name to pattern: '{}'", fontname);
-            XftFontClose(m_dpy, font.xfont);
-            return std::nullopt;
-        }
-    } else if (fontpattern) {
-        if (auto xfont = XftFontOpenPattern(m_dpy, fontpattern)) {
-            font.xfont = xfont;
-        } else {
-            lg::warn("error, cannot load font from pattern.");
-            return std::nullopt;
-        }
+    /* Using the pattern found at font.xfont->pattern does not yield the
+     * same substitution results as using the pattern returned by
+     * FcNameParse; using the latter results in the desired fallback
+     * behaviour whereas the former just results in missing-character
+     * rectangles being drawn, at least with some fonts. */
+    if (auto xfont = XftFontOpenName(m_dpy, m_screen, fontname)) {
+        font.xfont = xfont;
     } else {
-        lg::fatal("no font specified.");
+        lg::warn("cannot load font from name: '{}'", fontname);
+        return std::nullopt;
+    }
+    if (auto pattern = FcNameParse((FcChar8 *)fontname)) {
+        font.pattern = pattern;
+    } else {
+        lg::warn("cannot parse font name to pattern: '{}'", fontname);
+        XftFontClose(m_dpy, font.xfont);
+        return std::nullopt;
+    }
+    font.h = (unsigned)(font.xfont->ascent + font.xfont->descent);
+    font.dpy = m_dpy;
+
+    return font;
+}
+
+std::optional<Fnt> Drw::xfont_create(FcPattern *fontpattern) {
+    // TODO(dk949): consider making this the constructor for Fnt
+    Fnt font;
+
+    // NOTE: this *does not* set the pattern field, AFACT for no better reason than draw_text using this to
+    //       determine if a font was loaded from a pattern.
+
+    if (auto xfont = XftFontOpenPattern(m_dpy, fontpattern)) {
+        font.xfont = xfont;
+    } else {
+        lg::warn("error, cannot load font from pattern.");
+        return std::nullopt;
     }
 
     font.h = (unsigned)(font.xfont->ascent + font.xfont->descent);
@@ -149,7 +156,7 @@ bool Drw::fontset_create(char const *_fonts[], size_t fontcount) {
 
     bool success = false;
     for (auto font_name : fonts)
-        if (auto xfont = xfont_create(font_name, nullptr)) {
+        if (auto xfont = xfont_create(font_name)) {
             m_fonts.push_back(*xfont);
             success = true;
         }
@@ -336,7 +343,7 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
 
                 // TODO(dk949): the `match` is never deleted???
                 if (match) {
-                    auto new_font = xfont_create(nullptr, match);
+                    auto new_font = xfont_create(match);
                     if (new_font && XftCharExists(m_dpy, new_font->xfont, (FcChar32)utf8codepoint)) {
                         usedfont = *new_font;
                         m_fonts.push_back(usedfont);

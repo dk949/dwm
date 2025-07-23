@@ -120,7 +120,8 @@ public:
     }
 
 private:
-    std::optional<Fnt> xfont_create(char const *fontname, FcPattern *fontpattern);
+    std::optional<Fnt> xfont_create(char const *fontname);
+    std::optional<Fnt> xfont_create(FcPattern *fontpattern);
     Clr clr_create(char const *clrname) const;
     Color nameToColor(ColorName const &name) const;
 };
