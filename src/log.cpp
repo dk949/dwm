@@ -1,8 +1,7 @@
 #include "log.hpp"
 
-#include "noticeboard/backend.hpp"
-#include "noticeboard/noticeboard.hpp"
-
+#include <noticeboard/backend.hpp>
+#include <noticeboard/noticeboard.hpp>
 #include <X11/Xlib.h>
 
 #include <cstring>
