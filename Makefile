@@ -167,10 +167,13 @@ file_entry =                                                    \
 
 file_entries = $(foreach f,$1,$(call file_entry,$f,$2))
 
+cmd_filter=$(patsubst -Ivendor/%, -I$(PWD)/vendor/%, $(1))
+
+
 $(COMPILE_COMMANDS_FILE): FORCE
 	@{                                                                          \
-		$(call file_entries,$(C_SRC),$(shell which $(CC)) $(CFLAGS) -c)        \
-		$(call file_entries,$(CXX_SRC),$(shell which $(CXX)) $(CXXFLAGS) -c)   \
+		$(call file_entries,$(C_SRC),$(shell which $(CC)) $(call cmd_filter,$(CFLAGS)) -c)        \
+		$(call file_entries,$(CXX_SRC),$(shell which $(CXX)) $(call cmd_filter,$(CXXFLAGS)) -c)   \
 	} | jq --slurp > $@
 endif
 
