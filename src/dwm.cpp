@@ -283,14 +283,13 @@ void applyrules(Client *c) {
     unsigned int newtagset;
     Rule const *r;
     Monitor *m;
-    XClassHint ch = {nullptr, nullptr};
 
     /* rule matching */
     c->isfloating = 0;
     c->tags = 0;
-    XGetClassHint(dpy, c->win, &ch);
-    class_ = ch.res_class ? ch.res_class : broken;
-    instance = ch.res_name ? ch.res_name : broken;
+    auto ch = c->classHint(dpy);
+    class_ = ch.class_hint ? ch.class_hint.get() : broken;
+    instance = ch.instance_hint ? ch.instance_hint.get() : broken;
 
     for (i = 0; i < LENGTH(rules); i++) {
         r = &rules[i];
@@ -326,12 +325,6 @@ void applyrules(Client *c) {
                 }
             }
         }
-    }
-    if (ch.res_class) {
-        XFree(ch.res_class);
-    }
-    if (ch.res_name) {
-        XFree(ch.res_name);
     }
     c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
 }

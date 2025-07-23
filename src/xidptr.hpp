@@ -6,7 +6,18 @@
 
 #include <concepts>
 #include <functional>
+#include <memory>
 #include <utility>
+
+template<typename T>
+struct XDeleter {
+    void operator()(T *ptr) {
+        XFree(ptr);
+    }
+};
+
+template<typename T>
+using XPtr = std::unique_ptr<T, XDeleter<T>>;
 
 struct XidPtr {
 private:
