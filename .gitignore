@@ -9,3 +9,7 @@ MODE
 .clangd
 .cache
 vendor/
+_deps
+vcpkg/
+vcpkg_installed/
+vcpkg-manifest-install.log

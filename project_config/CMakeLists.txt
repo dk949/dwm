@@ -1,0 +1,38 @@
+string(TOUPPER ${THIS_PROJECT_NAME} PROJECT_NAME_CAPS)
+string(REPLACE "-" "_" SYSTEM_NAME_SANITISED ${CMAKE_SYSTEM_NAME})
+string(REPLACE "." ";" compiler_version_list ${CMAKE_CXX_COMPILER_VERSION})
+list(LENGTH compiler_version_list compiler_version_len)
+# TODO(dk949): This will break if compiler versions exceed 99
+if (compiler_version_len GREATER_EQUAL 4)
+    list(GET compiler_version_list 3 COMPILER_VERSION_TWEAK)
+    string(REGEX REPLACE "0(.)" "\\1" COMPILER_VERSION_TWEAK ${COMPILER_VERSION_TWEAK})
+else ()
+    set(COMPILER_VERSION_TWEAK 0)
+endif ()
+if (compiler_version_len GREATER_EQUAL 3)
+    list(GET compiler_version_list 2 COMPILER_VERSION_PATCH)
+    string(REGEX REPLACE "0(.)" "\\1" COMPILER_VERSION_PATCH ${COMPILER_VERSION_PATCH})
+else ()
+    set(COMPILER_VERSION_PATCH 0)
+endif ()
+if (compiler_version_len GREATER_EQUAL 2)
+    list(GET compiler_version_list 1 COMPILER_VERSION_MINOR)
+    string(REGEX REPLACE "0(.)" "\\1" COMPILER_VERSION_MINOR ${COMPILER_VERSION_MINOR})
+else ()
+    set(COMPILER_VERSION_MINOR 0)
+endif ()
+if (NOT (CMAKE_CXX_COMPILER_VERSION STREQUAL ""))
+    list(GET compiler_version_list 0 COMPILER_VERSION_MAJOR)
+    string(REGEX REPLACE "0(.)" "\\1" COMPILER_VERSION_MAJOR ${COMPILER_VERSION_MAJOR})
+else ()
+    set(COMPILER_VERSION_MAJOR 0)
+endif ()
+
+
+
+
+
+configure_file("config.hpp.in" "${CMAKE_BINARY_DIR}/project_config/include/project/config.hpp" ESCAPE_QUOTES)
+
+unset(PROJECT_NAME_CAPS)
+unset(SYSTEM_NAME_SANITISED)

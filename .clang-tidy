@@ -1,0 +1,207 @@
+---
+# Alias checks disabled
+#   bugprone-narrowing-conversions                            -> cppcoreguidelines-narrowing-conversions
+#   cppcoreguidelines-avoid-c-arrays                          -> modernize-avoid-c-arrays
+#   cppcoreguidelines-avoid-magic-numbers                     -> readability-magic-numbers
+#   cppcoreguidelines-c-copy-assignment-signature             -> misc-unconventional-assign-operator
+#   cppcoreguidelines-explicit-virtual-functions              -> modernize-use-override
+#   cppcoreguidelines-macro-to-enum                           -> modernize-macro-to-enum
+#   cppcoreguidelines-noexcept-destructor                     -> performance-noexcept-destructor
+#   cppcoreguidelines-noexcept-move-operations                -> performance-noexcept-move-constructor
+#   cppcoreguidelines-noexcept-swap                           -> performance-noexcept-swap
+#   cppcoreguidelines-non-private-member-variables-in-classes -> misc-non-private-member-variables-in-classes
+#   cppcoreguidelines-use-default-member-init                 -> modernize-use-default-member-init
+
+# Checks disabled for performance (reenabled with ENABLE_CLANG_TIDY_FULL)
+#   bugprone-infinite-loop
+#   bugprone-reserved-identifier
+#   bugprone-stringview-nullptr
+#   bugprone-suspicious-string-compare
+#   bugprone-use-after-move
+#   cppcoreguidelines-owning-memory
+#   misc-confusable-identifiers
+#   misc-const-correctness
+#   misc-definitions-in-headers
+#   misc-unused-alias-decls
+#   misc-unused-using-decls
+#   modernize-macro-to-enum
+#   readability-container-size-empty
+#   readability-identifier-naming
+#   readability-non-const-parameter
+#   readability-uppercase-literal-suffix
+
+
+
+
+# Checks disabled
+#   bugprone-bool-pointer-implicit-conversion              # Nothing wrong with if(ptr) ...
+#   cppcoreguidelines-macro-usage                          # Sometimes macros are useful
+#   google-build-namespaces                                # Not sure why anonymous namespaces are banned
+#   google-readability-avoid-underscore-in-googletest-name # Don't use google test
+#   google-runtime-int                                     # This may get reenabled at some point
+#   google-upgrade-googletest-case                         # Don't use google test
+#   misc-no-recursion                                      # Sometimes recursion is OK
+#   misc-non-private-member-variables-in-classes           # Too many false positives
+#   misc-use-anonymous-namespace                           # Not sure why anonymous namespaces are mandatory
+#   modernize-use-trailing-return-type                     # Very hard to keep this consistent
+#   readability-avoid-return-with-void-value               # Why?
+#   readability-braces-around-statements                   # Non-issue when using a formatter
+#   readability-else-after-return                          # Also why?
+#   readability-identifier-length                          # Sometimes short identifiers are OK
+#   readability-named-parameter                            # Some parameters don't need names
+#   readability-redundant-access-specifiers                # They can be used to subdivide a class declaration
+#   readability-static-accessed-through-instance           # Nothing wrong with this
+
+Checks:
+  'boost-use-to-string,
+  bugprone-*,
+  -bugprone-bool-pointer-implicit-conversion,
+  -bugprone-infinite-loop,
+  -bugprone-narrowing-conversions,
+  -bugprone-reserved-identifier,
+  -bugprone-stringview-nullptr,
+  -bugprone-suspicious-string-compare,
+  -bugprone-use-after-move,
+  cert-dcl50-cpp,
+  cert-dcl58-cpp,
+  cert-env33-c,
+  cert-err33-c,
+  cert-err34-c,
+  cert-err52-cpp,
+  cert-err58-cpp,
+  cert-err60-cpp,
+  cert-flp30-c,
+  cert-mem57-cpp,
+  cert-msc50-cpp,
+  cert-msc51-cpp,
+  cert-oop57-cpp,
+  cert-oop58-cpp,
+  concurrency-*,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-c-copy-assignment-signature,
+  -cppcoreguidelines-explicit-virtual-functions,
+  -cppcoreguidelines-macro-to-enum,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-noexcept-destructor,
+  -cppcoreguidelines-noexcept-move-operations,
+  -cppcoreguidelines-noexcept-swap,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-use-default-member-init,
+  google-*,
+  -google-build-namespaces,
+  -google-readability-avoid-underscore-in-googletest-name,
+  -google-readability-braces-around-statements,
+  -google-runtime-int,
+  -google-upgrade-googletest-case,
+  hicpp-ignored-remove-result,
+  hicpp-no-assembler,
+  hicpp-signed-bitwise,
+  llvm-namespace-comment,
+  misc-*,
+  -misc-unused-using-decls,
+  -misc-non-private-member-variables-in-classes,
+  -misc-unused-alias-decls,
+  -misc-no-recursion,
+  -misc-use-anonymous-namespace,
+  -misc-const-correctness,
+  -misc-confusable-identifiers,
+  -misc-definitions-in-headers,
+  modernize-*,
+  -modernize-macro-to-enum,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  portability-*,
+  readability-*,
+  -readability-avoid-return-with-void-value,
+  -readability-braces-around-statements,
+  -readability-container-size-empty,
+  -readability-else-after-return,
+  -readability-identifier-length,
+  -readability-identifier-naming,
+  -readability-named-parameter,
+  -readability-non-const-parameter,
+  -readability-redundant-access-specifiers,
+  -readability-static-accessed-through-instance,
+  -readability-uppercase-literal-suffix
+  '
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+FormatStyle:     none
+CheckOptions:
+  - key: readability-uppercase-literal-suffix.NewSuffixes
+    value: 'u;ul;ull;l;ll;z;uz;f'
+  - key: bugprone-unsafe-functions.ReportMoreUnsafeFunctions
+    value: true
+  - key: cppcoreguidelines-avoid-do-while.IgnoreMacros
+    value: true
+  - key: cppcoreguidelines-pro-type-const-cast.StrictMode
+    value: true
+  - key: modernize-use-auto.MinTypeNameLength
+    value: 0
+  - key: readability-function-size.ParameterThreshold
+    value: 15
+  - key: readability-implicit-bool-conversion.AllowIntegerConditions
+    value: true
+  - key: readability-implicit-bool-conversion.AllowPointerConditions
+    value: true
+  - key: google-runtime-int.UnsignedTypePrefix
+    value: std::uint
+  - key: google-runtime-int.SignedTypePrefix
+    value: std::int
+  - key: google-runtime-int.TypeSuffix
+    value: _t
+
+  # Naming convention
+  - key: readability-identifier-naming.ConceptCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.TypeTemplateParameterCase
+    value: CamelCase
+  - key: readability-identifier-naming.ValueTemplateParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.TemplateTemplateParameterCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ScopedEnumConstantCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.MethodCase
+    value: camelBack
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.PublicMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case

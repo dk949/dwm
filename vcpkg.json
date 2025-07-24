@@ -1,0 +1,7 @@
+{
+  "name": "dwm",
+  "version-string": "6.5",
+  "description": "dynamic window manager",
+  "dependencies": [ ],
+  "$url": "https://github.com/dk949/dwm"
+}

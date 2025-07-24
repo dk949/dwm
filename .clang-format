@@ -27,7 +27,7 @@ AllowShortCaseLabelsOnASingleLine: true
 BreakBeforeBinaryOperators: NonAssignment # NOTE: this works with AlignOperands
 
 # clang-format 3.7
-AlignTrailingComments: true
+# AlignTrailingComments: true # NOTE: clang-format 16 expands this option, see below
 AllowShortLoopsOnASingleLine: false
 # AlwaysBreakAfterDefinitionReturnType: None # NOTE: Deprecated
 BinPackArguments: false
@@ -78,8 +78,10 @@ AlignConsecutiveDeclarations: None
 AlwaysBreakAfterReturnType: None
 # BraceWrapping: [] # NOTE: For BreakBeforeBraces: Custom
 BreakAfterJavaFieldAnnotations: true
-IncludeCategories: # NOTE: order: user includes -> system includes -> standard includes
-  - Regex: "<[a-z]+>"
+IncludeCategories: # NOTE: order: user includes -> system includes -> Qt includes -> standard includes
+  - Regex: "<[a-z_]+>"
+    Priority: 4
+  - Regex: "<Q[a-zA-Z_]+>"
     Priority: 3
   - Regex: "<.+>"
     Priority: 2
@@ -88,7 +90,7 @@ IncludeCategories: # NOTE: order: user includes -> system includes -> standard i
 
 # clang-format 3.8
 BreakStringLiterals: false
-IncludeIsMainRegex: "((_test)|(_impl))?$"
+IncludeIsMainRegex: "((_test)|(_impl)|(ui_))?$"
 JavaScriptQuotes: Double
 JavaScriptWrapImports: true
 
@@ -148,14 +150,14 @@ IndentCaseBlocks: false
 IndentExternBlock: NoIndent
 InsertTrailingCommas: Wrapped
 ObjCBreakBeforeNestedBlockParam: false
-WhitespaceSensitiveMacros: []
+WhitespaceSensitiveMacros: [Q_OBJECT, Q_PROPERTY]
 
 # clang-format 12
 AttributeMacros: []
 BitFieldColonSpacing: After
 BreakBeforeConceptDeclarations: true # NOTE: clang format docs suggest it shoudl be "Always" instead, but that gives an error
 EmptyLineBeforeAccessModifier: Leave
-IndentRequires: false # NOTE: renamed IndentRequiresClause in clang-format 15
+# IndentRequires: false # NOTE: renamed IndentRequiresClause in clang-format 15
 PenaltyIndentedWhitespace: 0
 SortJavaStaticImport: Before
 SpaceAroundPointerQualifiers: Default
@@ -186,6 +188,25 @@ SeparateDefinitionBlocks: Always
 # SpaceBeforeParensOptions: [] # NOTE: For SpaceBeforeParens: Custom
 
 # Clang-format 15
-#IndentRequiresClause: false # NOTE: used to be IndentRequires
-#InsertBraces: false
-#RequiresClausePosition: OwnLine
+IndentRequiresClause: false # NOTE: used to be IndentRequires
+InsertBraces: false
+RequiresClausePosition: OwnLine
+
+
+# Clang-format 16
+
+AlignTrailingComments: # NOTE: can be a boolean as of 3.7
+  Kind: Always
+  OverEmptyLines: 1
+BreakAfterAttributes: Always
+BreakArrays: false # JSON
+BreakBeforeInlineASMColon: OnlyMultiline
+InsertNewlineAtEOF: true
+IntegerLiteralSeparator:
+  Binary: 8
+  Decimal: 3
+  DecimalMinDigits: 6
+  Hex: 0
+LineEnding: DeriveLF # If unclear, default to LF
+RemoveSemicolon: false
+RequiresExpressionIndentation: OuterScope

@@ -1,0 +1,89 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default Config (Debug)",
+      "description": "Default build using Ninja generator (caching enabled)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "ENABLE_CACHE": true,
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "default-release",
+      "displayName": "Default Config (Release)",
+      "description": "Default build using Ninja generator (caching enabled)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "ENABLE_CACHE": true,
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "make",
+      "displayName": "Makefile Config (Debug)",
+      "description": "Default build using Unix Makefiles generator",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      }
+    },
+    {
+      "name": "make-release",
+      "displayName": "Makefile Config (Release)",
+      "description": "Default build using Unix Makefiles generator",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      }
+    },
+    {
+      "name": "ninja",
+      "displayName": "Ninja Config (Debug)",
+      "description": "Default build using Unix Makefiles generator",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      }
+    },
+    {
+      "name": "ninja-release",
+      "displayName": "Ninja Config (Release)",
+      "description": "Default build using Unix Makefiles generator",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      }
+    },
+    {
+      "name": "ci",
+      "displayName": "CI Config",
+      "description": "Configuration made to be ran in CI",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_SANITIZERS": true,
+        "ENABLE_DOXYGEN": false,
+        "WARNINGS_AS_ERRORS": true,
+        "CMAKE_EXPORT_COMPILE_COMMANDS": false,
+        "ENABLE_CACHE": false,
+        "ENABLE_CLANG_TIDY": false,
+        "ENABLE_CLANG_TIDY_FULL": false
+      }
+    }
+  ]
+}
