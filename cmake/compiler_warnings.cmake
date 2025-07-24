@@ -57,7 +57,7 @@ function (set_target_warnings project_name #[[access]])
         -Wformat=2 # warn on security issues around functions that format output (ie printf)
         -Wswitch-default # warn if switch is missing default
         -Wswitch-enum # warn if not all enum members are covered by the switch, even with default specified
-        -Wctad-maybe-unsupported # CTAD guides were not provided (CTAD may break with other compilers)
+        # -Wctad-maybe-unsupported # CTAD guides were not provided (CTAD may break with other compilers)
         -Wimplicit-fallthrough # implicit fallthrough for cases
         -Wmisleading-indentation # warn if indentation implies blocks where blocks do not exist
         -Wsuggest-override # suggest virtual function is marked override if it overrides something
