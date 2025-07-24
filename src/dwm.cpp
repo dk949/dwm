@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <locale.h>
+#include <project/config.hpp>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -81,9 +82,6 @@
 #define HEIGHT(X) ((unsigned)(X)->h + 2 * (unsigned)(X)->bw + gappx)
 #define TAGMASK   ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)  (drw->fontset_getwidth((X)) + (unsigned)lrpad)
-#ifndef dwm_version
-#    define dwm_version "unknown"
-#endif
 
 enum {
     NetSupported,
@@ -853,7 +851,7 @@ void drawbar(Monitor *m) {
     if (!m->showbar) return;
 
     /* draw status first so it can be overdrawn by tags later */
-    if (m == selmon) { /* status is only drawn on selected monitor */
+    if (m == selmon) {                                          /* status is only drawn on selected monitor */
         drw->setColor(&drw->scheme().status);
         text_width = (int)(TEXTW(stext) - (unsigned)lrpad + 2); /* 2px right padding */
         drw->draw_text(m->window_width - text_width, 0, (unsigned)text_width, (unsigned)bar_height, 0, stext, 0);
@@ -2595,7 +2593,8 @@ void updatesizehints(Client *c) {
 
 void updatestatus(void) {
     if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
-        strcpy(stext, "dwm-" dwm_version);
+        strcpy(stext, "dwm-");
+        strncat(stext, dwm::version::full.data(), dwm::version::full.size());
     }
     drawbar(selmon);
 }
@@ -2849,7 +2848,7 @@ static void iconifyclient(Client *c) {
         lg::debug("No icon for client {}", c->name);
     }
 
-    delay(1000000 * 5, (void (*)(void *))uniconifyclient, c);
+    delay(1'000'000 * 5, (void (*)(void *))uniconifyclient, c);
 }
 
 int isdescprocess(pid_t p, pid_t c) {
@@ -2982,7 +2981,7 @@ int main(int argc, char *argv[]) {
     lg::debug("Setup logging");
 
     if (argc == 2 && !strcmp("-v", argv[1])) {
-        puts("dwm-" dwm_version);
+        printf("dwm-%.*s\n", static_cast<int>(dwm::version::full.size()), dwm::version::full.data());
         return 0;
     } else if (argc != 1) {
         fputs("usage: dwm [-v]", stderr);
@@ -3003,7 +3002,7 @@ int main(int argc, char *argv[]) {
     if (pledge("stdio rpath proc exec", nullptr) == -1) die("pledge");
 #endif /* __OpenBSD__ */
     scan();
-    lg::info("DWM ({}{})", dwm_version, DWM_DEBUG ? "-debug" : "");
+    lg::info("DWM ({}{})", dwm::version::full, dwm::version::is_debug ? "-debug" : "");
     run();
     cleanup();
     XCloseDisplay(dpy);

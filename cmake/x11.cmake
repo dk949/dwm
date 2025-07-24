@@ -1,0 +1,15 @@
+
+function(target_link_xinerama target access)
+    find_package(X11 OPTIONAL_COMPONENTS Xinerama)
+    if(X11_Xinerama_FOUND)
+        target_link_libraries(${target} ${access} X11::Xinerama)
+        target_compile_definitions(${target} ${access} -DXINERAMA)
+    endif()
+endfunction()
+
+function(target_link_x11 target access )
+    find_package(X11 REQUIRED ${ARGN})
+    foreach(module ${ARGN})
+        target_link_libraries(${target} ${access} X11::${module})
+    endforeach()
+endfunction()

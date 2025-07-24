@@ -183,6 +183,7 @@ namespace lang {
 
 namespace version {
     inline constexpr std::string_view full = "${VERSION}";
+    inline constexpr bool is_debug = ${DWM_DEBUG};
 } // namespace version
 
 inline constexpr std::string_view name = "${PROJECT_NAME}";

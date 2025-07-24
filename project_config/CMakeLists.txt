@@ -28,7 +28,11 @@ else ()
     set(COMPILER_VERSION_MAJOR 0)
 endif ()
 
-
+if (IS_DEBUG)
+    set(DWM_DEBUG true)
+else()
+    set(DWM_DEBUG false)
+endif()
 
 
 

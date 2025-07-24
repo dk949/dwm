@@ -40,6 +40,12 @@ target_sources(
            ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/project_config/include
 )
 
+target_add_icon_loc(${EXE_NAME} PUBLIC)
+target_link_alsa(${EXE_NAME} PUBLIC)
+target_link_xinerama(${EXE_NAME} PUBLIC)
+target_link_x11(${EXE_NAME} PUBLIC Xft xcb_res xcb X11_xcb)
+
+
 enable_sanitizers(${EXE_NAME} PUBLIC)
 set_target_warnings(${EXE_NAME} PUBLIC)
 set_macro_prefix(${EXE_NAME} PUBLIC)

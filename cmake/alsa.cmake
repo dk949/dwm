@@ -1,0 +1,7 @@
+function(target_link_alsa target access)
+    find_package(ALSA)
+    if (ALSA_FOUND)
+        target_link_libraries(${target} ${access} ALSA::ALSA)
+        target_compile_definitions(${target} ${access} -DASOUND)
+    endif()
+endfunction()

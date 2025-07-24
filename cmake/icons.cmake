@@ -1,0 +1,5 @@
+set(ICONPREFIX "${CMAKE_INSTALL_PREFIX}/share/pixmaps" CACHE STRING "Compiler cache to be used")
+set(ICONDIR "${ICONPREFIX}" CACHE STRING "Compiler cache to be used")
+function(target_add_icon_loc target access)
+    target_compile_definitions(${target} ${access} -DICONDIR="${ICONDIR}")
+endfunction()

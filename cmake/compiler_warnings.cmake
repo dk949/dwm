@@ -45,7 +45,7 @@ function (set_target_warnings project_name #[[access]])
         -Wshadow # warn the user if a variable declaration shadows one from a parent context
         -Wnon-virtual-dtor # warn the user if a class with virtual functions has a non-virtual destructor.
                            # This helps catch hard to track down memory errors
-        -Wold-style-cast # warn for c-style casts
+        # -Wold-style-cast # warn for c-style casts
         -Wcast-align # warn for potential performance problem casts
         -Wunused # warn on anything being unused
         -Woverloaded-virtual # warn if you overload (not override) a virtual function
@@ -58,7 +58,6 @@ function (set_target_warnings project_name #[[access]])
         -Wswitch-default # warn if switch is missing default
         -Wswitch-enum # warn if not all enum members are covered by the switch, even with default specified
         -Wctad-maybe-unsupported # CTAD guides were not provided (CTAD may break with other compilers)
-        -Weffc++ # supported by clang but only meaningful in gcc. Enforce some EMC++ guidelines
         -Wimplicit-fallthrough # implicit fallthrough for cases
         -Wmisleading-indentation # warn if indentation implies blocks where blocks do not exist
         -Wsuggest-override # suggest virtual function is marked override if it overrides something
