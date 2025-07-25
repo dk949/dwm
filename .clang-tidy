@@ -52,6 +52,7 @@
 #   readability-redundant-access-specifiers                # They can be used to subdivide a class declaration
 #   readability-static-accessed-through-instance           # Nothing wrong with this
 #   cppcoreguidelines-avoid-do-while                       # Why?
+#   modernize-use-designated-initializers                  # These are useful, but maybe not everywhere?
 
 Checks:
   'boost-use-to-string,
@@ -114,6 +115,7 @@ Checks:
   modernize-*,
   -modernize-macro-to-enum,
   -modernize-use-trailing-return-type,
+  -modernize-use-designated-initializers,
   performance-*,
   portability-*,
   readability-*,
