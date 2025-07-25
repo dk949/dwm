@@ -283,7 +283,7 @@ void applyrules(Client *c) {
     Monitor *m;
 
     /* rule matching */
-    c->isfloating = 0;
+    c->isfloating = false;
     c->tags = 0;
     auto ch = c->classHint(dpy);
     class_ = ch.class_hint ? ch.class_hint.get() : broken;
@@ -295,6 +295,7 @@ void applyrules(Client *c) {
             && (!r->instance || strstr(instance, r->instance))) {
             c->isterminal = r->isterminal;
             c->isfloating = r->isfloating;
+            c->noswallow = r->noswallow;
             c->tags |= r->tags;
             for (m = mons; m && m->num != r->monitor; m = m->next) {
                 ;
@@ -1311,7 +1312,7 @@ void manage(Window w, XWindowAttributes *wa) {
     XSelectInput(dpy, w, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     grabbuttons(c, 0);
     if (!c->isfloating) {
-        c->isfloating = c->oldstate = trans != None || c->isfixed;
+        c->isfloating = c->old_float_state = trans != None || c->isfixed;
     }
     if (c->isfloating) {
         XRaiseWindow(dpy, c->win);
@@ -1872,17 +1873,17 @@ void setfullscreen(Client *c, int fullscreen) {
             PropModeReplace,
             (unsigned char *)&netatom[NetWMFullscreen],
             1);
-        c->isfullscreen = 1;
-        c->oldstate = c->isfloating;
+        c->isfullscreen = true;
+        c->old_float_state = c->isfloating;
         c->oldbw = c->bw;
         c->bw = 0;
-        c->isfloating = 1;
+        c->isfloating = true;
         resizeclient(c, c->mon->monitor_x, c->mon->monitor_y, c->mon->monitor_width, c->mon->monitor_height);
         XRaiseWindow(dpy, c->win);
     } else if (!fullscreen && c->isfullscreen) {
         XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, nullptr, 0);
-        c->isfullscreen = 0;
-        c->isfloating = c->oldstate;
+        c->isfullscreen = false;
+        c->isfloating = c->old_float_state;
         c->bw = c->oldbw;
         c->x = c->oldx;
         c->y = c->oldy;
@@ -2617,7 +2618,7 @@ void updatewindowtype(Client *c) {
         setfullscreen(c, 1);
     }
     if (wtype == netatom[NetWMWindowTypeDialog]) {
-        c->isfloating = 1;
+        c->isfloating = true;
     }
 }
 
@@ -2629,12 +2630,12 @@ void updatewmhints(Client *c) {
             wmh->flags &= ~XUrgencyHint;
             XSetWMHints(dpy, c->win, wmh);
         } else {
-            c->isurgent = (wmh->flags & XUrgencyHint) ? 1 : 0;
+            c->isurgent = (wmh->flags & XUrgencyHint) != 0;
         }
         if (wmh->flags & InputHint) {
             c->neverfocus = !wmh->input;
         } else {
-            c->neverfocus = 0;
+            c->neverfocus = false;
         }
         XFree(wmh);
     }

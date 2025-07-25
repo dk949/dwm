@@ -54,7 +54,15 @@ struct Client {
     int bw, oldbw;
     unsigned int tags;
     unsigned int switchtotag;
-    int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow;
+    // TODO(dk949): combine these into a ClientConfig?
+    bool isfixed;
+    bool isfloating;
+    bool isurgent;
+    bool neverfocus;
+    bool old_float_state;
+    bool isfullscreen;
+    bool isterminal;
+    bool noswallow;
     pid_t pid;
     Client *next;
     Client *snext;

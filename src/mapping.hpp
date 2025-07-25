@@ -10,9 +10,9 @@ struct Rule {
     char const *title;
     unsigned int tags;
     unsigned int switchtotag;
-    int isfloating;
-    int isterminal;
-    int noswallow;
+    bool isfloating;
+    bool isterminal;
+    bool noswallow;
     int monitor;
 };
 
