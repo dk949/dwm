@@ -27,15 +27,8 @@
 #include "log.hpp"
 #include "mapping.hpp"
 
-#include <errno.h>
 #include <fcntl.h>
-#include <locale.h>
 #include <project/config.hpp>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -49,7 +42,14 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
+#include <clocale>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <print>
+#include <utility>
 
 #ifdef XINERAMA
 #    include <X11/extensions/Xinerama.h>
@@ -122,23 +122,23 @@ static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachaside(Client *c);
 static void attachstack(Client *c);
-static int avgheight(void);
+static int avgheight();
 static void buttonpress(XEvent *e);
-static void checkotherwm(void);
-static void cleanup(void);
+static void checkotherwm();
+static void cleanup();
 static void cleanupmon(Monitor *mon);
 static void clientmessage(XEvent *e);
 static void configure(Client *c);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
-static Monitor *createmon(void);
+static Monitor *createmon();
 static void destroynotify(XEvent *e);
 /// Remove client `c` from the list of clients on the monitor `c` is on
 static void detach(Client *c);
 static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
-static void drawbars(void);
+static void drawbars();
 static void drawprogress(unsigned long long total, unsigned long long current, Color const *color);
 static void enqueue(Client *c);
 static void enqueuestack(Client *c);
@@ -152,7 +152,7 @@ static int getrootptr(int *x, int *y);
 static long getstate(Window w);
 static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
-static void grabkeys(void);
+static void grabkeys();
 static void iconifyclient(Client *c);
 static int isdescprocess(pid_t p, pid_t c);
 static void keypress(XEvent *e);
@@ -164,22 +164,22 @@ static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
 static void redirectChildLog(char **argv);
 static void notifyself(int type);
-static void handle_notifyself_fade_anim(void);
+static void handle_notifyself_fade_anim();
 static void pop(Client *c);
-static void print_event_stats(void);
+static void print_event_stats();
 static void propertynotify(XEvent *e);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void restack(Monitor *m);
-static void run(void);
-static void scan(void);
+static void run();
+static void scan();
 static int sendevent(Client *c, Atom proto);
 static void sendmon(Client *c, Monitor *m);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
-static void setup(void);
+static void setup();
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static Client *swallowingclient(Window w);
@@ -190,12 +190,12 @@ static void uniconifyclient(Client *c);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
 static void updatebarpos(Monitor *m);
-static void updatebars(void);
-static void updateclientlist(void);
-static int updategeom(void);
-static void updatenumlockmask(void);
+static void updatebars();
+static void updateclientlist();
+static int updategeom();
+static void updatenumlockmask();
 static void updatesizehints(Client *c);
-static void updatestatus(void);
+static void updatestatus();
 static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
@@ -452,7 +452,7 @@ void attachstack(Client *c) {
     c->mon->stack = c;
 }
 
-int avgheight(void) {
+int avgheight() {
 #ifdef XINERAMA
     if (XineramaIsActive(dpy)) {
         int scr_count;
@@ -555,7 +555,7 @@ void buttonpress(XEvent *e) {
         i = x = 0;
         do {
             x += TEXTW(tags[i]);
-        } while ((unsigned)ev->x >= x && ++i < LENGTH(tags));
+        } while (std::cmp_greater_equal(ev->x, x) && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClkTagBar;
             arg.ui = 1 << i;
@@ -580,7 +580,7 @@ void buttonpress(XEvent *e) {
     }
 }
 
-void checkotherwm(void) {
+void checkotherwm() {
     xerrorxlib = XSetErrorHandler(xerrorstart);
     /* this causes an error if some other window manager is running */
     XSelectInput(dpy, DefaultRootWindow(dpy), SubstructureRedirectMask);
@@ -589,8 +589,8 @@ void checkotherwm(void) {
     XSync(dpy, False);
 }
 
-void cleanup(void) {
-    Layout foo = {"", nullptr};
+void cleanup() {
+    Layout foo = {.symbol = "", .arrange = nullptr};
     Monitor *m;
 
     view(Arg {.ui = ~0u});
@@ -640,7 +640,8 @@ void clientmessage(XEvent *e) {
     if (!c) return;
 
     if (cme->message_type == netatom[NetWMState]) {
-        if ((Atom)cme->data.l[1] == netatom[NetWMFullscreen] || (Atom)cme->data.l[2] == netatom[NetWMFullscreen]) {
+        if (std::cmp_equal(cme->data.l[1], netatom[NetWMFullscreen])
+            || std::cmp_equal(cme->data.l[2], netatom[NetWMFullscreen])) {
             setfullscreen(c,
                 (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
                     || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */ && !c->isfullscreen)));
@@ -756,9 +757,9 @@ void configurerequest(XEvent *e) {
     XSync(dpy, False);
 }
 
-Monitor *createmon(void) {
+Monitor *createmon() {
 
-    Monitor *m = new Monitor {};
+    auto *m = new Monitor {};
     m->tagset[0] = m->tagset[1] = 1;
     m->mfact = mfact;
     m->nmaster = nmaster;
@@ -842,8 +843,8 @@ void drawbar(Monitor *m) {
     int x;
     int w;
     int text_width = 0;
-    int boxs = (int)(drw->fonts().h / 9u);
-    int boxw = (int)(drw->fonts().h / 6u + 2u);
+    auto boxs = (int)(drw->fonts().h / 9u);
+    auto boxw = (int)(drw->fonts().h / 6u + 2u);
     unsigned int i;
     unsigned int occ = 0;
     unsigned int urg = 0;
@@ -906,7 +907,7 @@ void drawbar(Monitor *m) {
     drawprogress(PROGRESS_FADE);
 }
 
-void drawbars(void) {
+void drawbars() {
     for (Monitor *m = mons; m; m = m->next) {
         drawbar(m);
     }
@@ -1178,7 +1179,7 @@ void grabbuttons(Client *c, int focused) {
     }
 }
 
-void grabkeys(void) {
+void grabkeys() {
     updatenumlockmask();
     unsigned int modifiers[] = {
         0,
@@ -1268,7 +1269,7 @@ void manage(Window w, XWindowAttributes *wa) {
     Window trans = None;
     XWindowChanges wc;
 
-    Client *c = new Client {};
+    auto *c = new Client {};
     c->win = w;
     c->pid = winpid(w);
     /* geometry */
@@ -1432,18 +1433,18 @@ void movemouse(Arg const &arg) {
 
                 nx = ocx + (ev.xmotion.x - x);
                 ny = ocy + (ev.xmotion.y - y);
-                if ((unsigned)abs(selmon->window_x - nx) < snap) {
+                if (std::cmp_less(abs(selmon->window_x - nx), snap)) {
                     nx = selmon->window_x;
                 } else if (((unsigned)(selmon->window_x + selmon->window_width) - ((unsigned)nx + WIDTH(c))) < snap) {
                     nx = (int)((unsigned)(selmon->window_x + selmon->window_width) - WIDTH(c));
                 }
-                if ((unsigned)abs(selmon->window_y - ny) < snap) {
+                if (std::cmp_less(abs(selmon->window_y - ny), snap)) {
                     ny = selmon->window_y;
                 } else if (((unsigned)(selmon->window_y + selmon->window_height) - ((unsigned)ny + HEIGHT(c))) < snap) {
                     ny = (int)((unsigned)(selmon->window_y + selmon->window_height) - HEIGHT(c));
                 }
                 if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
-                    && ((unsigned)abs(nx - c->x) > snap || (unsigned)abs(ny - c->y) > snap)) {
+                    && (std::cmp_greater(abs(nx - c->x), snap) || std::cmp_greater(abs(ny - c->y), snap))) {
                     togglefloating({});
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
@@ -1483,7 +1484,7 @@ void pop(Client *c) {
     arrange(c->mon);
 }
 
-static void print_event_stats(void) {
+static void print_event_stats() {
     static long calls = 0;
     static timespec last_print {};
 
@@ -1658,7 +1659,7 @@ void resizemouse(Arg const &arg) {
                     && c->mon->window_y + nh >= selmon->window_y
                     && c->mon->window_y + nh <= selmon->window_y + selmon->window_height) {
                     if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
-                        && ((unsigned)abs(nw - c->w) > snap || (unsigned)abs(nh - c->h) > snap)) {
+                        && (std::cmp_greater(abs(nw - c->w), snap) || std::cmp_greater(abs(nh - c->h), snap))) {
                         togglefloating({});
                     }
                 }
@@ -1743,11 +1744,11 @@ void rotatestack(Arg const &arg) {
     }
 }
 
-void run(void) {
+void run() {
     XEvent ev;
     /* main event loop */
     XSync(dpy, False);
-    while (1) {
+    while (true) {
         if (!running) break;
         // Only handle self notify events if no X events need handling
         if (notified && XPending(dpy) == 0) {
@@ -1762,7 +1763,7 @@ void run(void) {
     }
 }
 
-void scan(void) {
+void scan() {
     unsigned int i;
     unsigned int num;
     Window d1;
@@ -1795,7 +1796,7 @@ void scan(void) {
     }
 }
 
-void handle_notifyself_fade_anim(void) {
+void handle_notifyself_fade_anim() {
     notified = SelfNotifyNone;
     drawprogress(PROGRESS_FADE);
     struct timespec requested_time = {.tv_sec = 0, .tv_nsec = (long)((1.0 / 60.0) * 1e9)};
@@ -1879,7 +1880,7 @@ void setfullscreen(Client *c, int fullscreen) {
         resizeclient(c, c->mon->monitor_x, c->mon->monitor_y, c->mon->monitor_width, c->mon->monitor_height);
         XRaiseWindow(dpy, c->win);
     } else if (!fullscreen && c->isfullscreen) {
-        XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, (unsigned char *)0, 0);
+        XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, nullptr, 0);
         c->isfullscreen = 0;
         c->isfloating = c->oldstate;
         c->bw = c->oldbw;
@@ -1953,7 +1954,7 @@ void resetmcfact(Arg const &unused) {
     arrange(selmon);
 }
 
-void setup(void) {
+void setup() {
     XSetWindowAttributes wa;
     Atom utf8string;
     struct sigaction sa;
@@ -2147,7 +2148,7 @@ void tile(Monitor *m) {
     Client *c;
 
     for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++)
-        if (n < (unsigned)m->nmaster)
+        if (std::cmp_less(n, m->nmaster))
             mfacts += c->cfact;
         else
             sfacts += c->cfact;
@@ -2155,13 +2156,13 @@ void tile(Monitor *m) {
     if (n == 0) return;
 
 
-    if (n > (unsigned)m->nmaster)
+    if (std::cmp_greater(n, m->nmaster))
         mw = m->nmaster ? (unsigned)((float)m->window_width * m->mfact) : 0;
     else
         mw = (unsigned)m->window_width;
 
     for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
-        if (i < (unsigned)m->nmaster) {
+        if (std::cmp_less(i, m->nmaster)) {
             h = (unsigned)((float)((unsigned)m->window_height - my) * (c->cfact / mfacts));
             resize(c,
                 m->window_x,
@@ -2368,7 +2369,7 @@ void unmapnotify(XEvent *e) {
     }
 }
 
-void updatebars(void) {
+void updatebars() {
     Monitor *m;
     XSetWindowAttributes wa = {
         .background_pixmap = ParentRelative,
@@ -2426,7 +2427,7 @@ void updatebarpos(Monitor *m) {
     }
 }
 
-void updateclientlist(void) {
+void updateclientlist() {
     Client *c;
     Monitor *m;
 
@@ -2438,7 +2439,7 @@ void updateclientlist(void) {
     }
 }
 
-int updategeom(void) {
+int updategeom() {
     int dirty = 0;
 
 #ifdef XINERAMA
@@ -2455,7 +2456,7 @@ int updategeom(void) {
             ;
         }
         /* only consider unique geometries as separate screens */
-        XineramaScreenInfo *unique = new XineramaScreenInfo[(size_t)nn];
+        auto *unique = new XineramaScreenInfo[(size_t)nn];
         for (i = 0, j = 0; i < nn; i++) {
             if (isuniquegeom(unique, (size_t)j, &info[i])) {
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
@@ -2526,7 +2527,7 @@ int updategeom(void) {
     return dirty;
 }
 
-void updatenumlockmask(void) {
+void updatenumlockmask() {
     unsigned int i;
     unsigned int j;
     XModifierKeymap *modmap;
@@ -2534,7 +2535,7 @@ void updatenumlockmask(void) {
     numlockmask = 0;
     modmap = XGetModifierMapping(dpy);
     for (i = 0; i < 8; i++) {
-        for (j = 0; j < (unsigned)modmap->max_keypermod; j++) {
+        for (j = 0; std::cmp_less(j, modmap->max_keypermod); j++) {
             if (modmap->modifiermap[i * (unsigned)modmap->max_keypermod + j] == XKeysymToKeycode(dpy, XK_Num_Lock)) {
                 numlockmask = (1 << i);
             }
@@ -2591,7 +2592,7 @@ void updatesizehints(Client *c) {
     c->hintsvalid = true;
 }
 
-void updatestatus(void) {
+void updatestatus() {
     if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
         strcpy(stext, "dwm-");
         strncat(stext, dwm::version::full.data(), dwm::version::full.size());
@@ -2802,8 +2803,8 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
         &bytes_left,
         &data);
     {
-        uint32_t *begin = (uint32_t *)(void *)data;
-        uint32_t *end = (uint32_t *)(void *)((uint8_t *)data + *size);
+        auto *begin = (uint32_t *)(void *)data;
+        auto *end = (uint32_t *)(void *)((uint8_t *)data + *size);
         int pos = 0;
         for (uint32_t *it = begin; it != end; ++it, pos++) {
             if (pos % 2) continue;
@@ -2981,7 +2982,7 @@ int main(int argc, char *argv[]) {
     lg::debug("Setup logging");
 
     if (argc == 2 && !strcmp("-v", argv[1])) {
-        printf("dwm-%.*s\n", static_cast<int>(dwm::version::full.size()), dwm::version::full.data());
+        std::println("dwm-{}", dwm::version::full);
         return 0;
     } else if (argc != 1) {
         fputs("usage: dwm [-v]", stderr);
@@ -3043,7 +3044,7 @@ void centeredmaster(Monitor *m) {
     my = 0;
     tw = mw;
 
-    if (n > (unsigned)m->nmaster) {
+    if (std::cmp_greater(n, m->nmaster)) {
         /* go mfact box in the center if more than nmaster clients */
         mw = m->nmaster ? (unsigned)((float)m->window_width * m->mfact) : 0;
         tw = (unsigned)m->window_width - mw;
@@ -3058,7 +3059,7 @@ void centeredmaster(Monitor *m) {
     oty = 0;
     ety = 0;
     for (i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
-        if (i < (unsigned)m->nmaster) {
+        if (std::cmp_less(i, m->nmaster)) {
             /* nmaster clients are stacked vertically, in the center
              * of the screen */
             h = ((unsigned)m->window_height - my) / (std::min(n, (unsigned)m->nmaster) - i);
@@ -3122,7 +3123,7 @@ void centeredfloatingmaster(Monitor *m) {
     }
 
     /* initialize nmaster area */
-    if (n > (unsigned)m->nmaster) {
+    if (std::cmp_greater(n, m->nmaster)) {
         /* go mfact box in the center if more than nmaster clients */
         if (m->window_width > m->window_height) {
             mw = m->nmaster ? (unsigned)((float)m->window_width * m->mfact) : 0;
@@ -3142,7 +3143,7 @@ void centeredfloatingmaster(Monitor *m) {
     }
 
     for (i = tx = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
-        if (i < (unsigned)m->nmaster) {
+        if (std::cmp_less(i, m->nmaster)) {
             /* nmaster clients are stacked horizontally, in the center
              * of the screen */
             w = (mw + mxo - mx) / (std::min(n, (unsigned)m->nmaster) - i);
