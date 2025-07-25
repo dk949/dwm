@@ -51,6 +51,7 @@
 #   readability-named-parameter                            # Some parameters don't need names
 #   readability-redundant-access-specifiers                # They can be used to subdivide a class declaration
 #   readability-static-accessed-through-instance           # Nothing wrong with this
+#   cppcoreguidelines-avoid-do-while                       # Why?
 
 Checks:
   'boost-use-to-string,
@@ -90,6 +91,7 @@ Checks:
   -cppcoreguidelines-non-private-member-variables-in-classes,
   -cppcoreguidelines-owning-memory,
   -cppcoreguidelines-use-default-member-init,
+  -cppcoreguidelines-avoid-do-while,
   google-*,
   -google-build-namespaces,
   -google-readability-avoid-underscore-in-googletest-name,
