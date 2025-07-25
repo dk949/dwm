@@ -21,8 +21,8 @@ static unsigned int snap;     /* snap pixel */
 #define FONT_SIZE      "10"
 #define NERD_FONT_SIZE "12"
 
-static int const showbar = 1; /* 0 means no bar */
-static int const topbar = 1;  /* 0 means bottom bar */
+static bool const showbar = true; /* 0 means no bar */
+static int const topbar = 1;      /* 0 means bottom bar */
 static char const *fonts[] = {
     "JetBrains Mono:size=" FONT_SIZE ":antialias=true:autohint=true",
     "JetBrainsMono Nerd Font:size=" NERD_FONT_SIZE ":antialias=true:autohint=true",
@@ -30,8 +30,8 @@ static char const *fonts[] = {
 };
 static char const dmenufont[] = "JetBrains Mono:size=" FONT_SIZE ":antialias=true:autohint=true";
 
-static int const bright_time = 60;  /* time in useconds to go from one screen brightness value to the next*/
-static int const bright_steps = 20; /* number of steps it takes to move between brightness values */
+static int const bright_time = 60;             /* time in useconds to go from one screen brightness value to the next*/
+static int const bright_steps = 20;            /* number of steps it takes to move between brightness values */
 
 static double const progress_fade_time = 1.5;  // How long progress bar will not disapear for (in seconds)
 

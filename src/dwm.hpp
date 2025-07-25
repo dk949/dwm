@@ -32,7 +32,7 @@ struct Monitor {
     unsigned int seltags;
     unsigned int sellt;
     unsigned int tagset[2];
-    int showbar;
+    bool showbar;
     int topbar;
     Client *clients;
     Client *sel;
@@ -47,10 +47,11 @@ struct Client {
     char name[256];
     float mina, maxa;
     float cfact;
+    // TODO(dk949): How about a Rectangle struct???
     int x, y, w, h;
     int oldx, oldy, oldw, oldh;
     int basew, baseh, incw, inch, maxw, maxh, minw, minh;
-    int hintsvalid;
+    bool hintsvalid;
     int bw, oldbw;
     unsigned int tags;
     unsigned int switchtotag;
