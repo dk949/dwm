@@ -83,7 +83,6 @@ public:
 
     void resize(unsigned int w, unsigned int h);
     [[nodiscard]]
-    unsigned int fontset_getwidth_clamp(char const *text, unsigned int n);
     bool fontset_create(char const *fonts[], size_t fontcount);
 
 
@@ -91,8 +90,8 @@ public:
 
     unsigned int fontset_getwidth(char const *text);
 
-    int draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, unsigned invert);
-    void draw_rect(int x, int y, unsigned int w, unsigned int h, int filled, int invert);
+    int draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, bool invert);
+    void draw_rect(int x, int y, unsigned int w, unsigned int h, bool filled, bool invert);
     void map(Window win, int x, int y, unsigned int w, unsigned int h);
 
     inline void setColor(Color const *col) {

@@ -193,7 +193,8 @@ void Drw::setColorScheme(ColorSchemeName clrnames) {
     DRW_COLOR_SCHEME_FIELDS_FOREACH()
 }
 
-void Drw::draw_rect(int x, int y, unsigned int w, unsigned int h, int filled, int invert) {
+// TODO(dk949): make the bools strongly typed
+void Drw::draw_rect(int x, int y, unsigned int w, unsigned int h, bool filled, bool invert) {
     if (!m_current_color) return;
 
     XSetForeground(m_dpy, m_gc, invert ? currentColor().bg.pixel : currentColor().fg.pixel);
@@ -203,7 +204,8 @@ void Drw::draw_rect(int x, int y, unsigned int w, unsigned int h, int filled, in
         XDrawRectangle(m_dpy, m_drawable, m_gc, x, y, w - 1, h - 1);
 }
 
-int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, unsigned invert) {
+// TODO(dk949): make the bools strongly typed
+int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, bool invert) {
     int ellipsis_x = 0;
     unsigned int tmpw, ellipsis_w = 0;
     XftDraw *d = nullptr;
@@ -227,7 +229,7 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
     if ((render && (!m_current_color || !w)) || !text) return 0;
 
     if (!render) {
-        w = invert ? invert : ~invert;
+        w = invert ? 1u : ~0u;
     } else {
         XSetForeground(m_dpy, m_gc, currentColor().invert(invert).bg.pixel);
         XFillRectangle(m_dpy, m_drawable, m_gc, x, y, w, h);
@@ -372,12 +374,6 @@ unsigned int Drw::fontset_getwidth(char const *text) {
     if (!text) return 0;
 
     return (unsigned)draw_text(0, 0, 0, 0, 0, text, 0);
-}
-
-unsigned int Drw::fontset_getwidth_clamp(char const *text, unsigned int n) {
-    unsigned int tmp = 0;
-    if (text && n) tmp = (unsigned)draw_text(0, 0, 0, 0, 0, text, n);
-    return std::min(n, tmp);
 }
 
 void drw_font_getexts(Fnt *font, char const *text, std::size_t len, unsigned int *w, unsigned int *h) {

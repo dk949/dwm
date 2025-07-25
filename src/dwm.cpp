@@ -855,7 +855,7 @@ void drawbar(Monitor *m) {
     if (m == selmon) {                                          /* status is only drawn on selected monitor */
         drw->setColor(&drw->scheme().status);
         text_width = (int)(TEXTW(stext) - (unsigned)lrpad + 2); /* 2px right padding */
-        drw->draw_text(m->window_width - text_width, 0, (unsigned)text_width, (unsigned)bar_height, 0, stext, 0);
+        drw->draw_text(m->window_width - text_width, 0, (unsigned)text_width, (unsigned)bar_height, 0, stext, false);
     }
 
     for (Client *c = m->clients; c; c = c->next) {
@@ -885,18 +885,18 @@ void drawbar(Monitor *m) {
     }
     w = (int)TEXTW(m->layoutSymbol);
     drw->setColor(&drw->scheme().tags_norm);
-    x = drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol, 0);
+    x = drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol, false);
 
     if ((w = m->window_width - text_width - x) > bar_height) {
         if (m->sel) {
             drw->setColor(m == selmon ? &drw->scheme().info_sel : &drw->scheme().info_norm);
-            drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name, 0);
+            drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name, false);
             if (m->sel->isfloating) {
-                drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->isfixed, 0);
+                drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->isfixed, false);
             }
         } else {
             drw->setColor(&drw->scheme().info_norm);
-            drw->draw_rect(x, 0, (unsigned)w, (unsigned)bar_height, 1, 1);
+            drw->draw_rect(x, 0, (unsigned)w, (unsigned)bar_height, /*filled*/ true, /*invert*/ true);
         }
     }
     if (m == selmon) {
@@ -937,8 +937,8 @@ void drawprogress(unsigned long long t, unsigned long long c, Color const *color
         int bg = 1;
         drw->setColor(cscheme);
 
-        drw->draw_rect(x, y, (unsigned)w, (unsigned)h, 1, bg);
-        drw->draw_rect(x, y, (unsigned)(((double)w * (double)current) / (double)total), (unsigned)h, 1, fg);
+        drw->draw_rect(x, y, (unsigned)w, (unsigned)h, true, bg);
+        drw->draw_rect(x, y, (unsigned)(((double)w * (double)current) / (double)total), (unsigned)h, true, fg);
 
         drw->map(selmon->barwin, x, y, (unsigned)w, (unsigned)h);
         notifyself(SelfNotifyFadeBar);
