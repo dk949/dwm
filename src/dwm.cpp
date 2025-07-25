@@ -174,7 +174,7 @@ static void resizeclient(Client *c, int x, int y, int w, int h);
 static void restack(Monitor *m);
 static void run();
 static void scan();
-static int sendevent(Client *c, Atom proto);
+static bool sendevent(Client *c, Atom proto);
 static void sendmon(Client *c, Monitor *m);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
@@ -1832,7 +1832,7 @@ void setclientstate(Client *c, long state) {
     XChangeProperty(dpy, c->win, wmatom[WMState], wmatom[WMState], 32, PropModeReplace, (unsigned char *)data, 2);
 }
 
-int sendevent(Client *c, Atom proto) {
+bool sendevent(Client *c, Atom proto) {
     int n;
     Atom *protocols;
     bool exists = false;

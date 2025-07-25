@@ -53,6 +53,7 @@
 #   readability-static-accessed-through-instance           # Nothing wrong with this
 #   cppcoreguidelines-avoid-do-while                       # Why?
 #   modernize-use-designated-initializers                  # These are useful, but maybe not everywhere?
+#   readability-function-cognitive-complexity              # This is a pretty dubious metric
 
 Checks:
   'boost-use-to-string,
@@ -129,7 +130,8 @@ Checks:
   -readability-non-const-parameter,
   -readability-redundant-access-specifiers,
   -readability-static-accessed-through-instance,
-  -readability-uppercase-literal-suffix
+  -readability-uppercase-literal-suffix,
+  -readability-function-cognitive-complexity
   '
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
