@@ -16,12 +16,14 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(libut)
 FetchContent_MakeAvailable(noticeboard)
 
-
 add_executable(
     ${EXE_NAME}
-    ${CMAKE_CURRENT_SOURCE_DIR}/backlight.cpp ${CMAKE_CURRENT_SOURCE_DIR}/drw.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dwm.cpp ${CMAKE_CURRENT_SOURCE_DIR}/log.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/util.cpp ${CMAKE_CURRENT_SOURCE_DIR}/volc.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/backlight.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/drw.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwm.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/log.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/util.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/volc.cpp #
 )
 
 target_link_libraries(${EXE_NAME} PUBLIC UT::all)
@@ -44,7 +46,6 @@ target_add_icon_loc(${EXE_NAME} PUBLIC)
 target_link_alsa(${EXE_NAME} PUBLIC)
 target_link_xinerama(${EXE_NAME} PUBLIC)
 target_link_x11(${EXE_NAME} PUBLIC Xft xcb_res xcb X11_xcb)
-
 
 enable_sanitizers(${EXE_NAME} PUBLIC)
 set_target_warnings(${EXE_NAME} PUBLIC)
