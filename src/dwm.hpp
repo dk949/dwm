@@ -7,9 +7,31 @@
 #include <X11/X.h>
 #include <X11/Xutil.h>
 
+#include <cstddef>
+#include <format>
+#include <stdexcept>
+
 struct Pertag;
 struct Monitor;
 struct Client;
+
+template<typename T>
+struct Rect {
+    T x;
+    T y;
+    T w;
+    T h;
+
+    T operator[](std::size_t idx) {
+        switch (idx) {
+            case 0: return x;
+            case 1: return y;
+            case 2: return w;
+            case 3: return h;
+            default: throw std::runtime_error(std::format("Bad Rect access: {} > 4", idx));
+        }
+    }
+};
 
 struct ClassHint {
     XPtr<char> instance_hint;
@@ -26,9 +48,9 @@ struct Monitor {
     float mfact;
     int nmaster;
     int num;
-    int bar_y;                                               /* bar geometry */
-    int monitor_x, monitor_y, monitor_width, monitor_height; /* screen size */
-    int window_x, window_y, window_width, window_height;
+    int bar_y; /* bar geometry */
+    Rect<int> monitor_size;
+    Rect<int> window_size;
     unsigned int seltags;
     unsigned int sellt;
     unsigned int tagset[2];
@@ -48,8 +70,8 @@ struct Client {
     float mina, maxa;
     float cfact;
     // TODO(dk949): How about a Rectangle struct???
-    int x, y, w, h;
-    int oldx, oldy, oldw, oldh;
+    Rect<int> size;
+    Rect<int> old_size;
     int basew, baseh, incw, inch, maxw, maxh, minw, minh;
     bool hintsvalid;
     int bw, oldbw;
