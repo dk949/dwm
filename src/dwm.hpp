@@ -42,6 +42,9 @@ struct ClassHint {
         return {XPtr<char> {ch.res_name}, XPtr<char> {ch.res_class}};
     }
 };
+using MonitorPtr = std::shared_ptr<Monitor>;
+using WeakMonitorPtr = std::weak_ptr<Monitor>;
+using Monitors = std::vector<MonitorPtr>;
 
 struct Monitor {
     char layoutSymbol[16];
@@ -59,7 +62,6 @@ struct Monitor {
     Client *clients;
     Client *sel;
     Client *stack;
-    Monitor *next;
     Window barwin;
     Layout const *lt[2];
     Pertag *pertag;
@@ -90,7 +92,7 @@ struct Client {
     Client *next;
     Client *snext;
     Client *swallowing;
-    Monitor *mon;
+    MonitorPtr mon;
     Window win;
 
     [[nodiscard]]

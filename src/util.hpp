@@ -4,6 +4,8 @@
 
 
 
+#include <algorithm>
+#include <functional>
 #ifndef NDEBUG
 #    define IF_DEBUG if (true)
 #    ifdef DWM_TRACE_EVENTS
@@ -24,5 +26,10 @@ constexpr auto between(auto x, auto a, auto b) {
 }
 
 void delay(int delay_for, void (*fn)(void *), void *arg);
+
+template<typename R, typename E, typename Cmp>
+bool contains(R const &r, E &&match, Cmp const &cmp = std::equal_to<E> {}) {
+    return std::ranges::find_if(r, [&](E const &e) { return cmp(match, e); }) == std::ranges::end(r);
+}
 
 #endif  // DWM_UTIL_HPP
