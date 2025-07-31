@@ -42,6 +42,7 @@ struct ClassHint {
         return {XPtr<char> {ch.res_name}, XPtr<char> {ch.res_class}};
     }
 };
+
 using MonitorPtr = std::shared_ptr<Monitor>;
 using WeakMonitorPtr = std::weak_ptr<Monitor>;
 using Monitors = std::vector<MonitorPtr>;
@@ -67,6 +68,17 @@ struct Monitor {
     Pertag *pertag;
 };
 
+struct ClientProps {
+    bool isfixed;
+    bool isfloating;
+    bool isurgent;
+    bool neverfocus;
+    bool old_float_state;
+    bool isfullscreen;
+    bool isterminal;
+    bool noswallow;
+};
+
 struct Client {
     char name[256];
     float mina, maxa;
@@ -79,15 +91,7 @@ struct Client {
     int bw, oldbw;
     unsigned int tags;
     unsigned int switchtotag;
-    // TODO(dk949): combine these into a ClientConfig?
-    bool isfixed;
-    bool isfloating;
-    bool isurgent;
-    bool neverfocus;
-    bool old_float_state;
-    bool isfullscreen;
-    bool isterminal;
-    bool noswallow;
+    ClientProps props;
     pid_t pid;
     Client *next;
     Client *snext;

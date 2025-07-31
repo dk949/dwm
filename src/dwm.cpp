@@ -286,7 +286,7 @@ void applyrules(Client *c) {
     Rule const *r;
 
     /* rule matching */
-    c->isfloating = false;
+    c->props.isfloating = false;
     c->tags = 0;
     auto ch = c->classHint(dpy);
     class_ = ch.class_hint ? ch.class_hint.get() : broken;
@@ -296,9 +296,9 @@ void applyrules(Client *c) {
         r = &rules[i];
         if ((!r->title || strstr(c->name, r->title)) && (!r->class_ || strstr(class_, r->class_))
             && (!r->instance || strstr(instance, r->instance))) {
-            c->isterminal = r->isterminal;
-            c->isfloating = r->isfloating;
-            c->noswallow = r->noswallow;
+            c->props.isterminal = r->isterminal;
+            c->props.isfloating = r->isfloating;
+            c->props.noswallow = r->noswallow;
             c->tags |= r->tags;
             auto mon_it = rng::find_if(mons, [&](MonitorPtr const &m) { return m->num == r->monitor; });
             if (mon_it != mons.end()) c->mon = *mon_it;
@@ -363,7 +363,7 @@ bool applysizehints(Client *c, Rect<int> *size, int interact) {
     }
     size->h = std::max(size->h, bar_height);
     size->w = std::max(size->w, bar_height);
-    if (resizehints || c->isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
+    if (resizehints || c->props.isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
         if (!c->hintsvalid) updatesizehints(c);
         /* see last two sentences in ICCCM 4.1.2.3 */
         bool baseismin = c->basew == c->minw && c->baseh == c->minh;
@@ -464,7 +464,7 @@ int avgheight() {
 }
 
 void swallow(Client *p, Client *c) {
-    if (c->noswallow || c->isterminal) {
+    if (c->props.noswallow || c->props.isterminal) {
         return;
     }
 
@@ -628,10 +628,10 @@ void clientmessage(XEvent *e) {
             || std::cmp_equal(cme->data.l[2], netatom[NetWMFullscreen])) {
             setfullscreen(c,
                 (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
-                    || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */ && !c->isfullscreen)));
+                    || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */ && !c->props.isfullscreen)));
         }
     } else if (cme->message_type == netatom[NetActiveWindow]) {
-        if (c != selmon->sel && !c->isurgent) {
+        if (c != selmon->sel && !c->props.isurgent) {
             seturgent(c, true);
         }
     } /*else if (cme->message_type == wmatom[WMChangeState]) {
@@ -672,7 +672,7 @@ void configurenotify(XEvent *e) {
         updatebars();
         for (auto const &m : mons) {
             for (c = m->clients; c; c = c->next) {
-                if (c->isfullscreen) {
+                if (c->props.isfullscreen) {
                     resizeclient(c, m->monitor_size);
                 }
             }
@@ -691,7 +691,7 @@ void configurerequest(XEvent *e) {
     if ((c = wintoclient(ev->window))) {
         if (ev->value_mask & CWBorderWidth) {
             c->bw = ev->border_width;
-        } else if (c->isfloating || !selmon->lt[selmon->sellt]->arrange) {
+        } else if (c->props.isfloating || !selmon->lt[selmon->sellt]->arrange) {
             auto const &m = c->mon;
             if (ev->value_mask & CWX) {
                 c->old_size.x = c->size.x;
@@ -709,11 +709,11 @@ void configurerequest(XEvent *e) {
                 c->old_size.h = c->size.h;
                 c->size.h = ev->height;
             }
-            if ((c->size.x + c->size.w) > m->monitor_size.x + m->monitor_size.w && c->isfloating) {
+            if ((c->size.x + c->size.w) > m->monitor_size.x + m->monitor_size.w && c->props.isfloating) {
                 c->size.x = (int)((unsigned)m->monitor_size.x
                                   + ((unsigned)(m->monitor_size.w / 2) - WIDTH(c) / 2)); /* center in x direction */
             }
-            if ((c->size.y + c->size.h) > m->monitor_size.y + m->monitor_size.h && c->isfloating) {
+            if ((c->size.y + c->size.h) > m->monitor_size.y + m->monitor_size.h && c->props.isfloating) {
                 c->size.y = (int)((unsigned)m->monitor_size.y
                                   + ((unsigned)(m->monitor_size.h / 2) - HEIGHT(c) / 2)); /* center in y direction */
             }
@@ -840,7 +840,7 @@ void drawbar(MonitorPtr m) {
 
     for (Client *c = m->clients; c; c = c->next) {
         occ |= c->tags;
-        if (c->isurgent) {
+        if (c->props.isurgent) {
             urg |= c->tags;
         }
     }
@@ -871,8 +871,8 @@ void drawbar(MonitorPtr m) {
         if (m->sel) {
             drw->setColor(m == selmon ? &drw->scheme().info_sel : &drw->scheme().info_norm);
             drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name, false);
-            if (m->sel->isfloating) {
-                drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->isfixed, false);
+            if (m->sel->props.isfloating) {
+                drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->props.isfixed, false);
             }
         } else {
             drw->setColor(&drw->scheme().info_norm);
@@ -988,7 +988,7 @@ void focus(Client *c) {
         if (c->mon != selmon) {
             selmon = c->mon;
         }
-        if (c->isurgent) {
+        if (c->props.isurgent) {
             seturgent(c, false);
         }
         detachstack(c);
@@ -1034,7 +1034,7 @@ void focusstack(Arg const &arg) {
     Client *c = nullptr;
     Client *i;
 
-    if (!selmon->sel || selmon->sel->isfullscreen) {
+    if (!selmon->sel || selmon->sel->props.isfullscreen) {
         return;
     }
     if (arg.i > 0) {
@@ -1295,10 +1295,10 @@ void manage(Window w, XWindowAttributes *wa) {
     updatewmhints(c);
     XSelectInput(dpy, w, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     grabbuttons(c, 0);
-    if (!c->isfloating) {
-        c->isfloating = c->old_float_state = trans != None || c->isfixed;
+    if (!c->props.isfloating) {
+        c->props.isfloating = c->props.old_float_state = trans != None || c->props.isfixed;
     }
-    if (c->isfloating) {
+    if (c->props.isfloating) {
         XRaiseWindow(dpy, c->win);
     }
     attachaside(c);
@@ -1404,7 +1404,7 @@ void movemouse(Arg const &arg) {
     if (!(c = selmon->sel)) {
         return;
     }
-    if (c->isfullscreen) { /* no support moving fullscreen windows by mouse */
+    if (c->props.isfullscreen) { /* no support moving fullscreen windows by mouse */
         return;
     }
     restack(selmon);
@@ -1446,11 +1446,11 @@ void movemouse(Arg const &arg) {
                            < snap) {
                     ny = (int)((unsigned)(selmon->window_size.y + selmon->window_size.h) - HEIGHT(c));
                 }
-                if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
+                if (!c->props.isfloating && selmon->lt[selmon->sellt]->arrange
                     && (std::cmp_greater(abs(nx - c->size.x), snap) || std::cmp_greater(abs(ny - c->size.y), snap))) {
                     togglefloating({});
                 }
-                if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
+                if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
                     resize(c, {nx, ny, c->size.w, c->size.h}, 1);
                 }
                 break;
@@ -1467,14 +1467,14 @@ void movemouse(Arg const &arg) {
 
 Client *nexttagged(Client *c) {
     Client *walked = c->mon->clients;
-    for (; walked && (walked->isfloating || !ISVISIBLEONTAG(walked, c->tags)); walked = walked->next) {
+    for (; walked && (walked->props.isfloating || !ISVISIBLEONTAG(walked, c->tags)); walked = walked->next) {
         ;
     }
     return walked;
 }
 
 Client *nexttiled(Client *c) {
-    for (; c && (c->isfloating || !ISVISIBLE(c)); c = c->next) {
+    for (; c && (c->props.isfloating || !ISVISIBLE(c)); c = c->next) {
         ;
     }
     return c;
@@ -1518,8 +1518,8 @@ void propertynotify(XEvent *e) {
         switch (ev->atom) {
             default: break;
             case XA_WM_TRANSIENT_FOR:
-                if (!c->isfloating && (XGetTransientForHint(dpy, c->win, &trans))
-                    && (c->isfloating = (wintoclient(trans)) != nullptr)) {
+                if (!c->props.isfloating && (XGetTransientForHint(dpy, c->win, &trans))
+                    && (c->props.isfloating = (wintoclient(trans)) != nullptr)) {
                     arrange(c->mon);
                 }
                 break;
@@ -1588,7 +1588,7 @@ void resizeclient(Client *c, Rect<int> new_size) {
     for (n = 0, nbc = nexttiled(mon->clients); nbc; nbc = nexttiled(nbc->next), n++) { }
 
     /* Do nothing if layout is floating */
-    if (c->isfloating || mon->lt[mon->sellt]->arrange == nullptr) {
+    if (c->props.isfloating || mon->lt[mon->sellt]->arrange == nullptr) {
         gapincr = gapoffset = 0;
     } else {
         /* Remove border and gap if layout is monocle or only one client */
@@ -1630,7 +1630,7 @@ void resizemouse(Arg const &arg) {
     if (!(c = selmon->sel)) {
         return;
     }
-    if (c->isfullscreen) { /* no support resizing fullscreen windows by mouse */
+    if (c->props.isfullscreen) { /* no support resizing fullscreen windows by mouse */
         return;
     }
     restack(selmon);
@@ -1662,12 +1662,12 @@ void resizemouse(Arg const &arg) {
                     && c->mon->window_size.x + nw <= selmon->window_size.x + selmon->window_size.w
                     && c->mon->window_size.y + nh >= selmon->window_size.y
                     && c->mon->window_size.y + nh <= selmon->window_size.y + selmon->window_size.h) {
-                    if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
+                    if (!c->props.isfloating && selmon->lt[selmon->sellt]->arrange
                         && (std::cmp_greater(abs(nw - c->size.w), snap) || std::cmp_greater(abs(nh - c->size.h), snap))) {
                         togglefloating({});
                     }
                 }
-                if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
+                if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
                     resize(c, {c->size.x, c->size.y, nw, nh}, 1);
                 }
                 break;
@@ -1695,14 +1695,14 @@ void restack(MonitorPtr const &m) {
     if (!m->sel) {
         return;
     }
-    if (m->sel->isfloating || !m->lt[m->sellt]->arrange) {
+    if (m->sel->props.isfloating || !m->lt[m->sellt]->arrange) {
         XRaiseWindow(dpy, m->sel->win);
     }
     if (m->lt[m->sellt]->arrange) {
         wc.stack_mode = Below;
         wc.sibling = m->barwin;
         for (c = m->stack; c; c = c->snext) {
-            if (!c->isfloating && ISVISIBLE(c)) {
+            if (!c->props.isfloating && ISVISIBLE(c)) {
                 XConfigureWindow(dpy, c->win, CWSibling | CWStackMode, &wc);
                 wc.sibling = c->win;
             }
@@ -1859,7 +1859,7 @@ bool sendevent(Client *c, Atom proto) {
 }
 
 void setfocus(Client *c) {
-    if (!c->neverfocus) {
+    if (!c->props.neverfocus) {
         XSetInputFocus(dpy, c->win, RevertToPointerRoot, CurrentTime);
         XChangeProperty(dpy, root, netatom[NetActiveWindow], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&(c->win), 1);
     }
@@ -1867,7 +1867,7 @@ void setfocus(Client *c) {
 }
 
 void setfullscreen(Client *c, bool fullscreen) {
-    if (fullscreen && !c->isfullscreen) {
+    if (fullscreen && !c->props.isfullscreen) {
         XChangeProperty(dpy,
             c->win,
             netatom[NetWMState],
@@ -1876,17 +1876,17 @@ void setfullscreen(Client *c, bool fullscreen) {
             PropModeReplace,
             (unsigned char *)&netatom[NetWMFullscreen],
             1);
-        c->isfullscreen = true;
-        c->old_float_state = c->isfloating;
+        c->props.isfullscreen = true;
+        c->props.old_float_state = c->props.isfloating;
         c->oldbw = c->bw;
         c->bw = 0;
-        c->isfloating = true;
+        c->props.isfloating = true;
         resizeclient(c, c->mon->monitor_size);
         XRaiseWindow(dpy, c->win);
-    } else if (!fullscreen && c->isfullscreen) {
+    } else if (!fullscreen && c->props.isfullscreen) {
         XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, nullptr, 0);
-        c->isfullscreen = false;
-        c->isfloating = c->old_float_state;
+        c->props.isfullscreen = false;
+        c->props.isfloating = c->props.old_float_state;
         c->bw = c->oldbw;
         c->size.x = c->old_size.x;
         c->size.y = c->old_size.y;
@@ -2048,7 +2048,7 @@ void setup() {
 void seturgent(Client *c, bool urg) {
     XWMHints *wmh;
 
-    c->isurgent = urg;
+    c->props.isurgent = urg;
     if (!(wmh = XGetWMHints(dpy, c->win))) {
         return;
     }
@@ -2064,7 +2064,7 @@ void showhide(Client *c) {
     if (ISVISIBLE(c)) {
         /* show clients top down */
         XMoveWindow(dpy, c->win, c->size.x, c->size.y);
-        if ((!c->mon->lt[c->mon->sellt]->arrange || c->isfloating) && !c->isfullscreen) {
+        if ((!c->mon->lt[c->mon->sellt]->arrange || c->props.isfloating) && !c->props.isfullscreen) {
             resize(c, c->size, 0);
         }
         showhide(c->snext);
@@ -2224,11 +2224,11 @@ void togglefloating(Arg const &arg) {
     (void)arg;
     if (!selmon->sel) return;
 
-    if (selmon->sel->isfullscreen) /* no support for fullscreen windows */
+    if (selmon->sel->props.isfullscreen) /* no support for fullscreen windows */
         return;
 
-    selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
-    if (selmon->sel->isfloating) {
+    selmon->sel->props.isfloating = !selmon->sel->props.isfloating || selmon->sel->props.isfixed;
+    if (selmon->sel->props.isfloating) {
         resize(selmon->sel, selmon->sel->size, 0);
     }
     arrange(selmon);
@@ -2236,7 +2236,7 @@ void togglefloating(Arg const &arg) {
 
 void togglefs(Arg const &) {
     if (!selmon->sel) return;
-    setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
+    setfullscreen(selmon->sel, !selmon->sel->props.isfullscreen);
 }
 
 void toggletag(Arg const &arg) {
@@ -2578,7 +2578,7 @@ void updatesizehints(Client *c) {
     } else {
         c->maxa = c->mina = 0.0;
     }
-    c->isfixed = c->maxw != 0 && c->maxh != 0 && c->maxw == c->minw && c->maxh == c->minh;
+    c->props.isfixed = c->maxw != 0 && c->maxh != 0 && c->maxw == c->minw && c->maxh == c->minh;
     c->hintsvalid = true;
 }
 
@@ -2607,7 +2607,7 @@ void updatewindowtype(Client *c) {
         setfullscreen(c, true);
     }
     if (wtype == netatom[NetWMWindowTypeDialog]) {
-        c->isfloating = true;
+        c->props.isfloating = true;
     }
 }
 
@@ -2619,12 +2619,12 @@ void updatewmhints(Client *c) {
             wmh->flags &= ~XUrgencyHint;
             XSetWMHints(dpy, c->win, wmh);
         } else {
-            c->isurgent = (wmh->flags & XUrgencyHint) != 0;
+            c->props.isurgent = (wmh->flags & XUrgencyHint) != 0;
         }
         if (wmh->flags & InputHint) {
-            c->neverfocus = wmh->input == 0;
+            c->props.neverfocus = wmh->input == 0;
         } else {
-            c->neverfocus = false;
+            c->props.neverfocus = false;
         }
         XFree(wmh);
     }
@@ -2853,14 +2853,14 @@ int isdescprocess(pid_t p, pid_t c) {
 }
 
 Client *termforwin(Client const *w) {
-    if (!w->pid || w->isterminal) {
+    if (!w->pid || w->props.isterminal) {
         return nullptr;
     }
 
     Client *out = nullptr;
     for (auto const &mon : mons) {
         for (Client *c = mon->clients; c; c = c->next) {
-            if (c->isterminal && !c->swallowing && c->pid && isdescprocess(c->pid, w->pid)) {
+            if (c->props.isterminal && !c->swallowing && c->pid && isdescprocess(c->pid, w->pid)) {
                 if (selmon->sel == c) return c;
                 out = c;
             }
@@ -2953,7 +2953,7 @@ void zoom(Arg const &arg) {
     (void)arg;
     Client *c = selmon->sel;
 
-    if (!selmon->lt[selmon->sellt]->arrange || !c || c->isfloating) return;
+    if (!selmon->lt[selmon->sellt]->arrange || !c || c->props.isfloating) return;
 
     if (c == nexttiled(selmon->clients) || !(c = nexttiled(c->next))) return;
 
