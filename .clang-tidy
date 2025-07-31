@@ -54,7 +54,7 @@
 #   cppcoreguidelines-avoid-do-while                       # Why?
 #   modernize-use-designated-initializers                  # These are useful, but maybe not everywhere?
 #   readability-function-cognitive-complexity              # This is a pretty dubious metric
-
+User: dk949
 Checks:
   'boost-use-to-string,
   bugprone-*,
