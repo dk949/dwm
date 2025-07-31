@@ -9,7 +9,8 @@
 List of things I'd like to implement but don't have time for
 
 * [ ] Get status color working
-  * Have color appear in the status bar. Will also require a slight rewrite of slstatus
+  * Have color appear in the status bar. Will also require a slight rewrite of
+    slstatus
 * [X] Look at what changed between 6.2 and 6.5
 * [ ] Some cool new patches (more for inspiration than anything else):
   * http://dwm.suckless.org/patches/windowmap/
@@ -26,3 +27,10 @@ List of things I'd like to implement but don't have time for
 * [X] Remove `XBACKLIGHT`
 * [X] Add notifications
 * [ ] Fix exceptions from libnoticeboard
+* [ ] Handle Fireforx Picture in picture (instance: "Toolkit", class: "firefox",
+  title: "Picture-in-Picture")
+* [ ] Make `Client`s traversable by standard algorithms
+    * Not sure if it'd be sensible to use `std::vector<std::shared_ptr<Client>>`
+    * Maybe just give it a `begin` and `end` and call it a day
+* [ ] Fix conversion warnings
+* [ ] Fix (or silence) the `fontconfig` memory leak
