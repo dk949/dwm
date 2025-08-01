@@ -279,8 +279,6 @@ struct NumTags {
 
 /* function implementations */
 void applyrules(Client *c) {
-    char const *class_;
-    char const *instance;
     unsigned int i;
     unsigned int newtagset;
     Rule const *r;
@@ -289,8 +287,8 @@ void applyrules(Client *c) {
     c->props.isfloating = false;
     c->tags = 0;
     auto ch = c->classHint(dpy);
-    class_ = ch.class_hint ? ch.class_hint.get() : broken;
-    instance = ch.instance_hint ? ch.instance_hint.get() : broken;
+    char const *class_ = ch.class_hint ? ch.class_hint.get() : broken;
+    char const *instance = ch.instance_hint ? ch.instance_hint.get() : broken;
 
     for (i = 0; i < LENGTH(rules); i++) {
         r = &rules[i];
@@ -1218,14 +1216,11 @@ static int isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo
 #endif /* XINERAMA */
 
 void keypress(XEvent *e) {
-    unsigned int i;
-    KeySym keysym;
-    XKeyEvent *ev;
 
-    ev = &e->xkey;
+    XKeyEvent *ev = &e->xkey;
 
-    keysym = XLookupKeysym(ev, 0);
-    for (i = 0; i < LENGTH(keys); i++) {
+    KeySym keysym = XLookupKeysym(ev, 0);
+    for (unsigned int i = 0; i < LENGTH(keys); i++) {
         if (keysym == keys[i].keysym && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state) && keys[i].func) {
             keys[i].func((keys[i].arg));
         }
