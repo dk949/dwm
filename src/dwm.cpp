@@ -23,6 +23,7 @@
 
 #include "dwm.hpp"
 
+#include "file.hpp"
 #include "layout.hpp"
 #include "log.hpp"
 #include "mapping.hpp"
@@ -2074,28 +2075,25 @@ void redirectChildLog(char **argv) {
     auto file_name = log_dir / argv[0];
     file_name.replace_extension(".log");
 
-    int child_fd = open(file_name.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
-    if (child_fd < 0) {
+    auto child_fd = FDPtr {open(file_name.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR)};
+    if (child_fd.get() < 0) {
         lg::warn("Could not set up logging for child processes {}: {}", argv[0], strerror(errno));
         return;
     }
     char const div[] = "________________________________________________________________________________\n";
-    if (write(child_fd, div, sizeof(div)) < 0) {
-        close(child_fd);
+    if (write(child_fd.get(), div, sizeof(div)) < 0) {
         lg::warn("Could not write to child log file {}: {}", file_name.c_str(), strerror(errno));
-        goto exit;
+        return;
     }
 
-    if (dup2(child_fd, STDOUT_FILENO) < 0) {
+    if (dup2(child_fd.get(), STDOUT_FILENO) < 0) {
         lg::warn("Could not redirect child stdout to log file {}: {}", file_name.c_str(), strerror(errno));
-        goto exit;
+        return;
     }
-    if (dup2(child_fd, STDERR_FILENO) < 0) {
+    if (dup2(child_fd.get(), STDERR_FILENO) < 0) {
         lg::warn("Could not redirect child stdout to log file {}: {}", file_name.c_str(), strerror(errno));
-        goto exit;
+        return;
     }
-exit:
-    close(child_fd);
 }
 
 void spawn(Arg const &arg) {
@@ -2718,17 +2716,18 @@ pid_t getparentprocess(pid_t p) {
     unsigned int v = 0;
 
 #ifdef __linux__
-    FILE *f;
     char buf[256];
     snprintf(buf, sizeof(buf) - 1, "/proc/%u/stat", (unsigned)p);
 
-    if (!(f = fopen(buf, "r"))) {
+
+    auto f = FilePtr{fopen(buf, "r")};
+
+    if (!f) {
         lg::warn("failed to open stat file {} for process {}: {}", buf, p, strerror(errno));
         return 0;
     }
 
-    int res = fscanf(f, "%*u %*s %*c %u", &v);
-    fclose(f);
+    int res = fscanf(f.get(), "%*u %*s %*c %u", &v);
     if (res != 1) {
         lg::warn("failed to get child process of {}: {}", p, strerror(errno));
         return 0;

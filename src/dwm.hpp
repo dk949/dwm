@@ -83,7 +83,6 @@ struct Client {
     char name[256];
     float mina, maxa;
     float cfact;
-    // TODO(dk949): How about a Rectangle struct???
     Rect<int> size;
     Rect<int> old_size;
     int basew, baseh, incw, inch, maxw, maxh, minw, minh;
