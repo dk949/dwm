@@ -299,7 +299,7 @@ void applyrules(Client *c) {
             c->props.isfloating = r->isfloating;
             c->props.noswallow = r->noswallow;
             c->tags |= r->tags;
-            auto mon_it = rng::find_if(mons, [&](MonitorPtr const &m) { return m->num == r->monitor; });
+            auto mon_it = rng::find_if(mons, [&](MonitorPtr const &m) noexcept { return m->num == r->monitor; });
             if (mon_it != mons.end()) c->mon = *mon_it;
 
             if (r->switchtotag) {
@@ -2442,15 +2442,25 @@ int updategeom() {
 
 #ifdef XINERAMA
     if (XineramaIsActive(dpy)) {
-        int j = 0;
-        int num_screen_infos;
+        std::size_t j = 0;
         Client *c;
-        XineramaScreenInfo *info = XineramaQueryScreens(dpy, &num_screen_infos);
+        std::size_t num_screen_infos = 0;
+        XineramaScreenInfo *info = nullptr;
+        {
+            int _num_screen_infos = 0;
+            info = XineramaQueryScreens(dpy, &_num_screen_infos);
+            if (!info || _num_screen_infos < 1) {
+                lg::error("XineramaIsActive returned true, but Xinerama was not active!!!");
+                goto no_xinerama;  // FIXME(dk949): 😱
+            }
+            num_screen_infos = (std::size_t)_num_screen_infos;
+        }
+
 
         /* only consider unique geometries as separate screens */
         auto *unique = new XineramaScreenInfo[(size_t)num_screen_infos];
         for (size_t i = 0; i < num_screen_infos; i++) {
-            if (isuniquegeom(unique, (size_t)j, &info[i])) {
+            if (isuniquegeom(unique, j, &info[i])) {
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
             }
         }
@@ -2461,10 +2471,11 @@ int updategeom() {
             mons.push_back(createmon());
         }
         for (auto const &[i, mon] : mons | vws::enumerate | vws::take(num_screen_infos)) {
-            if (i >= mons.size() || unique[i].x_org != mon->monitor_size.x || unique[i].y_org != mon->monitor_size.y
-                || unique[i].width != mon->monitor_size.w || unique[i].height != mon->monitor_size.h) {
+            if (std::cmp_greater_equal(i, mons.size()) || unique[i].x_org != mon->monitor_size.x
+                || unique[i].y_org != mon->monitor_size.y || unique[i].width != mon->monitor_size.w
+                || unique[i].height != mon->monitor_size.h) {
                 dirty = 1;
-                mon->num = i;
+                mon->num = (int)i;
                 mon->monitor_size.x = mon->window_size.x = unique[i].x_org;
                 mon->monitor_size.y = mon->window_size.y = unique[i].y_org;
                 mon->monitor_size.w = mon->window_size.w = unique[i].width;
@@ -2473,26 +2484,26 @@ int updategeom() {
             }
         }
         /* less monitors available nn < n */
-        for (auto i = num_screen_infos; i < mons.size(); i++) {
-            while ((c = mons.back()->clients)) {
+        for (auto const &mon : mons | vws::drop(num_screen_infos) | vws::reverse) {
+            while ((c = mon->clients)) {
                 dirty = 1;
-                mons.back()->clients = c->next;
+                mon->clients = c->next;
                 detachstack(c);
                 c->mon = mons.front();
                 attach(c);
                 attachaside(c);
                 attachstack(c);
             }
-            if (mons.back() == selmon) {
-                selmon = mons.front();
-            }
-            cleanupmon(mons.back());
+            if (mon == selmon) selmon = mons.front();
+            cleanupmon(mon);
         }
-        mons.erase(mons.begin() + num_screen_infos, mons.end());
+        if (auto erase_start = mons.begin() + (long)num_screen_infos; erase_start <= mons.end())
+            mons.erase(erase_start, mons.end());
         delete[] unique;
     } else
 #endif /* XINERAMA */
     {  /* default monitor setup */
+no_xinerama:
         if (mons.empty()) {
             mons.push_back(createmon());
         }
@@ -2720,7 +2731,7 @@ pid_t getparentprocess(pid_t p) {
     snprintf(buf, sizeof(buf) - 1, "/proc/%u/stat", (unsigned)p);
 
 
-    auto f = FilePtr{fopen(buf, "r")};
+    auto f = FilePtr {fopen(buf, "r")};
 
     if (!f) {
         lg::warn("failed to open stat file {} for process {}: {}", buf, p, strerror(errno));
@@ -2895,7 +2906,7 @@ MonitorPtr wintomon(Window w) {
     if (w == root && getrootptr(&x, &y)) {
         return recttomon(x, y, 1, 1);
     }
-    if (auto mon_it = rng::find_if(mons, [&](auto const &m) { return w == m->barwin; }); mon_it != mons.end()) {
+    if (auto mon_it = rng::find_if(mons, [&](auto const &m) noexcept { return w == m->barwin; }); mon_it != mons.end()) {
         return *mon_it;
     }
     if (Client *c = wintoclient(w)) {

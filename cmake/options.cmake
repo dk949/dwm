@@ -31,7 +31,7 @@ option(ENABLE_DOXYGEN "Enable doxygen doc builds of source" ON)
 
 
 # Warnings
-option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" ON)
 
 
 
