@@ -44,8 +44,13 @@ target_sources(
 
 target_add_icon_loc(${EXE_NAME} PUBLIC)
 target_link_alsa(${EXE_NAME} PUBLIC)
-target_link_xinerama(${EXE_NAME} PUBLIC)
+target_link_xinerama(${EXE_NAME} PUBLIC HAVE_XINERAMA)
 target_link_x11(${EXE_NAME} PUBLIC Xft xcb_res xcb X11_xcb)
+if (HAVE_XINERAMA)
+    target_sources(${EXE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/xinerama.cpp)
+else ()
+    target_sources(${EXE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/noxinerama.cpp)
+endif ()
 
 enable_sanitizers(${EXE_NAME} PUBLIC)
 set_target_warnings(${EXE_NAME} PUBLIC)

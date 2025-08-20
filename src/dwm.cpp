@@ -27,6 +27,7 @@
 #include "layout.hpp"
 #include "log.hpp"
 #include "mapping.hpp"
+#include "xinerama.hpp"
 
 #include <fcntl.h>
 #include <project/config.hpp>
@@ -49,15 +50,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <numeric>
 #include <print>
 #include <ranges>
 #include <utility>
 namespace rng = std::ranges;
 namespace vws = std::views;
-
-#ifdef XINERAMA
-#    include <X11/extensions/Xinerama.h>
-#endif /* XINERAMA */
 
 #include "drw.hpp"
 #include "util.hpp"
@@ -446,18 +444,13 @@ void attachstack(Client *c) {
 }
 
 int avgheight() {
-#ifdef XINERAMA
-    if (XineramaIsActive(dpy)) {
-        int scr_count;
-        XineramaScreenInfo *screens = XineramaQueryScreens(dpy, &scr_count);
+    if (xineramaIsActive(dpy)) {
+        auto screens = ScreenInfoPtr::query(dpy);
         double out = 0;
-        for (int i = 0; i < scr_count; i++)
-            out += screens->width;
-        XFree(screens);
-        return (int)(out / (double)scr_count);
-    } else
-#endif
-    {
+        for (auto i = 0uz; i < screens.count(); i++)
+            out += screens[i].width;
+        return static_cast<int>(out / static_cast<double>(screens.count()));
+    } else {
         return sh;
     }
 }
@@ -1204,17 +1197,15 @@ void incnmaster(Arg const &arg) {
     setmaster(Arg {.i = std::max(selmon->nmaster + arg.i, 0)});
 }
 
-#ifdef XINERAMA
-static int isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
+static int isuniquegeom(std::span<ScreenInfo const> unique, size_t n, ScreenInfo info) {
     while (n--) {
-        if (unique[n].x_org == info->x_org && unique[n].y_org == info->y_org && unique[n].width == info->width
-            && unique[n].height == info->height) {
+        if (unique[n].x_org == info.x_org && unique[n].y_org == info.y_org && unique[n].width == info.width
+            && unique[n].height == info.height) {
             return 0;
         }
     }
     return 1;
 }
-#endif /* XINERAMA */
 
 void keypress(XEvent *e) {
 
@@ -2440,46 +2431,36 @@ void updateclientlist() {
 int updategeom() {
     int dirty = 0;
 
-#ifdef XINERAMA
-    if (XineramaIsActive(dpy)) {
+    if (xineramaIsActive(dpy)) {
         std::size_t j = 0;
         Client *c;
-        std::size_t num_screen_infos = 0;
-        XineramaScreenInfo *info = nullptr;
-        {
-            int _num_screen_infos = 0;
-            info = XineramaQueryScreens(dpy, &_num_screen_infos);
-            if (!info || _num_screen_infos < 1) {
-                lg::error("XineramaIsActive returned true, but Xinerama was not active!!!");
-                goto no_xinerama;  // FIXME(dk949): 😱
-            }
-            num_screen_infos = (std::size_t)_num_screen_infos;
-        }
-
-
+        auto info = ScreenInfoPtr::query(dpy);
+        std::size_t num_screen_infos = info.count();
         /* only consider unique geometries as separate screens */
-        auto *unique = new XineramaScreenInfo[(size_t)num_screen_infos];
+        // auto *unique = new ScreenInfo[num_screen_infos];
+        std::vector<ScreenInfo> unique;
+        unique.resize(num_screen_infos);
         for (size_t i = 0; i < num_screen_infos; i++) {
-            if (isuniquegeom(unique, j, &info[i])) {
-                memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
+            if (isuniquegeom(unique, j, info[i])) {
+                unique[j++] = info[i];
             }
         }
-        XFree(info);
         num_screen_infos = j;
         /* new monitors available */
         for (auto i = mons.size(); i < num_screen_infos; i++) {
             mons.push_back(createmon());
         }
-        for (auto const &[i, mon] : mons | vws::enumerate | vws::take(num_screen_infos)) {
-            if (std::cmp_greater_equal(i, mons.size()) || unique[i].x_org != mon->monitor_size.x
-                || unique[i].y_org != mon->monitor_size.y || unique[i].width != mon->monitor_size.w
-                || unique[i].height != mon->monitor_size.h) {
+        for (auto const &[mon, u, i] : vws::zip(mons | vws::take(num_screen_infos), unique, vws::iota(0))) {
+            if (u.x_org != mon->monitor_size.x     //
+                || u.y_org != mon->monitor_size.y  //
+                || u.width != mon->monitor_size.w  //
+                || u.height != mon->monitor_size.h) {
                 dirty = 1;
-                mon->num = (int)i;
-                mon->monitor_size.x = mon->window_size.x = unique[i].x_org;
-                mon->monitor_size.y = mon->window_size.y = unique[i].y_org;
-                mon->monitor_size.w = mon->window_size.w = unique[i].width;
-                mon->monitor_size.h = mon->window_size.h = unique[i].height;
+                mon->num = i;
+                mon->monitor_size.x = mon->window_size.x = u.x_org;
+                mon->monitor_size.y = mon->window_size.y = u.y_org;
+                mon->monitor_size.w = mon->window_size.w = u.width;
+                mon->monitor_size.h = mon->window_size.h = u.height;
                 updatebarpos(mon);
             }
         }
@@ -2499,11 +2480,7 @@ int updategeom() {
         }
         if (auto erase_start = mons.begin() + (long)num_screen_infos; erase_start <= mons.end())
             mons.erase(erase_start, mons.end());
-        delete[] unique;
-    } else
-#endif /* XINERAMA */
-    {  /* default monitor setup */
-no_xinerama:
+    } else { /* default monitor setup */
         if (mons.empty()) {
             mons.push_back(createmon());
         }
