@@ -34,3 +34,10 @@ List of things I'd like to implement but don't have time for
     * Maybe just give it a `begin` and `end` and call it a day
 * [ ] Fix conversion warnings
 * [ ] Fix (or silence) the `fontconfig` memory leak
+* [ ] Fix incorrect tiling (rotation) behaviour with windows created by the same
+      application.
+* [X] Better abstraction for doing `Xinerama`
+    * Avoid `#ifdef`s everywhere
+* [ ] Fix zoom:
+  * Emoji picker window: title: "Zoom Workplace", instance: "zoom", class: "zoom"
+  * Notification window: title: '', instance: "zoom", class: "zoom",
