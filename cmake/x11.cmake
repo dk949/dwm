@@ -1,11 +1,11 @@
-
 function (target_link_xinerama target access succ)
     find_package(X11 OPTIONAL_COMPONENTS Xinerama)
     if (X11_Xinerama_FOUND)
         target_link_libraries(${target} ${access} X11::Xinerama)
-        set(${succ} YES)
+        set(${succ} YES PARENT_SCOPE)
+    else ()
+        set(${succ} NO PARENT_SCOPE)
     endif ()
-    set(${succ} NO)
 endfunction ()
 
 function (target_link_x11 target access)

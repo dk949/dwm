@@ -49,6 +49,7 @@ target_link_x11(${EXE_NAME} PUBLIC Xft xcb_res xcb X11_xcb)
 if (HAVE_XINERAMA)
     target_sources(${EXE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/xinerama.cpp)
 else ()
+    message(WARNING "Compiling with no XINERAMA support HAVE_XINERAMA = ${HAVE_XINERAMA}")
     target_sources(${EXE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/noxinerama.cpp)
 endif ()
 
