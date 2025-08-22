@@ -135,11 +135,11 @@ void EventLoop::runQueueEvents(InternalQueue *q) {
 
 void EventLoop::handleXEvents(chr::high_resolution_clock::time_point until) {
     flushXEvents();
-    while (until > chr::high_resolution_clock::now()) {
+    for (auto now = chr::high_resolution_clock::now(); now < until; now = chr::high_resolution_clock::now()) {
         fd_set x_fd_set;
         FD_ZERO(&x_fd_set);
         FD_SET(x_socket, &x_fd_set);
-        auto const ts = fromChrono(until - chr::high_resolution_clock::now());
+        auto const ts = fromChrono(until - now);
         if (auto bits = pselect(x_socket + 1, &x_fd_set, nullptr, nullptr, &ts, nullptr); bits > 0) {
             flushXEvents();
         } else if (bits < 0) {
