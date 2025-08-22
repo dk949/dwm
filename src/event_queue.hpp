@@ -2,6 +2,7 @@
 #define DWM_EVENT_QUEUE_HPP
 #include "type_utils.hpp"
 
+#include <project/config.hpp>
 #include <sys/select.h>
 #include <ut/mt_queue/mt_queue.hpp>
 #include <X11/X.h>
@@ -61,7 +62,7 @@ private:
     InternalQueue *m_active_queue = &m_queues[0];
     InternalQueue *m_inactive_queue = &m_queues[1];
 
-    EventLogger<true> logger;
+    EventLogger<dwm::log_events> logger;
 
     Display *m_dpy;
     int x_socket;

@@ -189,6 +189,8 @@ namespace version {
 inline constexpr std::string_view name = "${PROJECT_NAME}";
 inline constexpr std::string_view description = "${PROJECT_DESCRIPTION}";
 inline constexpr std::string_view url = "${PROJECT_HOMEPAGE_URL}";
+
+inline constexpr bool log_events = ${DWM_LOG_EVENTS};
 }  // namespace ${THIS_PROJECT_NAME}
 
 #endif  // ${THIS_PROJECT_NAME}_CONFIG_HPP

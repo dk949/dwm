@@ -34,6 +34,11 @@ else()
     set(DWM_DEBUG false)
 endif()
 
+if(LOG_EVENTS)
+    set(DWM_LOG_EVENTS true)
+else()
+    set(DWM_LOG_EVENTS false)
+endif()
 
 
 configure_file("config.hpp.in" "${CMAKE_BINARY_DIR}/project_config/include/project/config.hpp" ESCAPE_QUOTES)

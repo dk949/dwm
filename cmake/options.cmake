@@ -47,7 +47,8 @@ set(MACRO_PREFIX "" CACHE STRING "Make __FILE__ macro relative to particular dir
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-
+# event logging
+option(LOG_EVENTS "log event handling stats" OFF)
 
 # Compile commands
 option(CMAKE_EXPORT_COMPILE_COMMANDS "generate compile_commands.json" ON)
