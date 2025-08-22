@@ -23,6 +23,7 @@
 
 #include "dwm.hpp"
 
+#include "event_queue.hpp"
 #include "file.hpp"
 #include "layout.hpp"
 #include "log.hpp"
@@ -50,9 +51,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <numeric>
 #include <print>
 #include <ranges>
+#include <thread>
 #include <utility>
 namespace rng = std::ranges;
 namespace vws = std::views;
@@ -101,17 +104,6 @@ enum {
 
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMChangeState, WMLast }; /* default atoms */
 
-enum {
-    SelfNotifyNone = 0,
-    SelfNotifyFadeBar,
-
-    // Has to be last
-    SelfNotifyLast,
-};
-
-using SelfNotifyCallback = void (*)();
-using NotifyCallback = void (*)(XEvent *);
-
 #define PROGRESS_FADE 0, 0, 0
 
 
@@ -156,6 +148,7 @@ static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys();
 static void iconifyclient(Client *c);
+static void installEventHandlers();
 static int isdescprocess(pid_t p, pid_t c);
 static void keypress(XEvent *e);
 static void manage(Window w, XWindowAttributes *wa);
@@ -165,16 +158,13 @@ static void motionnotify(XEvent *e);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
 static void redirectChildLog(char **argv);
-static void notifyself(int type);
-static void handle_notifyself_fade_anim();
+static void handle_notifyself_fade_anim(FadeBarEvent);
 static void pop(Client *c);
-static void print_event_stats();
 static void propertynotify(XEvent *e);
 static MonitorPtr recttomon(int x, int y, int w, int h);
 static void resize(Client *c, Rect<int> size, int interact);
 static void resizeclient(Client *c, Rect<int> new_size);
 static void restack(MonitorPtr const &m);
-static void run();
 static void scan();
 static bool sendevent(Client *c, Atom proto);
 static void sendmon(Client *c, MonitorPtr m);
@@ -223,34 +213,8 @@ static int bar_height, sel_bar_name_x = -1, sel_bar_name_width = -1; /* bar geom
 static int lrpad;                                                    /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
-static int notified = SelfNotifyNone;
-static constexpr auto self_notify_handler = [] {
-    std::array<SelfNotifyCallback, 2> out;
-    out[SelfNotifyNone] = nullptr;
-    out[SelfNotifyFadeBar] = handle_notifyself_fade_anim;
-    return out;
-}();
-// static void (*handler[LASTEvent])(XEvent *) = {
-static constexpr auto handler = [] {
-    std::array<NotifyCallback, LASTEvent> out {};
-    out[ButtonPress] = buttonpress;
-    out[ClientMessage] = clientmessage;
-    out[ConfigureRequest] = configurerequest;
-    out[ConfigureNotify] = configurenotify;
-    out[DestroyNotify] = destroynotify;
-    out[EnterNotify] = enternotify;
-    out[Expose] = expose;
-    out[FocusIn] = focusin;
-    out[KeyPress] = keypress;
-    out[MappingNotify] = mappingnotify;
-    out[MapRequest] = maprequest;
-    out[MotionNotify] = motionnotify;
-    out[PropertyNotify] = propertynotify;
-    out[UnmapNotify] = unmapnotify;
-    return out;
-}();
 static Atom wmatom[WMLast], netatom[NetLast];
-static int running = 1, need_restart = 0;
+static int need_restart = 0;
 static Display *dpy;
 static Drw *drw;
 static Monitors mons;
@@ -261,6 +225,7 @@ static volc_t *volc;
 #endif /* ASOUND */
 static xcb_connection_t *xcon;
 static std::filesystem::path log_dir;
+static std::unique_ptr<EventLoop> loop = nullptr;
 
 struct Pertag {
     unsigned int curtag, prevtag;              /* current and previous tag */
@@ -885,6 +850,8 @@ void drawbars() {
     }
 }
 
+// TODO(dk949): THIS NEEDS TO BE FIXED!!!!!
+//              (also handle_notifyself_fade_anim)
 void drawprogress(unsigned long long t, unsigned long long c, Color const *color) {
     static unsigned long long total;
     static unsigned long long current;
@@ -916,7 +883,7 @@ void drawprogress(unsigned long long t, unsigned long long c, Color const *color
         drw->draw_rect(x, y, (unsigned)(((double)w * (double)current) / (double)total), (unsigned)h, true, fg != 0);
 
         drw->map(selmon->barwin, x, y, (unsigned)w, (unsigned)h);
-        notifyself(SelfNotifyFadeBar);
+        loop->push(FadeBarEvent());
     }
 }
 
@@ -1410,9 +1377,9 @@ void movemouse(Arg const &arg) {
             // TODO(dk949): make sure these don't actually need special treatment
             case ButtonRelease:
             case NoExpose: break;
-            case ConfigureRequest:
-            case Expose:
-            case MapRequest: handler[(size_t)ev.type](&ev); break;
+            case ConfigureRequest: loop->exec<ConfigureRequest>(&ev); break;
+            case Expose: loop->exec<Expose>(&ev); break;
+            case MapRequest: loop->exec<MapRequest>(&ev); break;
             case MotionNotify:
                 if ((ev.xmotion.time - lasttime) <= (1000 / 60)) {
                     continue;
@@ -1474,24 +1441,6 @@ void pop(Client *c) {
     arrange(c->mon);
 }
 
-static void print_event_stats() {
-    static long calls = 0;
-    static timespec last_print {};
-
-
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-    if (last_print.tv_sec == 0 && last_print.tv_nsec == 0) last_print = now;
-
-    calls++;
-
-    if (timespecdiff(&now, &last_print) < 1.0) return;
-
-    lg::debug("{} events/s", calls);
-    calls = 0;
-    last_print = now;
-}
-
 void propertynotify(XEvent *e) {
     Client *c;
     Window trans;
@@ -1530,14 +1479,14 @@ void propertynotify(XEvent *e) {
 
 void quit(Arg const &arg) {
     (void)arg;
-    running = 0;
+    loop->push(TerminateEvent());
     need_restart = 0;
     lg::info("Initiating shutdowd");
 }
 
 void restart(Arg const &arg) {
     (void)arg;
-    running = 0;
+    loop->push(TerminateEvent());
     need_restart = 1;
 }
 
@@ -1634,9 +1583,9 @@ void resizemouse(Arg const &arg) {
             // TODO(dk949): make sure these don't actually need special treatment
             case ButtonRelease:
             case NoExpose: break;
-            case ConfigureRequest:
-            case Expose:
-            case MapRequest: handler[(size_t)ev.type](&ev); break;
+            case ConfigureRequest: loop->exec<ConfigureRequest>(&ev); break;
+            case Expose: loop->exec<Expose>(&ev); break;
+            case MapRequest: loop->exec<MapRequest>(&ev); break;
             case MotionNotify:
                 if ((ev.xmotion.time - lasttime) <= (1000 / 60)) {
                     continue;
@@ -1735,25 +1684,6 @@ void rotatestack(Arg const &arg) {
     }
 }
 
-void run() {
-    XEvent ev;
-    /* main event loop */
-    XSync(dpy, False);
-    while (true) {
-        if (!running) break;
-        // Only handle self notify events if no X events need handling
-        if (notified && XPending(dpy) == 0) {
-            if (self_notify_handler[(size_t)notified]) self_notify_handler[(size_t)notified]();
-        } else {
-            if (XNextEvent(dpy, &ev)) break;
-            if (handler[(size_t)ev.type]) handler[(size_t)ev.type](&ev); /* call handler */
-        }
-        IF_EVENT_TRACE {
-            print_event_stats();
-        }
-    }
-}
-
 void scan() {
     unsigned int i;
     unsigned int num;
@@ -1787,15 +1717,9 @@ void scan() {
     }
 }
 
-void handle_notifyself_fade_anim() {
-    notified = SelfNotifyNone;
+void handle_notifyself_fade_anim(FadeBarEvent) {
     drawprogress(PROGRESS_FADE);
-    struct timespec requested_time = {.tv_sec = 0, .tv_nsec = (long)((1.0 / 60.0) * 1e9)};
-    nanosleep(&requested_time, nullptr);
-}
-
-void notifyself(int type) {
-    notified = type;
+    std::this_thread::sleep_for(EventLoop::tick_time);
 }
 
 void sendmon(Client *c, MonitorPtr m) {
@@ -1946,7 +1870,6 @@ void resetmcfact(Arg const &unused) {
 }
 
 void setup() {
-    XSetWindowAttributes wa;
     Atom utf8string;
     struct sigaction sa;
 
@@ -2023,11 +1946,11 @@ void setup() {
     XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)netatom, NetLast);
     XDeleteProperty(dpy, root, netatom[NetClientList]);
     /* select events */
+    XSetWindowAttributes wa;
     wa.cursor = drw->cursors().normal();
-    wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask
-                  | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask;
-    XChangeWindowAttributes(dpy, root, CWEventMask | CWCursor, &wa);
-    XSelectInput(dpy, root, wa.event_mask);
+    XChangeWindowAttributes(dpy, root, CWCursor, &wa);
+    loop = std::make_unique<EventLoop>(dpy, root);
+    installEventHandlers();
     grabkeys();
     focus(nullptr);
 }
@@ -2826,6 +2749,24 @@ static void iconifyclient(Client *c) {
     delay(1'000'000 * 5, (void (*)(void *))uniconifyclient, c);
 }
 
+void installEventHandlers() {
+    loop->on<ButtonPress>(buttonpress);
+    loop->on<ClientMessage>(clientmessage);
+    loop->on<ConfigureRequest>(configurerequest);
+    loop->on<ConfigureNotify>(configurenotify);
+    loop->on<DestroyNotify>(destroynotify);
+    loop->on<EnterNotify>(enternotify);
+    loop->on<Expose>(expose);
+    loop->on<FocusIn>(focusin);
+    loop->on<KeyPress>(keypress);
+    loop->on<MappingNotify>(mappingnotify);
+    loop->on<MapRequest>(maprequest);
+    loop->on<MotionNotify>(motionnotify);
+    loop->on<PropertyNotify>(propertynotify);
+    loop->on<UnmapNotify>(unmapnotify);
+    loop->on<FadeBarEvent>(handle_notifyself_fade_anim);
+}
+
 int isdescprocess(pid_t p, pid_t c) {
     while (p != c && c != 0) {
         c = getparentprocess(c);
@@ -2969,7 +2910,7 @@ int main(int argc, char *argv[]) {
 #endif /* __OpenBSD__ */
     scan();
     lg::info("DWM ({}{})", dwm::version::full, dwm::version::is_debug ? "-debug" : "");
-    run();
+    loop->run();
     cleanup();
     XCloseDisplay(dpy);
     if (need_restart) {
