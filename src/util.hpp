@@ -18,9 +18,6 @@
 #    define IF_EVENT_TRACE if (false)
 #endif  // NDEBUG
 
-#include <stdarg.h>
-#include <stddef.h>
-
 constexpr auto between(auto x, auto a, auto b) {
     return a <= x && x <= b;
 }
@@ -28,8 +25,9 @@ constexpr auto between(auto x, auto a, auto b) {
 void delay(int delay_for, void (*fn)(void *), void *arg);
 
 template<typename R, typename E, typename Cmp>
-bool contains(R const &r, E &&match, Cmp const &cmp = std::equal_to<E> {}) {
-    return std::ranges::find_if(r, [&](E const &e) { return cmp(match, e); }) == std::ranges::end(r);
+bool contains(R const &r, E &&_match, Cmp const &cmp = std::equal_to<E> {}) {
+    return std::ranges::find_if(r, [&, match = std::forward<E>(_match)](E const &e) { return cmp(match, e); })
+        == std::ranges::end(r);
 }
 
 #endif  // DWM_UTIL_HPP
