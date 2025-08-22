@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <ctime>
-#include <type_traits>
 namespace chr = std::chrono;
 // NOLINTNEXTLINE(google-global-names-in-headers) // Yes, but this is too convenient :)
 using namespace std::chrono_literals;
@@ -28,6 +27,7 @@ constexpr T fromTimespec(std::timespec ts) {
 }
 
 using DoubleSec = chr::duration<double>;
+using DoubleMSec = chr::duration<double, std::milli>;
 
 // NOLINTBEGIN(readability-magic-numbers) // tests
 static_assert(fromChrono(2s).tv_sec == 2 && fromChrono(2s).tv_nsec == 0);

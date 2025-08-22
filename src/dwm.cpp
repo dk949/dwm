@@ -1719,7 +1719,6 @@ void scan() {
 
 void handle_notifyself_fade_anim(FadeBarEvent) {
     drawprogress(PROGRESS_FADE);
-    std::this_thread::sleep_for(EventLoop::tick_time);
 }
 
 void sendmon(Client *c, MonitorPtr m) {

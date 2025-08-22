@@ -27,6 +27,8 @@ void EventLogger<false>::log() { };
 template<>
 void EventLogger<true>::tickStart() {
     this_tick_start = chr::high_resolution_clock::now();
+    internal_total += internal_this_tick;
+    x_total += x_this_tick;
     internal_this_tick = 0;
     x_this_tick = 0;
 }
@@ -54,21 +56,22 @@ template<>
 void EventLogger<true>::log() {
     auto const since = chr::high_resolution_clock::now() - last_log;
     if (since < log_every) return;
-    auto const ticks_since = since / EventLoop::tick_time;
+    auto const ticks_since = chr::duration_cast<DoubleSec>(since) / chr::duration_cast<DoubleSec>(EventLoop::tick_time);
     auto const fn = [&](auto &total, auto &max, char const *name) {
-        lg::debug("({}) {} / {}; {} / tick (avg); {} / tick (max); max tick time {}",
+        lg::debug("({}) {} / {}; {:0.2g} / tick (avg); {} / tick (max); max tick time {}",
             name,
             total,
             chr::duration_cast<DoubleSec>(log_every),
-            total / static_cast<std::size_t>(ticks_since),
+            static_cast<double>(total) / ticks_since,
             max,
-            chr::duration_cast<DoubleSec>(max_tick_time));
+            chr::duration_cast<DoubleMSec>(max_tick_time));
         total = 0;
         max = 0;
     };
     fn(internal_total, internal_max_per_tick, "ievents");
     fn(x_total, x_max_per_tick, "xevents");
     max_tick_time = max_tick_time.zero();
+    last_log = chr::high_resolution_clock::now();
 }
 
 EventLoop::EventLoop(Display *dpy, Window root)
