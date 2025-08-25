@@ -102,15 +102,4 @@ std::filesystem::path setupLogging() {
     }
 }
 
-namespace detail {
-
-    char const *datetime(void) {
-        static char buf[26];
-
-        time_t timer = time(nullptr);
-        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&timer));
-        return buf;
-    }
-
-}  // namespace detail
 }  // namespace lg

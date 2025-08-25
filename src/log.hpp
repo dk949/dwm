@@ -1,3 +1,9 @@
+#ifndef DWM_LOG_HPP
+#define DWM_LOG_HPP
+
+
+
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
@@ -10,8 +16,6 @@ extern FILE *log_file;
 enum struct Level { Debug, Info, Warn, Error, Fatal };
 
 namespace detail {
-    char const *datetime(void);
-
     constexpr std::string_view log_level_str(Level l) {
         switch (l) {
             case Level::Debug: return "[DWM DBG]";
@@ -43,13 +47,17 @@ void sendNotice(Level l, std::string_view header, std::string_view body = {});
 
 template<Level level, typename... Args>
 void log(std::format_string<Args...> fmt, Args &&...args) {
-    auto file = log_file ? log_file : stderr;
-    std::print(file, "{} {}: ", detail::datetime(), detail::log_level_str(level));
     auto msg = std::format(fmt, std::forward<Args>(detail::checkForNull(args))...) + '\n';
-    std::fputs(msg.c_str(), file);
-    if (!log_file) fputs("NOTE: logfile unavailable", file);
-    fflush(file);
     sendNotice(level, msg);
+    auto *const file = log_file ? log_file : stderr;
+    std::print(file,
+        "{} {}: {}",
+        std::chrono::current_zone()->to_local(
+            std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now())),
+        detail::log_level_str(level),
+        msg);
+    if (!log_file) (void)fputs("NOTE: logfile unavailable", file);
+    (void)fflush(file);
 }
 
 template<typename... Args>
@@ -93,3 +101,4 @@ std::optional<std::filesystem::path> getLogDir(void);
 std::filesystem::path setupLogging();
 
 }  // namespace lg
+#endif  // DWM_LOG_HPP
