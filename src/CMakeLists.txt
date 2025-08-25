@@ -23,6 +23,7 @@ add_executable(
     ${CMAKE_CURRENT_SOURCE_DIR}/dwm.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/event_queue.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/log.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/proc.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/util.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/volc.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/x_utils.cpp #

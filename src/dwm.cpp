@@ -28,6 +28,7 @@
 #include "layout.hpp"
 #include "log.hpp"
 #include "mapping.hpp"
+#include "proc.hpp"
 #include "xinerama.hpp"
 
 #include <fcntl.h>
@@ -47,15 +48,12 @@
 #include <array>
 #include <cerrno>
 #include <clocale>
-#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include <numeric>
 #include <print>
 #include <ranges>
-#include <thread>
 #include <utility>
 namespace rng = std::ranges;
 namespace vws = std::views;
@@ -157,7 +155,6 @@ static void maprequest(XEvent *e);
 static void motionnotify(XEvent *e);
 static Client *nexttagged(Client *c);
 static Client *nexttiled(Client *c);
-static void redirectChildLog(char **argv);
 static void handle_notifyself_fade_anim(FadeBarEvent);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
@@ -1870,16 +1867,11 @@ void resetmcfact(Arg const &unused) {
 
 void setup() {
     Atom utf8string;
-    struct sigaction sa;
-
-    /* do not transform children into zombies when they terminate */
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_NOCLDSTOP | SA_NOCLDWAIT | SA_RESTART;
-    sa.sa_handler = SIG_IGN;
-    sigaction(SIGCHLD, &sa, nullptr);
 
     /* clean up any zombies (inherited from .xinitrc etc) immediately */
-    while (waitpid(-1, nullptr, WNOHANG)) { }
+    if (auto const zombie_count = Proc::cleanUpZombies(); zombie_count != -1ull)
+        lg::debug("Cleaned {} zombies", zombie_count);
+
 
 
     /* init screen */
@@ -1984,48 +1976,9 @@ void showhide(Client *c) {
     }
 }
 
-void redirectChildLog(char **argv) {
-    auto file_name = log_dir / argv[0];
-    file_name.replace_extension(".log");
-
-    auto child_fd = FDPtr {open(file_name.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR)};
-    if (child_fd.get() < 0) {
-        lg::warn("Could not set up logging for child processes {}: {}", argv[0], strerror(errno));
-        return;
-    }
-    char const div[] = "________________________________________________________________________________\n";
-    if (write(child_fd.get(), div, sizeof(div)) < 0) {
-        lg::warn("Could not write to child log file {}: {}", file_name.c_str(), strerror(errno));
-        return;
-    }
-
-    if (dup2(child_fd.get(), STDOUT_FILENO) < 0) {
-        lg::warn("Could not redirect child stdout to log file {}: {}", file_name.c_str(), strerror(errno));
-        return;
-    }
-    if (dup2(child_fd.get(), STDERR_FILENO) < 0) {
-        lg::warn("Could not redirect child stdout to log file {}: {}", file_name.c_str(), strerror(errno));
-        return;
-    }
-}
-
 void spawn(Arg const &arg) {
-    struct sigaction sa;
     if (arg.v == dmenucmd) dmenumon[0] = (char)('0' + selmon->num);
-
-    if (fork() == 0) {
-        if (dpy) {
-            close(ConnectionNumber(dpy));
-        }
-        redirectChildLog((char **)arg.v);
-        setsid();
-        sigemptyset(&sa.sa_mask);
-        sa.sa_flags = 0;
-        sa.sa_handler = SIG_DFL;
-        sigaction(SIGCHLD, &sa, nullptr);
-        execvp(((char **)arg.v)[0], (char **)arg.v);
-        lg::fatal("failed to spawn {}:", ((char **)arg.v)[0]);
-    }
+    Proc::spawnDetached(dpy, static_cast<char *const *>(arg.v));
 }
 
 void tag(Arg const &arg) {

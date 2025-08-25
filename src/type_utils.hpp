@@ -2,6 +2,7 @@
 #define DWM_TYPE_UTILS_HPP
 
 
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -97,4 +98,46 @@ using map_tuple_types_t = map_tuple_types<Tuple, Template>::type;
 static_assert(
     std::is_same_v<map_tuple_types_t<std::tuple<int, float>, std::vector>, std::tuple<std::vector<int>, std::vector<float>>>);
 
+template<typename Str>
+struct is_std_string_like : std::disjunction<std::is_same<Str, std::string>, std::is_same<Str, std::string_view>> { };
+
+template<typename Str>
+inline constexpr auto is_std_string_like_v = is_std_string_like<Str>::value;
+
+template<typename Str>
+concept StdStringLike = is_std_string_like_v<Str>;
+
+template<typename Str>
+struct is_string_view_like
+        : std::disjunction<
+              std::conjunction<std::is_pointer<Str>, std::is_same<char, std::remove_const_t<std::remove_pointer_t<Str>>>>,
+              std::is_same<Str, std::string_view>> { };
+
+template<typename Str>
+inline constexpr auto is_string_view_like_v = is_string_view_like<Str>::value;
+
+template<typename Str>
+concept StringViewLike = is_string_view_like_v<Str>;
+
+template<typename Str>
+struct is_string_like : std::disjunction<is_string_view_like<Str>, is_std_string_like<Str>> { };
+
+template<typename Str>
+inline constexpr auto is_string_like_v = is_string_like<Str>::value;
+
+template<typename Str>
+concept StringLike = is_string_like_v<Str>;
+
+static_assert(is_std_string_like_v<std::string_view>);
+static_assert(is_std_string_like_v<std::string>);
+
+static_assert(is_string_view_like_v<std::string_view>);
+static_assert(is_string_view_like_v<char *>);
+static_assert(is_string_view_like_v<char const *>);
+
+static_assert(is_string_like_v<std::string_view>);
+static_assert(is_string_like_v<std::string>);
+static_assert(is_string_like_v<std::string_view>);
+static_assert(is_string_like_v<char *>);
+static_assert(is_string_like_v<char const *>);
 #endif  // DWM_TYPE_UTILS_HPP
