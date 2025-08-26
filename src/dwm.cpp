@@ -24,11 +24,11 @@
 #include "dwm.hpp"
 
 #include "event_queue.hpp"
-#include "file.hpp"
 #include "layout.hpp"
 #include "log.hpp"
 #include "mapping.hpp"
 #include "proc.hpp"
+#include "strerror.hpp"
 #include "xinerama.hpp"
 
 #include <fcntl.h>
@@ -51,6 +51,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <memory>
 #include <print>
 #include <ranges>
@@ -2586,13 +2587,13 @@ pid_t getparentprocess(pid_t p) {
     auto f = FilePtr {fopen(buf, "r")};
 
     if (!f) {
-        lg::warn("failed to open stat file {} for process {}: {}", buf, p, strerror(errno));
+        lg::warn("failed to open stat file {} for process {}: {}", buf, p, strError(errno));
         return 0;
     }
 
     int res = fscanf(f.get(), "%*u %*s %*c %u", &v);
     if (res != 1) {
-        lg::warn("failed to get child process of {}: {}", p, strerror(errno));
+        lg::warn("failed to get child process of {}: {}", p, strError(errno));
         return 0;
     }
 #endif /* __linux__ */

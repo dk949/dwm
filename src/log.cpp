@@ -1,5 +1,7 @@
 #include "log.hpp"
 
+#include "strerror.hpp"
+
 #include <noticeboard/backend.hpp>
 #include <noticeboard/noticeboard.hpp>
 #include <X11/Xlib.h>
@@ -75,7 +77,7 @@ std::optional<std::filesystem::path> getLogDir(void) {
         if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
 
         if (ec == std::errc {}) return path;
-        warn("Failed to get XDG_CACHE_HOME ({}): {}", path.c_str(), strerror(errno));
+        warn("Failed to get XDG_CACHE_HOME ({}): {}", path.c_str(), strError(errno));
     }
 
     char const *home = getenv("HOME");
@@ -85,7 +87,7 @@ std::optional<std::filesystem::path> getLogDir(void) {
         if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
 
         if (ec == std::errc {}) return path;
-        warn("Failed to get $HOME/.cache directory ({}): {}", path.c_str(), strerror(errno));
+        warn("Failed to get $HOME/.cache directory ({}): {}", path.c_str(), strError(errno));
     }
     return {};
 }
@@ -95,7 +97,7 @@ std::filesystem::path setupLogging() {
     if (log_dir) {
         auto log_file_name = *log_dir / "dwm.log";
         lg::log_file = fopen(log_file_name.c_str(), "a");
-        if (!lg::log_file) lg::fatal("could not open log file: {}", std::strerror(errno));
+        if (!lg::log_file) lg::fatal("could not open log file: {}", strError(errno));
         return *log_dir;
     } else {
         lg::fatal("Could not obtain log dir");

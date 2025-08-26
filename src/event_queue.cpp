@@ -1,6 +1,7 @@
 #include "event_queue.hpp"
 
 #include "log.hpp"
+#include "strerror.hpp"
 #include "time_utils.hpp"
 #include "x_utils.hpp"
 
@@ -143,7 +144,7 @@ void EventLoop::handleXEvents(chr::high_resolution_clock::time_point until) {
         if (auto bits = pselect(x_socket + 1, &x_fd_set, nullptr, nullptr, &ts, nullptr); bits > 0) {
             flushXEvents();
         } else if (bits < 0) {
-            lg::error("Error when `select` ing the socket: {}", std::strerror(errno));
+            lg::error("Error when `select` ing the socket: {}", strError(errno));
             break;
         } else
             break;

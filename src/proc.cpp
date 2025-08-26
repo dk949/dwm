@@ -1,11 +1,16 @@
 #include "proc.hpp"
 
+#include "file.hpp"
 #include "log.hpp"
+#include "strerror.hpp"
 
+#include <libgen.h>
+#include <sys/signalfd.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include <cerrno>
+#include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <ranges>
@@ -57,7 +62,7 @@ void Proc::spawnDetached(Display *dpy, char *const *argv) {
         default: {
             int status = 0;
             if (waitpid(child, &status, 0) < 0) {
-                lg::error("waitpid failed: {}", std::strerror(errno));
+                lg::error("waitpid failed: {}", strError(errno));
                 return;
             }
             if (!WIFEXITED(status)) {
@@ -73,7 +78,7 @@ void Proc::spawnDetached(Display *dpy, char *const *argv) {
                 default: lg::error("Child process exited with unexpected code {}", std::to_underlying(code));
             }
         } break;
-        case -1: lg::error("fork failed: {}", std::strerror(errno)); break;
+        case -1: lg::error("fork failed: {}", strError(errno)); break;
     }
 }
 
@@ -84,7 +89,7 @@ std::size_t Proc::cleanUpZombies() {
             case 0: return count;
             case -1:
                 if (errno != EINTR) {
-                    lg::error("waitpid failed when cleaning up zombies: {}", std::strerror(errno));
+                    lg::error("waitpid failed when cleaning up zombies: {}", strError(errno));
                     return -1ull;
                 }
                 break;

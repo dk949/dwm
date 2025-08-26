@@ -2,6 +2,7 @@
 
 #include "file.hpp"
 #include "log.hpp"
+#include "strerror.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -25,7 +26,7 @@ static backlight_error_t nan_check() {
 static backlight_error_t bright_set_impl(FilePtr fp, int value) {
     if (auto res = nan_check()) return res;
     if (fprintf(fp.get(), "%d\n", std::clamp(value, 0, static_cast<int>(scale))) < 0) {
-        lg::error("backlight: Could not write to brightness file: {}", std::strerror(errno));
+        lg::error("backlight: Could not write to brightness file: {}", strError(errno));
         return BACKLIGHT_WRITE_ERROR;
     } else
         return BACKLIGHT_OK;
@@ -40,7 +41,7 @@ static backlight_error_t bright_get_impl(FilePtr fp, int *oldValue) {
 
     unsigned long bytesRead = fread(buf, 1, sizeof(buf), fp.get());
     if (bytesRead <= 0) {
-        lg::error("backlight: Could not read from brightness file: {}", std::strerror(errno));
+        lg::error("backlight: Could not read from brightness file: {}", strError(errno));
         return BACKLIGHT_READ_ERROR;
     }
     if (bytesRead >= sizeof(buf)) {
@@ -65,14 +66,14 @@ static backlight_error_t bright_get_impl(FilePtr fp, int *oldValue) {
 static backlight_error_t read_scale_file(char const *scale_file) {
     auto fp = FilePtr {fopen(scale_file, "r")};
     if (!fp) {
-        lg::error("backlight: Could not open scale file {}: {}", scale_file, std::strerror(errno));
+        lg::error("backlight: Could not open scale file {}: {}", scale_file, strError(errno));
         return BACKLIGHT_OPEN_ERROR;
     }
     int max;
     errno = 0;
     if (fscanf(fp.get(), "%d", &max) == EOF) {
         if (errno)
-            lg::error("backlight: Could not read from scale file: {}", std::strerror(errno));
+            lg::error("backlight: Could not read from scale file: {}", strError(errno));
         else
             lg::error("backlight: Could not parse scale file");
         return BACKLIGHT_FORMAT_ERROR;
@@ -98,7 +99,7 @@ static backlight_error_t bright_modify(double value, int dir) {
         if (!get) {
             lg::error("backlight: Could not open brightness file {} for  modification: {}",
                 get_brightness,
-                std::strerror(errno));
+                strError(errno));
             return BACKLIGHT_OPEN_ERROR;
         }
         backlight_error_t ret = bright_get_impl(std::move(get), &oldValue);
@@ -110,7 +111,7 @@ static backlight_error_t bright_modify(double value, int dir) {
         if (!set) {
             lg::error("backlight: Could not open brightness file {} for  modification: {}",
                 set_brightness,
-                std::strerror(errno));
+                strError(errno));
             return BACKLIGHT_OPEN_ERROR;
         }
         double iValue = ((value * dir) / 100.) * scale + oldValue;
@@ -131,7 +132,7 @@ backlight_error_t bright_set_(double value) {
     if (auto res = nan_check()) return res;
     auto fp = FilePtr {fopen(set_brightness, "w")};
     if (!fp) {
-        lg::error("backlight: Could not open brightness file for writing: {}", std::strerror(errno));
+        lg::error("backlight: Could not open brightness file for writing: {}", strError(errno));
         return BACKLIGHT_OPEN_ERROR;
     }
     backlight_error_t ret = bright_set_impl(std::move(fp), (int)((value / 100.) * scale));
@@ -142,7 +143,7 @@ backlight_error_t bright_get_(double *value) {
     if (auto res = nan_check()) return res;
     auto fp = FilePtr {fopen(get_brightness, "r")};
     if (!fp) {
-        lg::error("backlight: Could not open brightness file {} for reading: {}", get_brightness, std::strerror(errno));
+        lg::error("backlight: Could not open brightness file {} for reading: {}", get_brightness, strError(errno));
         return BACKLIGHT_OPEN_ERROR;
     }
     int oldValue;
