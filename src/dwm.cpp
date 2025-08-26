@@ -380,7 +380,7 @@ void arrange(MonitorPtr const &m) {
 }
 
 void arrangemon(MonitorPtr const &m) {
-    strncpy(m->layoutSymbol, m->lt[m->sellt]->symbol, sizeof m->layoutSymbol);
+    strncpy(m->layoutSymbol, m->lt[m->sellt]->symbol, sizeof(m->layoutSymbol) - 1);
     if (m->lt[m->sellt]->arrange) {
         m->lt[m->sellt]->arrange(m);
     }
@@ -1812,7 +1812,7 @@ void setlayout(Arg const &arg) {
     if (arg.v) {
         selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)arg.v;
     }
-    strncpy(selmon->layoutSymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->layoutSymbol);
+    strncpy(selmon->layoutSymbol, selmon->lt[selmon->sellt]->symbol, sizeof(selmon->layoutSymbol) - 1);
     if (selmon->sel) {
         arrange(selmon);
     } else {
@@ -2440,10 +2440,9 @@ void updatesizehints(Client *c) {
 }
 
 void updatestatus() {
-    if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
-        strcpy(stext, "dwm-");
-        strncat(stext, dwm::version::full.data(), dwm::version::full.size());
-    }
+    if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
+        std::format_to_n(stext, sizeof(stext), "dwm-{}", dwm::version::full);
+
     drawbar(selmon);
 }
 

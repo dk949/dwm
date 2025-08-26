@@ -207,7 +207,8 @@ void Drw::draw_rect(int x, int y, unsigned int w, unsigned int h, bool filled, b
 // TODO(dk949): make the bools strongly typed
 int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, bool invert) {
     int ellipsis_x = 0;
-    unsigned int tmpw, ellipsis_w = 0;
+    unsigned int tmpw = 0;
+    unsigned int ellipsis_w = 0;
     XftDraw *d = nullptr;
     int render = x || y || w || h;
     long utf8codepoint = 0;
