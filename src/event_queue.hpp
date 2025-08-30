@@ -118,6 +118,8 @@ private:
     void runQueueEvents(InternalQueue *q);
     void handleXEvents(std::chrono::high_resolution_clock::time_point until);
     void flushXEvents();
+    static void handleSignals();
+    static void syncSignals();
     void swapQueues();
 };
 

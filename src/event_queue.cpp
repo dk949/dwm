@@ -1,11 +1,14 @@
 #include "event_queue.hpp"
 
 #include "log.hpp"
+#include "proc.hpp"
 #include "strerror.hpp"
 #include "time_utils.hpp"
 #include "x_utils.hpp"
 
 #include <sys/select.h>
+#include <sys/signalfd.h>
+#include <sys/wait.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -114,6 +117,7 @@ EventLoop::EventLoop(Display *dpy, Window root)
  */
 void EventLoop::run() {
     XSync(m_dpy, False);
+    syncSignals();
     while (!m_done) {
         logger.tickStart();
         {
@@ -137,12 +141,16 @@ void EventLoop::runQueueEvents(InternalQueue *q) {
 void EventLoop::handleXEvents(chr::high_resolution_clock::time_point until) {
     flushXEvents();
     for (auto now = chr::high_resolution_clock::now(); now < until; now = chr::high_resolution_clock::now()) {
-        fd_set x_fd_set;
-        FD_ZERO(&x_fd_set);
-        FD_SET(x_socket, &x_fd_set);
+        fd_set in_fd_set;
+        FD_ZERO(&in_fd_set);
+        FD_SET(x_socket, &in_fd_set);
+        FD_SET(Proc::sfd.get(), &in_fd_set);
         auto const ts = fromChrono(until - now);
-        if (auto bits = pselect(x_socket + 1, &x_fd_set, nullptr, nullptr, &ts, nullptr); bits > 0) {
-            flushXEvents();
+        // TODO(dk949): Once we no longer need the timeout, switch to poll
+        if (auto bits = pselect(std::max(x_socket, Proc::sfd.get()) + 1, &in_fd_set, nullptr, nullptr, &ts, nullptr);
+            bits > 0) {
+            if (FD_ISSET(x_socket, &in_fd_set)) flushXEvents();
+            if (FD_ISSET(Proc::sfd.get(), &in_fd_set)) handleSignals();
         } else if (bits < 0) {
             lg::error("Error when `select` ing the socket: {}", strError(errno));
             break;
@@ -172,3 +180,39 @@ void EventLoop::flushXEvents() {
         if (handler) handler(&ev);
     }
 }
+
+void EventLoop::handleSignals() {
+    signalfd_siginfo siginfo {};
+    if (auto bytes_read = read(Proc::sfd.get(), &siginfo, sizeof(siginfo)); bytes_read < 0) {
+        lg::error("read error when handling signalfd: {}", strError(errno));
+        return;
+    } else if (bytes_read != sizeof(siginfo)) {
+        lg::error("Failed to read all bytes of siginfo (expected {}, got {}): {}",
+            sizeof(siginfo),
+            bytes_read,
+            strError(errno));
+        return;
+    }
+    while (true)
+        switch (auto pid = waitpid(-1, nullptr, WNOHANG)) {
+            case 0: return;
+            default: lg::debug("Successfully reaped {}", pid); break;
+            case -1: lg::error("Failed to reap {}: {}", pid, strError(errno)); return;
+        };
+}
+
+void EventLoop::syncSignals() {
+    signalfd_siginfo dummy {};
+    while (true) {
+        errno = 0;
+        auto bytes_read = read(Proc::sfd.get(), &dummy, sizeof(dummy));
+        // TODO(dk949): Maybe also handle EINTR
+        if (bytes_read < 0) {
+            if (errno != EAGAIN && errno != EWOULDBLOCK)
+                lg::error("Read error when syncing signalfd: {}", strError(errno));
+            break;
+        }
+    }
+    Proc::cleanUpZombies();
+}
+

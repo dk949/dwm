@@ -1869,11 +1869,7 @@ void resetmcfact(Arg const &unused) {
 void setup() {
     Atom utf8string;
 
-    /* clean up any zombies (inherited from .xinitrc etc) immediately */
-    if (auto const zombie_count = Proc::cleanUpZombies(); zombie_count != -1ull)
-        lg::debug("Cleaned {} zombies", zombie_count);
-
-
+    Proc::setupSignals();
 
     /* init screen */
     screen = DefaultScreen(dpy);

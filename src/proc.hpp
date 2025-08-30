@@ -16,9 +16,11 @@
 #include <vector>
 
 struct Proc {
+    friend class EventLoop;
 private:
     // pid_t m_pid;
     static FDPtr dev_null;
+    static FDPtr sfd;
 public:
 
     struct Redirection {
@@ -32,7 +34,7 @@ public:
     static int stdErr();
 
     template<StringLike Str, StringLike... Strs>
-    static void spawnDetached(Display *dpy, Str &&prog, Strs &&...strs) {
+    static pid_t spawnDetached(Display *dpy, Str &&prog, Strs &&...strs) {
         std::vector<std::string> args {};
         args.reserve(sizeof...(strs) + 1);
         args.emplace_back(std::forward<Str>(prog));
@@ -40,12 +42,15 @@ public:
         return spawnDetached(dpy, std::move(args));
     }
 
-    static void spawnDetached(Display *dpy, std::vector<std::string> args);
+    static pid_t spawnDetached(Display *dpy, std::vector<std::string> args);
 
-    static void spawnDetached(Display *dpy, char *const *argv);
+    static pid_t spawnDetached(Display *dpy, char *const *argv);
     static std::size_t cleanUpZombies();
-private:
+
+    // Can be used to redirect any file descriptor to any other file descriptor
     static bool redirect(Redirection r);
+
+    static void setupSignals();
 };
 
 

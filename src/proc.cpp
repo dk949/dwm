@@ -4,81 +4,58 @@
 #include "log.hpp"
 #include "strerror.hpp"
 
+#include <fcntl.h>
 #include <libgen.h>
 #include <sys/signalfd.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include <cerrno>
-#include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <ranges>
 
 namespace rng = std::ranges;
 namespace vws = std::views;
+static sigset_t original_sigset {};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-void Proc::spawnDetached(Display *dpy, std::vector<std::string> args) {
+pid_t Proc::spawnDetached(Display *dpy, std::vector<std::string> args) {
     auto argv = args | vws::transform([](auto &str) noexcept { return str.data(); }) | rng::to<std::vector>();
     argv.push_back(nullptr);
     return spawnDetached(dpy, argv.data());
 }
 
-void Proc::spawnDetached(Display *dpy, char *const *argv) {
-    static constexpr auto bad_execvp = 127;
+pid_t Proc::spawnDetached(Display *dpy, char *const *argv) {
+    static constexpr auto bad_exit = 127;
+    if (auto count = cleanUpZombies(); count != -1ull) lg::debug("Cleaned {} zombies on startup", count);
 
-    enum ChildExit : std::uint8_t { OK = 0, SETSID, FORK, REDIRECT_STDOUT, REDIRECT_STDERR };
 
     switch (auto child = fork()) {
         case 0: {
             if (dpy) close(ConnectionNumber(dpy));
-            if (setsid() < 0) _exit(SETSID);
-            struct sigaction sa {};
-            sa.sa_handler = SIG_DFL;
-            sigemptyset(&sa.sa_mask);
-            sa.sa_flags = 0;
-            sigaction(SIGCHLD, &sa, nullptr);
+            if (setsid() < 0) {
+                lg::error("Child process setsid error: {}", strError(errno));
+                _exit(bad_exit);
+            }
+            if (auto err = pthread_sigmask(SIG_SETMASK, &original_sigset, nullptr)) {
+                lg::error("Child process failed to reset signal mask: {}", strError(err));
+                _exit(bad_exit);
+            }
 
-            if (!Proc::redirect({.from = Proc::stdOut(), .to = Proc::devNull()})) _exit(REDIRECT_STDOUT);
-            if (!Proc::redirect({.from = Proc::stdErr(), .to = Proc::devNull()})) _exit(REDIRECT_STDERR);
-
-            /* Could use either vfork or posix_spawnp instead of fork here.
-             *
-             * vfork should be safe, *BUT* if somehow call to `execvp` (or I guess call to `_exit`...)
-             * hangs, this will hang the whole WM 🫤
-             *
-             * Why not posix_spawnp? Because I don't know how it interacts with signal handlers 🤷
-             * (or how to use it in general...)
-             */
-            switch (fork()) {
-                case 0:
-                    execvp(argv[0], argv);
-                    _exit(bad_execvp);  // No real way to catch this one
-                    break;
-                default: _exit(OK);
-                case -1: _exit(FORK);
+            if (!Proc::redirect({.from = Proc::stdOut(), .to = Proc::devNull()})) {
+                lg::warn("Could not redirect child stdout to /dev/null: {}", strError(errno));
+                _exit(bad_exit);
             }
+            if (!Proc::redirect({.from = Proc::stdErr(), .to = Proc::devNull()})) {
+                lg::warn("Could not redirect child stderr to /dev/null: {}", strError(errno));
+                _exit(bad_exit);
+            }
+            execvp(argv[0], argv);
+            lg::error("Child process {} failed to execvp", argv[0]);
+            _exit(bad_exit);
         } break;
-        default: {
-            int status = 0;
-            if (waitpid(child, &status, 0) < 0) {
-                lg::error("waitpid failed: {}", strError(errno));
-                return;
-            }
-            if (!WIFEXITED(status)) {
-                lg::error("child process closed by signal {}", WTERMSIG(status));
-                return;
-            }
-            switch (auto const code = ChildExit(WEXITSTATUS(status))) {
-                case OK: break;
-                case SETSID: lg::error("Child process setsid error"); break;
-                case FORK: lg::error("Child process failed to double-fork"); break;
-                case REDIRECT_STDOUT: lg::warn("Could not redirect child stdout to /dev/null"); break;
-                case REDIRECT_STDERR: lg::warn("Could not redirect child stderr to /dev/null"); break;
-                default: lg::error("Child process exited with unexpected code {}", std::to_underlying(code));
-            }
-        } break;
-        case -1: lg::error("fork failed: {}", strError(errno)); break;
+        default: return child;
+        case -1: lg::error("fork failed: {}", strError(errno)); return -1;
     }
 }
 
@@ -101,6 +78,7 @@ std::size_t Proc::cleanUpZombies() {
 FDPtr Proc::dev_null {};
 
 int Proc::devNull() {
+    // Since child process' stdout and stderr are redirected to this fd, it is not opened with O_CLOEXEC
     if (!dev_null) dev_null.acquire(open("/dev/null", O_WRONLY));
     return dev_null.get();
 }
@@ -119,4 +97,30 @@ int Proc::stdErr() {
 
 bool Proc::redirect(Redirection r) {
     return dup2(r.to, r.from) >= 0;
+}
+
+FDPtr Proc::sfd {};
+
+void Proc::setupSignals() {
+    sigset_t set {};
+    if (sigemptyset(&set)) {
+        lg::error("Failed to create empty signal set: {}", strError(errno));
+        return;
+    };
+    if (sigaddset(&set, SIGCHLD)) {
+        lg::error("Failed to add SIGCHLD to the signal set: {}", strError(errno));
+        return;
+    }
+    if (auto err = pthread_sigmask(SIG_BLOCK, &set, &original_sigset)) {
+        lg::error("Failed to set signal mast to block SIGCHLD: {}", strError(err));
+        return;
+    }
+
+    sfd.acquire(signalfd(-1, &set, SFD_CLOEXEC | SFD_NONBLOCK));
+
+    if (sfd.get() == -1) {
+        lg::error("Failed to open signalfd: {}", strError(errno));
+        (void)sfd.takeOwnership();
+        return;
+    }
 }
