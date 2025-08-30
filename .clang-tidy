@@ -54,6 +54,7 @@
 #   cppcoreguidelines-avoid-do-while                       # Why?
 #   modernize-use-designated-initializers                  # These are useful, but maybe not everywhere?
 #   readability-function-cognitive-complexity              # This is a pretty dubious metric
+#   readability-container-data-pointer                     # I've never done this and it has false positives
 User: dk949
 Checks:
   'boost-use-to-string,
@@ -120,6 +121,7 @@ Checks:
   performance-*,
   portability-*,
   readability-*,
+  -readability-container-data-pointer,
   -readability-avoid-return-with-void-value,
   -readability-braces-around-statements,
   -readability-container-size-empty,
@@ -211,3 +213,6 @@ CheckOptions:
 
   - key: readability-identifier-naming.NamespaceCase
     value: lower_case
+
+  - key: concurrency-mt-unsafe.FunctionSet
+    value: glibc
