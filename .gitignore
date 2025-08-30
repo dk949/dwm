@@ -1,5 +1,6 @@
 tags
 build
+build-release
 compile_commands.json
 errors.err
 *.o

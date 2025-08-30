@@ -18,7 +18,7 @@
       "displayName": "Default Config (Release)",
       "description": "Default build using Ninja generator (caching enabled)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build-release",
       "cacheVariables": {
         "ENABLE_CACHE": true,
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
@@ -41,7 +41,7 @@
       "displayName": "Makefile Config (Release)",
       "description": "Default build using Unix Makefiles generator",
       "generator": "Unix Makefiles",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true
@@ -63,7 +63,7 @@
       "displayName": "Ninja Config (Release)",
       "description": "Default build using Unix Makefiles generator",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true
