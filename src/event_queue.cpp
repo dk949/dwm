@@ -208,8 +208,7 @@ void EventLoop::syncSignals() {
         auto bytes_read = read(Proc::sfd.get(), &dummy, sizeof(dummy));
         // TODO(dk949): Maybe also handle EINTR
         if (bytes_read < 0) {
-            if (errno != EAGAIN && errno != EWOULDBLOCK)
-                lg::error("Read error when syncing signalfd: {}", strError(errno));
+            if (!DWM_IS_EAGAIN(errno)) lg::error("Read error when syncing signalfd: {}", strError(errno));
             break;
         }
     }
