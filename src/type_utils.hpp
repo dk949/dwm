@@ -110,8 +110,11 @@ concept StdStringLike = is_std_string_like_v<Str>;
 template<typename Str>
 struct is_string_view_like
         : std::disjunction<
-              std::conjunction<std::is_pointer<Str>, std::is_same<char, std::remove_const_t<std::remove_pointer_t<Str>>>>,
-              std::is_same<Str, std::string_view>> { };
+              std::disjunction<std::conjunction<std::is_array<std::remove_reference_t<Str>>,
+                                   std::is_same<std::remove_const_t<std::remove_extent_t<std::remove_reference_t<Str>>>, char>>,
+                  std::conjunction<std::is_pointer<std::remove_reference_t<Str>>,
+                      std::is_same<char, std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<Str>>>>>>,
+              std::is_same<std::remove_reference_t<Str>, std::string_view>> { };
 
 template<typename Str>
 inline constexpr auto is_string_view_like_v = is_string_view_like<Str>::value;
@@ -134,10 +137,18 @@ static_assert(is_std_string_like_v<std::string>);
 static_assert(is_string_view_like_v<std::string_view>);
 static_assert(is_string_view_like_v<char *>);
 static_assert(is_string_view_like_v<char const *>);
+static_assert(is_string_view_like_v<char[]>);
+static_assert(is_string_view_like_v<char[10]>);
+static_assert(is_string_view_like_v<char const[]>);
+static_assert(is_string_view_like_v<char const[10]>);
 
 static_assert(is_string_like_v<std::string_view>);
 static_assert(is_string_like_v<std::string>);
 static_assert(is_string_like_v<std::string_view>);
 static_assert(is_string_like_v<char *>);
 static_assert(is_string_like_v<char const *>);
+static_assert(is_string_like_v<char[]>);
+static_assert(is_string_like_v<char[10]>);
+static_assert(is_string_like_v<char const[]>);
+static_assert(is_string_like_v<char const[10]>);
 #endif  // DWM_TYPE_UTILS_HPP
