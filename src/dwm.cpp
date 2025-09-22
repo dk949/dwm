@@ -760,7 +760,7 @@ MonitorPtr dirtomon(int dir) {
     auto mon_it = rng::find(mons, selmon);
     if (mon_it == mons.end()) return nullptr;
     if (dir > 0) {
-        if (mon_it == mons.end() + 1)
+        if (mon_it == mons.end() - 1)
             return mons.front();
         else
             return *std::next(mon_it);
