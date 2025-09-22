@@ -10,14 +10,18 @@
 #include <format>
 #include <optional>
 #include <print>
+#ifndef NDEBUG
+#    include <ut/breakpoint/breakpoint.hpp>
+#endif
 
 namespace lg {
 extern FILE *log_file;
-enum struct Level { Debug, Info, Warn, Error, Fatal };
+enum struct Level { Breakpoint, Debug, Info, Warn, Error, Fatal };
 
 namespace detail {
     constexpr std::string_view log_level_str(Level l) {
         switch (l) {
+            case Level::Breakpoint: return "[DWM BP]";
             case Level::Debug: return "[DWM DBG]";
             case Level::Info: return "[DWM INFO]";
             case Level::Warn: return "[DWM WARN]";
@@ -58,6 +62,15 @@ void log(std::format_string<Args...> fmt, Args &&...args) {
         msg);
     if (!log_file) (void)fputs("NOTE: logfile unavailable", file);
     (void)fflush(file);
+}
+
+template<typename... Args>
+[[gnu::always_inline]]
+void breakpoint([[maybe_unused]] std::format_string<Args...> fmt, [[maybe_unused]] Args &&...args) {
+#ifndef NDEBUG
+    log<Level::Breakpoint, Args...>(fmt, std::forward<Args>(args)...);
+    UT_BREAKPOINT();
+#endif
 }
 
 template<typename... Args>

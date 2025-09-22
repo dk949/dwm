@@ -61,6 +61,7 @@ public:
     static bool addFDFlag(int fd, int flag);
 
     static void setupSignals();
+    static void setupDebugging();
 
     static std::optional<std::string_view> writeFD(std::string &&sv, int fd) = delete;
     [[nodiscard]]

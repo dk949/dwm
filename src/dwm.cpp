@@ -1870,6 +1870,7 @@ void setup() {
     Atom utf8string;
 
     Proc::setupSignals();
+    if constexpr (dwm::version::is_debug) Proc::setupDebugging();
 
     /* init screen */
     screen = DefaultScreen(dpy);

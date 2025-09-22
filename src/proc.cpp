@@ -260,3 +260,6 @@ std::optional<std::pair<std::string, Proc::ReachedEOF>> Proc::readFD(int fd) {
         return std::nullopt;
     }
 }
+void Proc::setupDebugging() {
+    if (prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY) == -1) lg::error("Failed to allow ptrace: {}", strError(errno));
+}

@@ -6,7 +6,6 @@
 #include <noticeboard/noticeboard.hpp>
 #include <X11/Xlib.h>
 
-#include <cstring>
 #include <format>
 #include <optional>
 
@@ -17,6 +16,7 @@ std::optional<nb::Notice> error_notice;
 
 std::string_view getIcon(lg::Level l) {
     switch (l) {
+        case lg::Level::Breakpoint:
         case lg::Level::Debug:
         case lg::Level::Info: return ICONDIR "/dwm-icon.svg";
         case lg::Level::Warn: return ICONDIR "/dwm-warning.svg";
@@ -28,6 +28,7 @@ std::string_view getIcon(lg::Level l) {
 
 nb::Notice &getNotice(lg::Level l) {
     switch (l) {
+        case lg::Level::Breakpoint:
         case lg::Level::Debug:
             if (!null_notice) null_notice = nb::Notice {"dwm", nb::Backend::Null};
             return *null_notice;
