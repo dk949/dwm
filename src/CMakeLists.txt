@@ -30,7 +30,7 @@ add_executable(
     ${CMAKE_CURRENT_SOURCE_DIR}/x_utils.cpp #
 )
 
-target_link_libraries(${EXE_NAME} PUBLIC UT::all)
+target_link_libraries(${EXE_NAME} PUBLIC ut::ut)
 target_link_libraries(${EXE_NAME} PUBLIC noticeboard)
 execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
 # Convert command output into a CMake list
