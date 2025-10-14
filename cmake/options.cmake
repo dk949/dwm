@@ -41,7 +41,8 @@ set(CACHE_PROGRAM "ccache" CACHE STRING "Compiler cache to be used")
 
 # Macro prefix
 
-set(MACRO_PREFIX "" CACHE STRING "Make __FILE__ macro relative to particular directory")
+option(ENABLE_MACRO_PREFIX "Enable __FILE__ macro replacement" ${IS_NOT_DEBUG})
+set(MACRO_PREFIX "./" CACHE STRING "Make __FILE__ macro relative to particular directory")
 
 # Language standard and extensions
 set(CMAKE_CXX_STANDARD 23)
@@ -54,5 +55,8 @@ option(LOG_EVENTS "log event handling stats" OFF)
 option(CMAKE_EXPORT_COMPILE_COMMANDS "generate compile_commands.json" ON)
 
 set(FETCHCONTENT_BASE_DIR "${PROJECT_SOURCE_DIR}/_deps" CACHE STRING "base directory to fetch content into")
+
+# Compiler colours
+option(CMAKE_COLOR_DIAGNOSTICS "use colour output for compilation" ON)
 
 # cmake-format: on
