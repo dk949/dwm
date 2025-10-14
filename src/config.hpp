@@ -138,6 +138,7 @@ static Rule const rules[] = {
     {"thunderbird"               , nullptr      , "Msgcompose"    , ttype(Chat)   , 1      , 0          , 1          , 1         , -1},
     {"thunderbird"               , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
     {"Zulip"                     , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
+    {"Signal"                    , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
     {"zoom"                      , nullptr      , nullptr         , ttype(Chat)   , 1      , 0          , 0          , 0         , -1},
     {"testing"                   , nullptr      , nullptr         , 0             , 0      , 1          , 1          , 1         , -1},
     {"Xephyr"                    , nullptr      , nullptr         , 0             , 0      , 1          , 1          , 1         , -1},
