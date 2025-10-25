@@ -2863,12 +2863,12 @@ int main(int argc, char *argv[]) {
     cleanup();
     XCloseDisplay(dpy);
     if (need_restart) {
-        lg::info("Restarting dwm\n");
+        lg::info("Restarting dwm\n---------------------------");
         fclose(lg::log_file);
         if (execvp(argv[0], argv)) lg::fatal("could not restart dwm:");
     }
 
-    lg::info("Shutdown complete");
+    lg::info("Shutdown complete\n---------------------------");
     fclose(lg::log_file);
     return EXIT_SUCCESS;
 }
