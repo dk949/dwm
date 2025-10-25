@@ -16,6 +16,8 @@
 #include <cerrno>
 #include <chrono>
 #include <cstring>
+namespace rng = std::ranges;
+namespace vws = std::views;
 
 template<>
 void EventLogger<false>::tickStart() { };
@@ -176,6 +178,7 @@ void EventLoop::flushXEvents() {
             lg::error("XNextEvent error: {}", xstrerror(m_dpy, err));
             break;
         }
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
         auto &&handler = m_x_handlers[static_cast<std::size_t>(ev.type)];
         if (handler) handler(&ev);
     }
@@ -193,12 +196,17 @@ void EventLoop::handleSignals() {
             strError(errno));
         return;
     }
-    while (true)
-        switch (auto pid = waitpid(-1, nullptr, WNOHANG)) {
+    while (true) {
+        int status = -1;
+        switch (auto pid = waitpid(-1, &status, WNOHANG)) {
             case 0: return;
-            default: lg::debug("Successfully reaped {}", pid); break;
+            default:
+                lg::debug("Successfully reaped {}", pid);
+                handleOnExit(pid, status);
+                break;
             case -1: lg::error("Failed to reap {}: {}", pid, strError(errno)); return;
         };
+    }
 }
 
 void EventLoop::syncSignals() {
@@ -215,3 +223,59 @@ void EventLoop::syncSignals() {
     Proc::cleanUpZombies();
 }
 
+void EventLoop::spawn(char *const *argv, SpawnConfig const &conf, ProcOnExit on_exit) {
+    Proc::SpawnConfig scfg;
+    if (conf.input) scfg.in = Proc::pipe;
+    if (conf.keep_stdout) scfg.out = Proc::pipe;
+    if (conf.keep_stderr) scfg.err = Proc::pipe;
+
+    auto proc = Proc::spawn(m_dpy, argv, scfg);
+    if (!proc) return;
+    lg::debug("Spawned {}", argv[0]);
+    m_on_proc_exit.insert({
+        proc->m_pid,
+        std::pair {*std::move(proc), std::move(on_exit)}
+    });
+    if (conf.input) {
+        if (auto left_to_write = Proc::writeFD(*conf.input, proc->m_stdin); !left_to_write || !left_to_write->empty())
+            lg::error("Could not write to process {} stdin: ",
+                argv[0],
+                left_to_write ? std::format("Failed to write last {} bytes", left_to_write->size())
+                              : "See previous error");
+        Proc::closePipe(proc->m_stdin);
+    }
+}
+
+void EventLoop::spawn(std::vector<std::string> args, SpawnConfig const &conf, ProcOnExit on_exit) {
+    auto argv = args | vws::transform([](auto &str) noexcept { return str.data(); }) | rng::to<std::vector>();
+    argv.push_back(nullptr);
+    spawn(argv.data(), conf, std::move(on_exit));
+}
+
+void EventLoop::handleOnExit(pid_t pid, int status) {
+    if (m_on_proc_exit.contains(pid)) {
+        auto &[proc, on_exit] = m_on_proc_exit.at(pid);
+        if (WIFEXITED(status))
+            status = WEXITSTATUS(status);
+        else if (WIFSIGNALED(status))
+            status = -WEXITSTATUS(status);
+        else
+            status = INT_MIN;
+        lg::debug("handling on exit, status = {}", status);
+        auto out = readFd(proc.m_stdout);
+        auto err = readFd(proc.m_stderr);
+        Proc::closePipe(proc.m_stdout);
+        Proc::closePipe(proc.m_stderr);
+
+        on_exit(std::move(out), std::move(err), status);
+    }
+}
+
+std::optional<std::string> EventLoop::readFd(int fd) {
+    if (!Proc::isPipe(fd)) return std::nullopt;
+    if (auto read = Proc::readFD(fd)) {
+        if (!static_cast<bool>(read->second)) lg::warn("Could not read all output from child process");
+        return std::optional {std::move(read->first)};
+    }
+    return std::nullopt;
+}

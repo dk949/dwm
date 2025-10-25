@@ -18,18 +18,25 @@
 #include <vector>
 
 struct Proc {
-    friend class EventLoop;
+    friend struct EventLoop;
 private:
-    pid_t m_pid;
-    FDPtr m_stdin;
-    FDPtr m_stdout;
-    FDPtr m_stderr;
+    pid_t m_pid = -1;
+    int m_stdin = -1;
+    int m_stdout = -1;
+    int m_stderr = -1;
     static FDPtr dev_null;
     static FDPtr sfd;
 
+    Proc() = default;
     Proc(pid_t pid, int inpipe, int outpipe, int errpipe);
 public:
+    static constexpr int pipe = INT_MIN;
     enum struct ReachedEOF : bool { Yes = true, No = false };
+
+    struct PipeFds {
+        int read = -1;
+        int write = -1;
+    };
 
     struct Redirection {
         int from;
@@ -58,7 +65,7 @@ public:
     // Can be used to redirect any file descriptor to any other file descriptor
     static bool redirect(Redirection r);
 
-    static bool addFDFlag(int fd, int flag);
+    static bool addFDFlag(int fd, unsigned flag);
 
     static void setupSignals();
     static void setupDebugging();
@@ -74,6 +81,12 @@ public:
     [[nodiscard]]
     static std::optional<std::pair<std::string, Proc::ReachedEOF>> readFD(int fd);
 
+    void closeStdin() noexcept;
+    void closeStdout() noexcept;
+    void closeStderr() noexcept;
+    void closeAll() noexcept;
+    static bool isPipe(int fd);
+
 private:
     struct SpawnConfig {
         std::optional<int> in = std::nullopt;
@@ -82,12 +95,16 @@ private:
         bool detach = false;
     };
 
-    static pid_t spawnImpl(Display *dpy, char *const *argv, SpawnConfig);
-    static std::optional<Proc> spawn(Display *dpy, char *const *argv);
+    [[nodiscard]]
+    static std::optional<Proc> spawn(Display *dpy, char *const *argv, SpawnConfig);
     // SHOULD ONLY EVER BE CALLED FROM CHILD PROCESS!!!
     static void tryRedirect(Redirection r, int bad_exit);
     // SHOULD ONLY EVER BE CALLED FROM CHILD PROCESS!!!
     static void trySetsid(int bad_exit);
+    static void closePipe(int pipe);
+
+    [[nodiscard]]
+    static std::array<PipeFds, 3> arrangePipes(SpawnConfig const &conf);
 };
 
 template<>

@@ -6,6 +6,7 @@
 
 #include <fcntl.h>
 #include <libgen.h>
+#include <sys/prctl.h>
 #include <sys/signalfd.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -27,7 +28,9 @@ pid_t Proc::spawnDetached(Display *dpy, std::vector<std::string> args) {
 }
 
 pid_t Proc::spawnDetached(Display *dpy, char *const *argv) {
-    return spawnImpl(dpy, argv, {.out = Proc::devNull(), .err = Proc::devNull(), .detach = true});
+    return spawn(dpy, argv, {.out = Proc::devNull(), .err = Proc::devNull(), .detach = true})
+        .transform([](Proc p) noexcept { return p.m_pid; })
+        .value_or(-1);
 }
 
 std::size_t Proc::cleanUpZombies() {
@@ -96,27 +99,35 @@ void Proc::setupSignals() {
     }
 }
 
-pid_t Proc::spawnImpl(Display *dpy, char *const *argv, SpawnConfig conf) {
+std::optional<Proc> Proc::spawn(Display *dpy, char *const *argv, SpawnConfig conf) {
     static constexpr auto bad_exit = 127;
 
+    auto [stdinpipe, stdoutpipe, stderrpipe] = arrangePipes(conf);
     switch (auto child = fork()) {
         case 0: {
+            closePipe(stdinpipe.write);
+            closePipe(stdoutpipe.read);
+            closePipe(stderrpipe.read);
             if (dpy) close(ConnectionNumber(dpy));
             if (auto err = pthread_sigmask(SIG_SETMASK, &original_sigset, nullptr)) {
                 lg::error("Child process failed to reset signal mask: {}", strError(err));
                 _exit(bad_exit);
             }
             if (conf.detach) trySetsid(bad_exit);
-            if (conf.in) tryRedirect({.from = *conf.in, .to = STDIN_FILENO}, bad_exit);
-            if (conf.out) tryRedirect({.from = STDOUT_FILENO, .to = *conf.out}, bad_exit);
-            if (conf.err) tryRedirect({.from = STDERR_FILENO, .to = *conf.err}, bad_exit);
+            if (conf.in) tryRedirect({.from = STDIN_FILENO, .to = stdinpipe.read}, bad_exit);
+            if (conf.out) tryRedirect({.from = STDOUT_FILENO, .to = stdoutpipe.write}, bad_exit);
+            if (conf.err) tryRedirect({.from = STDERR_FILENO, .to = stderrpipe.write}, bad_exit);
 
             execvp(argv[0], argv);
             lg::error("Child process {} failed to execvp", argv[0]);
             _exit(bad_exit);
         } break;
-        default: return child;
-        case -1: lg::error("fork failed: {}", strError(errno)); return -1;
+        default:
+            closePipe(stdinpipe.read);
+            closePipe(stdoutpipe.write);
+            closePipe(stderrpipe.write);
+            return Proc {child, stdinpipe.write, stdoutpipe.read, stderrpipe.read};
+        case -1: lg::error("fork failed: {}", strError(errno)); return std::nullopt;
     }
 }
 
@@ -134,41 +145,24 @@ void Proc::trySetsid(int bad_exit) {
     }
 }
 
+// TODO(dk949): Make individual types for stdin, stdout and stderr
 Proc::Proc(pid_t pid, int inpipe, int outpipe, int errpipe)
         : m_pid(pid)
         , m_stdin(inpipe)
         , m_stdout(outpipe)
         , m_stderr(errpipe) { }
 
-std::optional<Proc> Proc::spawn(Display *dpy, char *const *argv) {
-    std::array<int, 2> stdinpipe {};
-    std::array<int, 2> stdoutpipe {};
-    std::array<int, 2> stderrpipe {};
-    for (auto *p : {stdinpipe.data(), stdoutpipe.data(), stderrpipe.data()}) {
-        if (pipe(p) < 0) {
-            lg::error("Failed to open a pipe for child process: {}", strError(errno));
-            return std::nullopt;
-        }
-    }
-    addFDFlag(stdinpipe[1], FD_CLOEXEC);
-    addFDFlag(stdoutpipe[0], FD_CLOEXEC);
-    addFDFlag(stderrpipe[0], FD_CLOEXEC);
-    auto pid = spawnImpl(dpy, argv, {.in = stdinpipe[0], .out = stdoutpipe[1], .err = stderrpipe[1]});
-    close(stdinpipe[0]);
-    close(stdoutpipe[1]);
-    close(stderrpipe[1]);
-    return Proc(pid, stdinpipe[1], stdoutpipe[0], stderrpipe[1]);
-}
-
-bool Proc::addFDFlag(int fd, int flag) {
+// TODO(dk949): Maybe make a type for file descriptors
+bool Proc::addFDFlag(int fd, unsigned flag) {
     auto flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
         lg::error("Failed to get flags for FD {}: {}", fd, strError(errno));
         return false;
     }
-    flags |= flag;
-    if (fcntl(fd, F_SETFD, flags) == -1) {
-        lg::error("Failed to set flags for FD {} to {:x}: {}", fd, flags, strError(errno));
+    auto uflags = static_cast<unsigned>(flags);
+    uflags |= flag;
+    if (fcntl(fd, F_SETFD, uflags) == -1) {
+        lg::error("Failed to set flags for FD {} to {:x}: {}", fd, uflags, strError(errno));
         return false;
     }
     return true;
@@ -260,6 +254,69 @@ std::optional<std::pair<std::string, Proc::ReachedEOF>> Proc::readFD(int fd) {
         return std::nullopt;
     }
 }
+
+void Proc::closePipe(int p) {
+    if (isPipe(p)) close(p);
+}
+
+void Proc::closeStdin() noexcept {
+    closePipe(m_stdin);
+    m_stdin = -1;
+}
+
+void Proc::closeStdout() noexcept {
+    closePipe(m_stdout);
+    m_stdout = -1;
+}
+
+void Proc::closeStderr() noexcept {
+    closePipe(m_stderr);
+    m_stderr = -1;
+}
+
+void Proc::closeAll() noexcept {
+    closeStdin();
+    closeStdout();
+    closeStderr();
+}
+
+std::array<Proc::PipeFds, 3> Proc::arrangePipes(SpawnConfig const &conf) {
+    std::array<Proc::PipeFds, 3> out {};
+
+    if (conf.in) out[0] = {.read = STDIN_FILENO, .write = *conf.in};
+    if (conf.out) out[1] = {.read = *conf.out, .write = STDOUT_FILENO};
+    if (conf.err) out[2] = {.read = *conf.err, .write = STDERR_FILENO};
+
+
+    for (auto &p : out) {
+        if (p.read != pipe && p.write != pipe) continue;
+        std::array<int, 2> pipes {};
+        if (::pipe2(pipes.data(), 0) < 0) {
+            lg::error("Failed to open a pipe for child process: {}", strError(errno));
+            p.read = devNull();
+            p.write = devNull();
+            continue;
+        }
+
+        p.read = pipes[0];
+        p.write = pipes[1];
+    }
+
+    return out;
+}
+
+bool Proc::isPipe(int fd) {
+    switch (fd) {
+        case -1:
+        case STDIN_FILENO:
+        case STDOUT_FILENO:
+        case STDERR_FILENO: return false;
+        default:
+            if (fd == Proc::devNull()) return false;
+    }
+    return true;
+}
+
 void Proc::setupDebugging() {
     if (prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY) == -1) lg::error("Failed to allow ptrace: {}", strError(errno));
 }

@@ -1,5 +1,6 @@
 #ifndef DWM_EVENT_QUEUE_HPP
 #define DWM_EVENT_QUEUE_HPP
+#include "proc.hpp"
 #include "type_utils.hpp"
 
 #include <project/config.hpp>
@@ -10,8 +11,11 @@
 
 #include <array>
 #include <chrono>
+#include <flat_map>
 #include <functional>
+#include <optional>
 #include <ratio>
+#include <string>
 #include <utility>
 #include <variant>
 
@@ -50,6 +54,16 @@ struct EventLoop {
     static constexpr auto tick_time = std::chrono::microseconds {
         static_cast<std::chrono::microseconds::rep>((1.0 / ticks_per_second) * std::micro().den)};
 
+    // TODO(dk949): pass string by value
+    using ProcOnExit =
+        std::function<void(std::optional<std::string> const &out, std::optional<std::string> const &err, int status)>;
+
+    struct SpawnConfig {
+        std::optional<std::string> input = std::nullopt;
+        bool keep_stdout = false;
+        bool keep_stderr = false;
+    };
+
 private:
     template<typename T>
     using EvFn = std::function<void(T)>;
@@ -61,6 +75,7 @@ private:
     std::array<InternalQueue, 2> m_queues;
     InternalQueue *m_active_queue = &m_queues[0];
     InternalQueue *m_inactive_queue = &m_queues[1];
+    std::flat_map<pid_t, std::pair<Proc, ProcOnExit>> m_on_proc_exit;
 
     EventLogger<dwm::log_events> logger;
 
@@ -106,6 +121,18 @@ public:
         m_active_queue->push(InternalEvent {std::forward<Ev>(ev)});
     }
 
+    void spawn(char *const *argv, SpawnConfig const &conf, ProcOnExit on_exit);
+    void spawn(std::vector<std::string> args, SpawnConfig const &conf, ProcOnExit on_exit);
+
+    template<StringLike Str, StringLike... Strs>
+    void spawn(SpawnConfig const &conf, ProcOnExit on_exit, Str &&prog, Strs &&...strs) {
+        std::vector<std::string> args {};
+        args.reserve(sizeof...(strs) + 1);
+        args.emplace_back(std::forward<Str>(prog));
+        (args.emplace_back(std::forward<Strs>(strs)), ...);
+        return spawn(std::move(args), conf, std::move(on_exit));
+    }
+
     void run();
 
 private:
@@ -118,7 +145,9 @@ private:
     void runQueueEvents(InternalQueue *q);
     void handleXEvents(std::chrono::high_resolution_clock::time_point until);
     void flushXEvents();
-    static void handleSignals();
+    void handleSignals();
+    void handleOnExit(pid_t pid, int status);
+    static std::optional<std::string> readFd(int fd);
     static void syncSignals();
     void swapQueues();
 };
