@@ -106,11 +106,11 @@ private:
         }
     }
 public:
-    constexpr auto parse(std::format_parse_context &ctx) {
+    static constexpr auto parse(std::format_parse_context &ctx) {
         return ctx.begin();
     }
 
-    auto format(Proc::Redirection const &r, std::format_context &ctx) const {
+    static auto format(Proc::Redirection const &r, std::format_context &ctx) {
         std::format_context::iterator out = ctx.out();
         out = formatFD(r.from, out);
         std::format_to(out, " -> ");
