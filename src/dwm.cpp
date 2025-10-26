@@ -2496,6 +2496,9 @@ void updatewmhints(Client *c) {
 
 void winpicker(Arg const &) {
     lg::debug("winpicker start");
+    auto total_client_count =
+        rng::fold_left(mons, 0uz, [](auto count, auto const &mon) noexcept { return count + mon->clients->count(); });
+    if (total_client_count == 0) return;
     auto args = winpickerCreateDmenuCommand(dpy, mons, selmon->num);
     loop->spawn(std::move(args),
         EventLoop::SpawnConfig {.keep_stdout = true, .keep_stderr = true},
