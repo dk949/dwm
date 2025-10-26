@@ -104,6 +104,13 @@ struct Client {
         XGetClassHint(dpy, win, &ch);
         return ClassHint::fromX(ch);
     }
+
+    [[nodiscard]]
+    std::size_t count() const {
+        std::size_t count = 0;
+        for (auto const *client = this; client; client = client->next, ++count) { }
+        return count;
+    }
 };
 
 #define ISVISIBLEONTAG(C, T) (((C)->tags & (T)))
