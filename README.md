@@ -48,7 +48,7 @@ cmake --install build-release --prefix <prefix>
 
 > [!NOTE]
 > If `--prefix` is not specified, the default system install directory (most
-> likely `/usr/local`)
+> likely `/usr/local`) will be used.
 
 ## Running dwm
 
