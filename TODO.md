@@ -19,8 +19,11 @@ List of things I'd like to implement but don't have time for
 * [ ] Use a UTF-8 library instead of hand-rolling
 * [ ] Look at `configurenotify`
 * [ ] Fix vertical screen cutting off part of status
+  * This happens when the whole thing doesn't fit on the screen
   * This will likely need something like doing a double high bar 🤷
 * [ ] Check what happens with too many clients on different layouts
+    * There's currently a separate check for it in each layout, but they are not
+      consistent.
 * [ ] Make sure `centeredmaster` is `cfact` aware.
 * [X] Check if `util` functions are still needed
 * [X] Replace all `NULL` with `nullptr`
@@ -41,3 +44,17 @@ List of things I'd like to implement but don't have time for
 * [ ] Fix zoom:
   * Emoji picker window: title: "Zoom Workplace", instance: "zoom", class: "zoom"
   * Notification window: title: '', instance: "zoom", class: "zoom",
+* [ ] Fix (or rewrite 🙁) volc to use correct device
+    * Right now, if output is via headphones, volume buttons don't control it
+* [ ] volc returns an error if trying to decrease volume below 0
+* [ ] Why do we generate so many events when fading the progress bar???
+* [ ] Try to fix mousemove and mouseresize
+    * Currently they stop normal processing of events by the `loop` to filter
+      out events they need
+    * They should probably instead replace the event handlers for the events
+      they want to filter
+* [ ] Swallowing still buggy when all terminal windows share the same PID
+    * When a terminal is swallowed, pasting into a different terminal ends up
+      pasting into the swallowed terminal.
+    * This might be a bug in kitty.
+* [ ] Clean up process reaping
