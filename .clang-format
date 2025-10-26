@@ -169,7 +169,7 @@ AlignArrayOfStructures: Right
 EmptyLineAfterAccessModifier: Leave
 IfMacros: []
 IndentAccessModifiers: false
-LambdaBodyIndentation: OuterScope
+LambdaBodyIndentation: Signature
 PPIndentWidth: -1 # NOTE: same as IndentWidth
 ReferenceAlignment: Right
 ShortNamespaceLines: 7
