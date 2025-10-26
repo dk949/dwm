@@ -10,11 +10,13 @@
 #include <sys/signalfd.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <ut/sv_to_num/sv_to_num.hpp>
 
 #include <array>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <ranges>
 
 namespace rng = std::ranges;
@@ -51,9 +53,24 @@ std::size_t Proc::cleanUpZombies() {
 
 FDPtr Proc::dev_null {};
 
+static int tryOpenDevNull() {
+    // When dwm is restarted, /dev/fd is re-opened, try to pick up that fd instead of opening a new one
+    std::error_code ec;
+    for (auto const &dirent : std::filesystem::directory_iterator {"/dev/fd"}) {
+        if (!dirent.is_symlink(ec) || ec) continue;
+        auto const &symlink_path = dirent.path();
+        auto real_path = std::filesystem::read_symlink(symlink_path, ec);
+        if (ec) continue;
+        if (real_path != "/dev/null") continue;
+        if (auto fd = ut::svToNum<int>(symlink_path.stem().native())) return *fd;
+    }
+
+    return open("/dev/null", O_WRONLY);
+}
+
 int Proc::devNull() {
     // Since child process' stdout and stderr are redirected to this fd, it is not opened with O_CLOEXEC
-    if (!dev_null) dev_null.acquire(open("/dev/null", O_WRONLY));
+    if (!dev_null) dev_null.acquire(tryOpenDevNull());
     return dev_null.get();
 }
 
