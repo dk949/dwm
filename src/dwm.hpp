@@ -99,7 +99,7 @@ struct Client {
     Window win;
 
     [[nodiscard]]
-    ClassHint classHint(Display *dpy) {
+    ClassHint classHint(Display *dpy) const {
         XClassHint ch;
         XGetClassHint(dpy, win, &ch);
         return ClassHint::fromX(ch);
