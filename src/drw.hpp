@@ -83,7 +83,7 @@ public:
 
     void resize(unsigned int w, unsigned int h);
     [[nodiscard]]
-    bool fontset_create(char const *fonts[], size_t fontcount);
+    bool fontset_create(char const *const fonts[], size_t fontcount);
 
 
     void setColorScheme(ColorSchemeName clrnames);

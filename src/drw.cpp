@@ -151,8 +151,8 @@ static void xfont_free(Fnt const &font) {
     XftFontClose(font.dpy, font.xfont);
 }
 
-bool Drw::fontset_create(char const *_fonts[], size_t fontcount) {
-    std::span<char const *> fonts {_fonts, fontcount};
+bool Drw::fontset_create(char const *const _fonts[], size_t fontcount) {
+    std::span<char const *const> fonts {_fonts, fontcount};
 
     bool success = false;
     for (auto font_name : fonts)

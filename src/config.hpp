@@ -13,17 +13,13 @@
 
 /* appearance */
 
-// These will be initialised when screen size is known
-static unsigned int borderpx; /* border pixel of windows */
-static unsigned int gappx;    /* gaps between windows */
-static unsigned int snap;     /* snap pixel */
-
 #define FONT_SIZE      "10"
 #define NERD_FONT_SIZE "12"
 
 static bool const showbar = true; /* 0 means no bar */
 static int const topbar = 1;      /* 0 means bottom bar */
-static char const *fonts[] = {
+// TODO(dk949): Make this a std::array
+inline constexpr char const *fonts[] = {
     "JetBrains Mono:size=" FONT_SIZE ":antialias=true:autohint=true",
     "JetBrainsMono Nerd Font:size=" NERD_FONT_SIZE ":antialias=true:autohint=true",
     "Noto Emoji:size=" FONT_SIZE ":antialias=true:autohint=true",
@@ -288,19 +284,19 @@ static Button const buttons[] = {
     // clang-format on
 };
 
-static char const *get_bright_set_file(void) {
+inline char const *get_bright_set_file(void) {
     char const *filename = getenv("DWM_BACKLIGHT_SET_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/brightness";
 }
 
-static char const *get_bright_get_file(void) {
+inline char const *get_bright_get_file(void) {
     char const *filename = getenv("DWM_BACKLIGHT_GET_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/actual_brightness";
 }
 
-static char const *get_bright_max_file(void) {
+inline char const *get_bright_max_file(void) {
     char const *filename = getenv("DWM_BACKLIGHT_MAX_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/max_brightness";

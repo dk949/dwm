@@ -224,6 +224,9 @@ static volc_t *volc;
 static xcb_connection_t *xcon;
 static std::filesystem::path log_dir;
 static std::unique_ptr<EventLoop> loop = nullptr;
+static unsigned int borderpx; /* border pixel of windows */
+static unsigned int gappx;    /* gaps between windows */
+static unsigned int snap;     /* snap pixel */
 
 struct Pertag {
     unsigned int curtag, prevtag;              /* current and previous tag */
