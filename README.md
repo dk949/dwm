@@ -66,11 +66,10 @@ the DISPLAY environment variable is set correctly, e.g.:
 
 ## Configuration
 
-The configuration is done editing `src/config.hpp` and (re)compiling the source code.
+The configuration is done by editing `src/config.hpp` and (re)compiling the source code.
 > [!WARNING]
 > [Patches](https://dwm.suckless.org/patches/) (most likely) won't work, since the
-> this version has been rewritten in c++ (all diff files which have been applied are in
-> the `diffs` directory)
+> this version has been rewritten in c++.
 
 
 ## Debugging
