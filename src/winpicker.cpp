@@ -22,7 +22,7 @@ static constexpr auto tagmask = ((1u << tags.size()) - 1);
 
 // NOLINTBEGIN(readability-magic-numbers)
 
-// syntax: '[' tag (',' tag)* (':' mon)? ']' instance '(' name ')'
+// syntax: '[' tag (',' tag)* (':' mon)? ']' class_hint '(' name ')'
 
 [[nodiscard]]
 static std::string encodeClientName(
@@ -40,7 +40,7 @@ static std::string encodeClientName(
     if (needs_mon) std::format_to(std::back_inserter(out), ":{}", mon_idx);
 
     auto class_hint = c->classHint(dpy);
-    std::format_to(std::back_inserter(out), "] {} ({})", class_hint.instance_hint.get(), c->name);
+    std::format_to(std::back_inserter(out), "] {} ({})", class_hint.class_hint.get(), c->name);
 
     return out;
 }
@@ -50,7 +50,7 @@ static constexpr auto invalid_mon_tag = SIZE_MAX;
 struct DecodedClient {
     std::bitset<tags.size()> tagset;
     std::size_t mon = invalid_mon_tag;
-    std::string_view instance;
+    std::string_view class_hint;
     std::string_view name;
     bool operator==(DecodedClient const &) const = default;
 };
@@ -85,10 +85,10 @@ static DecodedClient decodeClientName(std::string_view name) noexcept {
     name = name.substr(2);
     auto client_name_start_idx = name.find('(');
     if (client_name_start_idx == name.npos) return invalid_client;
-    auto instance = name.substr(0, client_name_start_idx);
-    if (instance.empty() || instance.back() != ' ') return invalid_client;
-    instance.remove_suffix(1);
-    out.instance = instance;
+    auto class_hint = name.substr(0, client_name_start_idx);
+    if (class_hint.empty() || class_hint.back() != ' ') return invalid_client;
+    class_hint.remove_suffix(1);
+    out.class_hint = class_hint;
     auto client_name = name.substr(client_name_start_idx);
     if (client_name.size() < 2 || client_name.front() != '(' || client_name.back() != ')') return invalid_client;
     client_name.remove_prefix(1);
@@ -109,7 +109,7 @@ static Client *decodedToClient(Display *dpy, Monitors const &mons, DecodedClient
         if (client->tags != tagset) continue;
         if (std::string_view {client->name} != decoded.name) continue;
         auto class_hint = client->classHint(dpy);
-        if (std::string_view {class_hint.instance_hint.get()} != decoded.instance) {
+        if (std::string_view {class_hint.class_hint.get()} != decoded.class_hint) {
             candidate = client;
             continue;
         }
@@ -117,9 +117,9 @@ static Client *decodedToClient(Display *dpy, Monitors const &mons, DecodedClient
     }
     if (candidate) {
         auto class_hint = candidate->classHint(dpy);
-        lg::warn("Inexact window match: expected instance '{}', actual instance '{}'",
-            decoded.instance,
-            class_hint.instance_hint.get());
+        lg::warn("Inexact window match: expected class_hint '{}', actual class_hint '{}'",
+            decoded.class_hint,
+            class_hint.class_hint.get());
     }
     return candidate;
 }
