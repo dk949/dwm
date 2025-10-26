@@ -209,6 +209,7 @@ static Key const keys[] = {
     {MODKEY | Mod1Mask                , XK_s      , spawn          , {.v = symdmnu}}     ,
     {MODKEY | Mod1Mask                , XK_g      , spawn          , {.v = grkdmnu}}     ,
     {MODKEY | Mod1Mask                , XK_i      , spawn          , {.v = scrdmnu}}     ,
+    {MODKEY | Mod1Mask                , XK_p      , winpicker      , {0}}     ,
 
     // Application spawn
     {MODKEY | ControlMask             , XK_b      , spawn          , {.v = brwscmd}}     ,

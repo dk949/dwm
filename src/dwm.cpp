@@ -29,6 +29,7 @@
 #include "mapping.hpp"
 #include "proc.hpp"
 #include "strerror.hpp"
+#include "winpicker.hpp"
 #include "xinerama.hpp"
 
 #include <fcntl.h>
@@ -2491,6 +2492,33 @@ void updatewmhints(Client *c) {
         }
         XFree(wmh);
     }
+}
+
+void winpicker(Arg const &) {
+    lg::debug("winpicker start");
+    auto args = winpickerCreateDmenuCommand(dpy, mons, selmon->num);
+    loop->spawn(std::move(args),
+        EventLoop::SpawnConfig {.keep_stdout = true, .keep_stderr = true},
+        [](std::optional<std::string> const &out, std::optional<std::string> const &err, int status) noexcept {
+            if (status == 1 && err->empty()) {
+                lg::debug("No window selected");
+                return;
+            }
+            if (status) {
+                lg::error("Failed to select window: code {}, {}", status, !err->empty() ? *err : "unknown error");
+                return;
+            }
+            if (auto matched = winpickerMatchClient(dpy, mons, *out); matched && mons.size() > matched->second) {
+                auto [client, mon_idx] = *matched;
+                focusmonabs({.ui = static_cast<unsigned>(mon_idx)});
+                view({.ui = client->tags});
+                focus(client);
+                restack(selmon);
+            } else {
+                lg::warn("Could not find rewuested window");
+                return;
+            }
+        });
 }
 
 void view(Arg const &arg) {

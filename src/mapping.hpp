@@ -85,6 +85,7 @@ void togglefs(Arg const &arg);
 void toggletag(Arg const &arg);
 void toggleview(Arg const &arg);
 void view(Arg const &arg);
+void winpicker(Arg const &arg);
 void zoom(Arg const &arg);
 
 #ifdef ASOUND
