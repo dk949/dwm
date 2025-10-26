@@ -55,6 +55,9 @@
 #   modernize-use-designated-initializers                  # These are useful, but maybe not everywhere?
 #   readability-function-cognitive-complexity              # This is a pretty dubious metric
 #   readability-container-data-pointer                     # I've never done this and it has false positives
+#   cppcoreguidelines-pro-type-vararg                      # This code calls too many C APIs for this to be useful
+#   cppcoreguidelines-pro-bounds-pointer-arithmetic        # No
+
 User: dk949
 Checks:
   'boost-use-to-string,
@@ -95,6 +98,8 @@ Checks:
   -cppcoreguidelines-owning-memory,
   -cppcoreguidelines-use-default-member-init,
   -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   google-*,
   -google-build-namespaces,
   -google-readability-avoid-underscore-in-googletest-name,
