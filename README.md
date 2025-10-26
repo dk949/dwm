@@ -41,14 +41,21 @@ Following tools are used by default, but can be changed in `config.h`
 git clone "https://github.com/Microsoft/vcpkg.git"
 ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 ./vcpkg/vcpkg install
-cmake --preset make-release # see CMakePresets.json for other presets
+# see CMakePresets.json for other presets
+cmake --preset make-release -DCMAKE_INSTALL_PREFIX=/path/to/install/to
 cmake --build build-release
-cmake --install build-release --prefix <prefix>
+cmake --install build-release
 ```
 
 > [!NOTE]
-> If `--prefix` is not specified, the default system install directory (most
-> likely `/usr/local`) will be used.
+> If `CMAKE_INSTALL_PREFIX` is not specified, the default system install
+> directory (most likely `/usr/local`) will be used.
+
+> [!WARNING]
+> *DO NOT* use `--prefix` when running `--install`, the executable needs to have
+> the absolute install path at compile time.
+
+<!-- TODO(dk949): ^^ Fix this  -->
 
 ## Running dwm
 
