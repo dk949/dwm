@@ -165,13 +165,13 @@ static Layout const layouts[] = {
 
 /* key definitions */
 #define MODKEY Mod4Mask
+// clang-format off
 #define TAGKEYS(KEY, TAG)                                                                                 \
-    {MODKEY, KEY, view, {.ui = 1 << (TAG)}}, {MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << (TAG)}}, \
-        {MODKEY | ShiftMask, KEY, tag, {.ui = 1 << (TAG)}}, {                                             \
-        MODKEY | ControlMask | ShiftMask, KEY, toggletag, {                                               \
-            .ui = 1 << (TAG)                                                                              \
-        }                                                                                                 \
-    }
+    {MODKEY, KEY, view, {.ui = 1 << (TAG)}},                                                              \
+    {MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << (TAG)}},                                          \
+    {MODKEY | ShiftMask, KEY, tag, {.ui = 1 << (TAG)}},                                                   \
+    {MODKEY | ControlMask | ShiftMask, KEY, toggletag, { .ui = 1 << (TAG) }}
+// clang-format on
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
