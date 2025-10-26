@@ -57,6 +57,7 @@
 #   readability-container-data-pointer                     # I've never done this and it has false positives
 #   cppcoreguidelines-pro-type-vararg                      # This code calls too many C APIs for this to be useful
 #   cppcoreguidelines-pro-bounds-pointer-arithmetic        # No
+#   cppcoreguidelines-pro-bounds-array-to-pointer-decay    # This is perfectly normal
 
 User: dk949
 Checks:
@@ -100,6 +101,7 @@ Checks:
   -cppcoreguidelines-avoid-do-while,
   -cppcoreguidelines-pro-type-vararg,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   google-*,
   -google-build-namespaces,
   -google-readability-avoid-underscore-in-googletest-name,
