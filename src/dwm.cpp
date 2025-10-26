@@ -971,17 +971,24 @@ void focusin(XEvent *e) {
 }
 
 void focusmon(Arg const &arg) {
+    if (mons.size() == 1) return;
     MonitorPtr m;
+    auto selmon_it = rng::find(mons, selmon);
+    if (selmon_it == mons.end()) lg::fatal("Selected monitor is not in the monitor array");
+    auto selmon_idx = std::distance(mons.begin(), selmon_it);
+    selmon_idx += arg.i;
+    if (std::ssize(mons) <= selmon_idx) selmon_idx = 0;
+    if (selmon_idx < 0) selmon_idx = std::ssize(mons) - 1;
 
-    if (mons.size() == 1) {
-        return;
-    }
-    if ((m = dirtomon(arg.i)) == selmon) {
-        return;
-    }
+    focusmonabs({.ui = static_cast<unsigned>(selmon_idx)});
+}
+
+void focusmonabs(Arg const &arg) {
+    if (mons.size() == 1) return;
+    if (mons.size() <= arg.ui) return;
+    if (mons[arg.ui] == selmon) return;
     unfocus(selmon->sel, 0);
-    selmon = m;
-
+    selmon = mons[arg.ui];
     /* move cursor to the center of the new monitor */
     XWarpPointer(dpy, 0, selmon->barwin, 0, 0, 0, 0, selmon->window_size.w / 2, selmon->window_size.h / 2);
     focus(nullptr);
