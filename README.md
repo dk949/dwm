@@ -1,16 +1,16 @@
-dwm - dynamic window manager
-============================
-This is my dwm build. Original project at [suckless.org]( https://dwm.suckless.org/)
+# dwm - dynamic window manager
 
-Requirements
-------------
+This is a fork. Original project at [suckless.org]( https://dwm.suckless.org/)
+
+## Requirements
 * Libraries
     * X11
     * XCB
     * freetype2
     * (optionally) Xinerama
     * (optionally) asound
-* make
+* cmake
+* (optionally) ninja
 * [slstatus](https://tools.suckless.org/slstatus/) status bar information
     * [my build of slstatus](https://github.com/dk949/slstatus)
 
@@ -24,8 +24,7 @@ Following tools are used by default, but can be changed in `config.h`
     * set with the `lockcmd` variable
 * [picom](https://github.com/yshui/picom) compositor
     * set with the `compcmd` and `comkill` variables
-* [st](https://st.suckless.org) terminal
-    * [my build of st](https://github.com/dk949/st)
+* [kitty](https://st.suckless.org) terminal
     * set with the `termcmd` variable
 * [firefox](https://www.mozilla.org/en-US/firefox/new/) browser
     * set with the `brwscmd` variable
@@ -36,19 +35,23 @@ Following tools are used by default, but can be changed in `config.h`
 * [dmenu-scripts](https://github.com/dk949/dmenu-scripts) more helper scripts
     * required for `symdmnu`, `grkdmnu` and `scrdmnu`
 
-Installation
-------------
-Edit config.mk to match your local setup (dwm is installed into
-the /usr/local namespace by default).
+## Installation
 
-Afterwards enter the following commands to build and install dwm:
-``` sh
-make
-make install # possibly as root
+```sh
+git clone "https://github.com/Microsoft/vcpkg.git"
+./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+./vcpkg/vcpkg install
+cmake --preset make-release # see CMakePresets.json for other presets
+cmake --build build-release
+cmake --install build-release --prefix <prefix>
 ```
 
-Running dwm
------------
+> [!NOTE]
+> If `--prefix` is not specified, the default system install directory (most
+> likely `/usr/local`)
+
+## Running dwm
+
 Add the following line to your .xinitrc to start dwm using startx:
 
     exec dwm
@@ -61,26 +64,22 @@ the DISPLAY environment variable is set correctly, e.g.:
 (This will start dwm on display :1 of the host foo.bar.)
 
 
-Configuration
--------------
-The configuration is done editing config.h and (re)compiling the source code.
-Note: Most [patches](https://dwm.suckless.org/patches/) won't work, since the
-this version is heavily modified (all diff files which have been applied are in
-the `diffs` directory)
+## Configuration
+
+The configuration is done editing `src/config.hpp` and (re)compiling the source code.
+> [!WARNING]
+> [Patches](https://dwm.suckless.org/patches/) (most likely) won't work, since the
+> this version has been rewritten in c++ (all diff files which have been applied are in
+> the `diffs` directory)
 
 
-Debugging
----------
+## Debugging
 
 dwm can be built with additional debugging functionality. This build will
 produce additional debug logs and will use address sanitiser to check for memory
 errors.
 
 ```sh
-MODE=DEBUG make
+cmake --preset make # see CMakePresets.json for other debug presets
+cmake --build build
 ```
-
-_Note:_ To build in release mode explicitly use `MODE=RELEASE`
-
-_Note:_ if you want to install the debug build, the install command also needs
-`MODE=DEBUG` set, other wise it will rebuild in `RELEASE` mode.
