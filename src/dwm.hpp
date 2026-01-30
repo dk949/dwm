@@ -101,7 +101,8 @@ struct Client {
     [[nodiscard]]
     ClassHint classHint(Display *dpy) const {
         XClassHint ch;
-        XGetClassHint(dpy, win, &ch);
+        auto status = XGetClassHint(dpy, win, &ch);
+        if (!status) return ClassHint {nullptr, nullptr};
         return ClassHint::fromX(ch);
     }
 
