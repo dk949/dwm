@@ -99,6 +99,9 @@ enum {
     NetWMWindowTypeDialog,
     NetClientList,
     NetWMIcon,
+    NetOpacity,
+    NetBypassComp,
+    NetOpaqueRegion,
     NetLast
 }; /* EWMH atoms */
 
@@ -1922,6 +1925,9 @@ void setup() {
     netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
     netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
     netatom[NetWMIcon] = XInternAtom(dpy, "_NET_WM_ICON", False);
+    netatom[NetOpacity] = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
+    netatom[NetBypassComp] = XInternAtom(dpy, "_NET_WM_BYPASS_COMPOSITOR", False);
+    netatom[NetOpaqueRegion] = XInternAtom(dpy, "_NET_WM_OPAQUE_REGION", False);
 
     drw->setColorScheme(colors);
 
