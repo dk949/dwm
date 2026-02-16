@@ -79,8 +79,8 @@ enum TagTypes {
 #define ttype(type) (1 << Tag##type)
 
 /* tagging */
-static constexpr auto tags = [] {
-    std::array<char const *, 9> out;
+static constexpr auto tag_symbols = [] {
+    std::array<char const *, 9> out;  // NOLINT cppcoreguidelines-pro-type-member-init
     out[TagTerm1] = "   ";
     out[TagBrowse] = "  ";
     out[TagCode] = " 󰅩 ";

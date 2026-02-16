@@ -18,7 +18,7 @@
 #include <vector>
 namespace rng = std::ranges;
 namespace vws = std::views;
-static constexpr auto tagmask = ((1u << tags.size()) - 1);
+static constexpr auto tagmask = ((1u << tag_symbols.size()) - 1);
 
 // NOLINTBEGIN(readability-magic-numbers)
 
@@ -31,7 +31,7 @@ static std::string encodeClientName(
     out.reserve(15 + std::char_traits<char>::length(c->name));
     out.push_back('[');
     auto tagset = std::bitset<sizeof(c->tags) * 8>(c->tags & tagmask);
-    for (auto i = 0uz; i < std::min(tags.size(), tagset.size()); ++i) {
+    for (auto i = 0uz; i < std::min(tag_symbols.size(), tagset.size()); ++i) {
         if (tagset[i]) {
             if (out.back() != '[') out.push_back(',');
             std::format_to(std::back_inserter(out), "{}", i);
@@ -48,7 +48,7 @@ static std::string encodeClientName(
 static constexpr auto invalid_mon_tag = SIZE_MAX;
 
 struct DecodedClient {
-    std::bitset<tags.size()> tagset;
+    std::bitset<tag_symbols.size()> tagset;
     std::size_t mon = invalid_mon_tag;
     std::string_view class_hint;
     std::string_view name;

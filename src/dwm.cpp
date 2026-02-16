@@ -209,7 +209,7 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 
 /* variables */
 
-constexpr auto TAGMASK = (1uz << LENGTH(tags)) - 1uz;
+constexpr auto TAGMASK = (1uz << tag_symbols.size()) - 1uz;
 constexpr auto BUTTONMASK = toUnsigned(ButtonPressMask) | toUnsigned(ButtonReleaseMask);
 constexpr auto MOUSEMASK = BUTTONMASK | toUnsigned(PointerMotionMask);
 static char const broken[] = "broken";
@@ -238,17 +238,17 @@ static unsigned int gappx;    /* gaps between windows */
 static unsigned int snap;     /* snap pixel */
 
 struct Pertag {
-    unsigned int curtag, prevtag;              /* current and previous tag */
-    int nmasters[LENGTH(tags) + 1];            /* number of windows in master area */
-    float mfacts[LENGTH(tags) + 1];            /* mfacts per tag */
-    unsigned int sellts[LENGTH(tags) + 1];     /* selected layouts */
-    Layout const *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
-    bool showbars[LENGTH(tags) + 1];           /* display bar for the current tag */
+    unsigned int curtag, prevtag;                    /* current and previous tag */
+    int nmasters[tag_symbols.size() + 1];            /* number of windows in master area */
+    float mfacts[tag_symbols.size() + 1];            /* mfacts per tag */
+    unsigned int sellts[tag_symbols.size() + 1];     /* selected layouts */
+    Layout const *ltidxs[tag_symbols.size() + 1][2]; /* matrix of tags and layouts indexes  */
+    bool showbars[tag_symbols.size() + 1];           /* display bar for the current tag */
 };
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags {
-    char limitexceeded[LENGTH(tags) > 31 ? -1 : 1];
+    char limitexceeded[tag_symbols.size() > 31 ? -1 : 1];
 };
 
 /* function implementations */
@@ -515,9 +515,9 @@ void buttonpress(XEvent *e) {
     if (ev->window == selmon->barwin) {
         i = x = 0;
         do {
-            x += TEXTW(tags[i]);
-        } while (std::cmp_greater_equal(ev->x, x) && ++i < LENGTH(tags));
-        if (i < LENGTH(tags)) {
+            x += TEXTW(tag_symbols[i]);
+        } while (std::cmp_greater_equal(ev->x, x) && ++i < tag_symbols.size());
+        if (i < tag_symbols.size()) {
             click = ClkTagBar;
             arg.ui = 1 << i;
         } else if ((unsigned)ev->x < x + TEXTW(selmon->layoutSymbol)) {
@@ -721,7 +721,7 @@ MonitorPtr createmon() {
     m->pertag = new Pertag {};
     m->pertag->curtag = m->pertag->prevtag = 1;
 
-    for (unsigned int i = 0; i <= LENGTH(tags); i++) {
+    for (unsigned int i = 0; i <= tag_symbols.size(); i++) {
         m->pertag->nmasters[i] = m->nmaster;
         m->pertag->mfacts[i] = m->mfact;
 
@@ -812,14 +812,14 @@ void drawbar(MonitorPtr m) {
         }
     }
     x = 0;
-    for (i = 0; i < LENGTH(tags); i++) {
-        w = (int)TEXTW(tags[i]);
+    for (i = 0; i < tag_symbols.size(); i++) {
+        w = (int)TEXTW(tag_symbols[i]);
         if (m->tagset[m->seltags] & 1 << i)
             drw->setColor(&drw->scheme().tags_sel);
         else
             drw->setColor(&drw->scheme().tags_norm);
 
-        drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), tags[i], (urg & 1 << i) != 0u);
+        drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), tag_symbols[i], (urg & 1 << i) != 0u);
         if (occ & 1 << i) {
             drw->draw_rect(x + boxs,
                 boxs,
