@@ -74,18 +74,19 @@ namespace vws = std::views;
 #include <xcb/res.h>
 
 /* macros */
-#define BUTTONMASK (ButtonPressMask | ButtonReleaseMask)
 #define CLEANMASK(mask)                 \
     ((mask) & ~(numlockmask | LockMask) \
         & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
-#define INTERSECT(x, y, w, h, m)                                                                                   \
-    (std::max(0, std::min((x) + (w), (m)->window_size.x + (m)->window_size.w) - std::max((x), (m)->window_size.x)) \
-        * std::max(0, std::min((y) + (h), (m)->window_size.y + (m)->window_size.h) - std::max((y), (m)->window_size.y)))
+
+static constexpr auto INTERSECT(
+    std::integral auto x, std::integral auto y, std::integral auto w, std::integral auto h, MonitorPtr const &m) {
+    return std::max(0, std::min(x + w, m->window_size.x + m->window_size.w) - std::max(x, m->window_size.x))
+         * std::max(0, std::min(y + h, m->window_size.y + m->window_size.h) - std::max(y, m->window_size.y));
+}
+
 #define LENGTH(X) (sizeof(X) / sizeof(X)[0])
-#define MOUSEMASK (BUTTONMASK | PointerMotionMask)
 #define WIDTH(X)  ((unsigned)(X)->size.w + 2 * (unsigned)(X)->bw + gappx)
 #define HEIGHT(X) ((unsigned)(X)->size.h + 2 * (unsigned)(X)->bw + gappx)
-#define TAGMASK   ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)  (drw->fontset_getwidth((X)) + (unsigned)lrpad)
 
 enum {
@@ -207,6 +208,10 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 #include "config.hpp"
 
 /* variables */
+
+constexpr auto TAGMASK = (1uz << LENGTH(tags)) - 1uz;
+constexpr auto BUTTONMASK = toUnsigned(ButtonPressMask) | toUnsigned(ButtonReleaseMask);
+constexpr auto MOUSEMASK = BUTTONMASK | toUnsigned(PointerMotionMask);
 static char const broken[] = "broken";
 static char stext[256];
 static int screen;
