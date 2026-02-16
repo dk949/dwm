@@ -5,7 +5,11 @@
 
 
 #include <algorithm>
+#include <concepts>
 #include <functional>
+#include <numeric>
+#include <type_traits>
+#include <utility>
 #ifndef NDEBUG
 #    define IF_DEBUG if (true)
 #    ifdef DWM_TRACE_EVENTS
@@ -28,6 +32,13 @@ template<typename R, typename E, typename Cmp>
 bool contains(R const &r, E &&_match, Cmp const &cmp = std::equal_to<E> {}) {
     return std::ranges::find_if(r, [&, match = std::forward<E>(_match)](E const &e) { return cmp(match, e); })
         == std::ranges::end(r);
+}
+
+template<std::integral Int>
+consteval auto toUnsigned(Int i) {
+    using Uint = std::make_unsigned_t<Int>;
+    if (!std::in_range<Uint>(i)) throw "Bad integral conversion";
+    return static_cast<Uint>(i);
 }
 
 #endif  // DWM_UTIL_HPP
