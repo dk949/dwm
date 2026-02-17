@@ -291,7 +291,7 @@ void Client::applyrules() {
     tags = tags & TAGMASK ? tags & TAGMASK : mon->tagset[mon->seltags];
 }
 
-bool Client::applysizehints(Rect<int> *new_size, int interact) {
+bool Client::applysizehints(Rect<int> *new_size, bool interact) {
 
     /* set minimum possible */
     new_size->w = std::max(1, new_size->w);
@@ -1326,7 +1326,7 @@ void monocle(MonitorPtr const &m) {
                 m->window_size.w - (2 * c->bw),
                 m->window_size.h - (2 * c->bw),
             },
-            0);
+            false);
     }
 }
 
@@ -1413,7 +1413,7 @@ void movemouse(Arg const &arg) {
                     togglefloating({});
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
-                    c->resize({nx, ny, c->size.w, c->size.h}, 1);
+                    c->resize({nx, ny, c->size.w, c->size.h}, true);
                 }
                 break;
             default: lg::warn("Unexpected event type {} in movemouse", ev.type); break;
@@ -1514,7 +1514,7 @@ MonitorPtr recttomon(int x, int y, int w, int h) {
     return r;
 }
 
-void Client::resize(Rect<int> new_size, int interact) {
+void Client::resize(Rect<int> new_size, bool interact) {
     if (applysizehints(&new_size, interact)) resizeclient(new_size);
 }
 
@@ -1611,7 +1611,7 @@ void resizemouse(Arg const &arg) {
                     }
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
-                    c->resize({c->size.x, c->size.y, nw, nh}, 1);
+                    c->resize({c->size.x, c->size.y, nw, nh}, true);
                 }
                 break;
             default: lg::warn("Unknown event type {} in resizemouse", ev.type); break;
@@ -1976,7 +1976,7 @@ void showhide(Client *c) {
         /* show clients top down */
         XMoveWindow(dpy, c->win, c->size.x, c->size.y);
         if ((!c->mon->lt[c->mon->sellt]->arrange || c->props.isfloating) && !c->props.isfullscreen) {
-            c->resize(c->size, 0);
+            c->resize(c->size, false);
         }
         showhide(c->snext);
     } else {
@@ -2044,7 +2044,7 @@ void tile(MonitorPtr const &m) {
                     (int)(mw - (unsigned)(2 * c->bw)),
                     (int)(h - (2 * (unsigned)c->bw)),
                 },
-                0);
+                false);
             // TODO(dk949): This is a guard against creating too many clients.
             //              Do something if there's too many clients!
             if (my + HEIGHT(c) < (unsigned)m->window_size.h) {
@@ -2060,7 +2060,7 @@ void tile(MonitorPtr const &m) {
                     (int)((unsigned)m->window_size.w - mw - (2 * (unsigned)c->bw)),
                     (int)(h - (2 * (unsigned)c->bw)),
                 },
-                0);
+                false);
             if (ty + HEIGHT(c) < (unsigned)m->window_size.h) {
                 ty += HEIGHT(c);
                 sfacts -= c->cfact;
@@ -2098,7 +2098,7 @@ void togglefloating(Arg const &arg) {
 
     selmon->sel->props.isfloating = !selmon->sel->props.isfloating || selmon->sel->props.isfixed;
     if (selmon->sel->props.isfloating) {
-        selmon->sel->resize(selmon->sel->size, 0);
+        selmon->sel->resize(selmon->sel->size, false);
     }
     arrange(selmon);
 }
@@ -2967,7 +2967,7 @@ void centeredmaster(MonitorPtr const &m) {
                     (int)(mw - (unsigned)(2 * c->bw)),
                     (int)(h - (unsigned)(2 * c->bw)),
                 },
-                0);
+                false);
             // TODO(dk949): This is a guard against creating too many clients.
             //              Do something if there's too many clients!
             // TODO(dk949): make this cfact aware
@@ -2983,7 +2983,7 @@ void centeredmaster(MonitorPtr const &m) {
                         (int)(tw - (unsigned)(2 * c->bw)),
                         (int)(h - (unsigned)(2 * c->bw)),
                     },
-                    0);
+                    false);
                 // TODO(dk949): This is a guard against creating too many clients.
                 //              Do something if there's too many clients!
                 // TODO(dk949): make this cfact aware
@@ -2997,7 +2997,7 @@ void centeredmaster(MonitorPtr const &m) {
                         (int)(tw - (unsigned)(2 * c->bw)),
                         (int)(h - (unsigned)(2 * c->bw)),
                     },
-                    0);
+                    false);
                 if (oty + HEIGHT(c) < (unsigned)m->window_size.h) oty += HEIGHT(c);
             }
         }
@@ -3057,7 +3057,7 @@ void centeredfloatingmaster(MonitorPtr const &m) {
                     (int)(w - (unsigned)(2 * c->bw)),
                     (int)(mh - (unsigned)(2 * c->bw)),
                 },
-                0);
+                false);
             mx += WIDTH(c);
         } else {
             /* stack clients are stacked horizontally */
@@ -3069,7 +3069,7 @@ void centeredfloatingmaster(MonitorPtr const &m) {
                     (int)(w - (unsigned)(2 * c->bw)),
                     m->window_size.h - (2 * c->bw),
                 },
-                0);
+                false);
             tx += WIDTH(c);
         }
     }

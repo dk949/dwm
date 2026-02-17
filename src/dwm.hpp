@@ -117,8 +117,8 @@ struct Client {
     void configure() const;
     void applyrules();
     void resizeclient(Rect<int> new_size);
-    bool applysizehints(Rect<int> *size, int interact);
-    void resize(Rect<int> size, int interact);
+    bool applysizehints(Rect<int> *size, bool interact);
+    void resize(Rect<int> size, bool interact);
 };
 
 #define ISVISIBLEONTAG(C, T) (((C)->tags & (T)))
