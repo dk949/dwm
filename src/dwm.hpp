@@ -119,9 +119,16 @@ struct Client {
     void resizeclient(Rect<int> new_size);
     bool applysizehints(Rect<int> *size, bool interact);
     void resize(Rect<int> size, bool interact);
-};
 
-#define ISVISIBLEONTAG(C, T) (((C)->tags & (T)))
-#define ISVISIBLE(C)         ISVISIBLEONTAG(C, (C)->mon->tagset[(C)->mon->seltags])
+    [[nodiscard]]
+    constexpr bool isVisibleOnTag(unsigned tag) const {
+        return (tags & tag) != 0u;
+    }
+
+    [[nodiscard]]
+    constexpr bool isVisible() const {
+        return isVisibleOnTag(mon->tagset[mon->seltags]);
+    }
+};
 
 #endif  // DWM_HPP
