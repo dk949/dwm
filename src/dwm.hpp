@@ -4,6 +4,7 @@
 #include "layout.hpp"
 #include "xidptr.hpp"
 
+#include <ut/static_string/static_string.hpp>
 #include <X11/X.h>
 #include <X11/Xutil.h>
 
@@ -80,7 +81,7 @@ struct ClientProps {
 };
 
 struct Client {
-    char name[256];
+    ut::StaticString<256> name;  // NOLINT readability-magic-numbers
     float mina, maxa;
     float cfact;
     Rect<int> size;

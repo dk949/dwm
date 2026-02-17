@@ -144,7 +144,7 @@ static pid_t getparentprocess(pid_t p);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
-static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
+static int gettextprop(Window w, Atom atom, char *text, std::size_t size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys();
 static void iconifyclient(Client *c);
@@ -257,7 +257,7 @@ void Client::applyrules() {
     char const *instance = ch.instance_hint ? ch.instance_hint.get() : broken;
 
     for (auto const &r : rules) {
-        if ((!r.title || strstr(name, r.title)) && (!r.class_ || strstr(class_, r.class_))
+        if ((!r.title || name.contains(r.title)) && (!r.class_ || strstr(class_, r.class_))
             && (!r.instance || strstr(instance, r.instance))) {
             props.isterminal = r.isterminal;
             props.isfloating = r.isfloating;
@@ -830,7 +830,7 @@ void drawbar(MonitorPtr m) {
     if ((w = m->window_size.w - text_width - x) > bar_height) {
         if (m->sel) {
             drw->setColor(m == selmon ? &drw->scheme().info_sel : &drw->scheme().info_norm);
-            drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name, false);
+            drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name.data(), false);
             if (m->sel->props.isfloating) {
                 drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->props.isfixed, false);
             }
@@ -1079,7 +1079,7 @@ long getstate(Window w) {
     return result;
 }
 
-int gettextprop(Window w, Atom atom, char *text, unsigned int size) {
+int gettextprop(Window w, Atom atom, char *text, std::size_t size) {
     char **list = nullptr;
     int n;
     XTextProperty name;
@@ -2456,11 +2456,11 @@ void updatestatus() {
 }
 
 void updatetitle(Client *c) {
-    if (!gettextprop(c->win, netatom[NetWMName], c->name, sizeof c->name)) {
-        gettextprop(c->win, XA_WM_NAME, c->name, sizeof c->name);
+    if (!gettextprop(c->win, netatom[NetWMName], c->name.data(), c->name.max_size())) {
+        gettextprop(c->win, XA_WM_NAME, c->name.data(), c->name.max_size());
     }
     if (c->name[0] == '\0') { /* hack to mark broken clients */
-        strcpy(c->name, broken);
+        rng::copy(broken, c->name.begin());
     }
 }
 

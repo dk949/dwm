@@ -28,7 +28,7 @@ static constexpr auto tagmask = ((1u << tag_symbols.size()) - 1);
 static std::string encodeClientName(
     Display *dpy, Client const *c, Monitors::difference_type mon_idx, bool needs_mon) noexcept {
     std::string out;
-    out.reserve(15 + std::char_traits<char>::length(c->name));
+    out.reserve(15 + c->name.size());
     out.push_back('[');
     auto tagset = std::bitset<sizeof(c->tags) * 8>(c->tags & tagmask);
     for (auto i = 0uz; i < std::min(tag_symbols.size(), tagset.size()); ++i) {
