@@ -19,7 +19,7 @@
 static bool const showbar = true; /* 0 means no bar */
 static int const topbar = 1;      /* 0 means bottom bar */
 // TODO(dk949): Make this a std::array
-inline constexpr char const *fonts[] = {
+inline constexpr auto fonts = std::array {
     "JetBrains Mono:size=" FONT_SIZE ":antialias=true:autohint=true",
     "JetBrainsMono Nerd Font:size=" NERD_FONT_SIZE ":antialias=true:autohint=true",
     "Noto Emoji:size=" FONT_SIZE ":antialias=true:autohint=true",
@@ -76,7 +76,7 @@ enum TagTypes {
     TagTerm3 = 8,
 };
 
-#define ttype(type) (1 << Tag##type)
+#define ttype(type) (1u << Tag##type)
 
 /* tagging */
 static constexpr auto tag_symbols = [] {
@@ -93,9 +93,7 @@ static constexpr auto tag_symbols = [] {
     return out;
 }();
 
-
-
-static Rule const rules[] = {
+static auto rules = std::array {
     /* xprop(1):
      *    WM_CLASS(STRING) = instance, class
      *    WM_NAME(STRING) = title
@@ -109,37 +107,37 @@ static Rule const rules[] = {
     - 4 as 2, but closing that window reverts the view back to what it was previously (*)
     */
     // clang-format off
-    /* class                     , inst         , title        , tags          , switch , isfloating , isterminal , noswallow , monitor */
-    {"firefox"                   , nullptr      , nullptr      , ttype(Browse) , 3      , false      , false      , false     , -1},
-    {"Google-chrome"             , nullptr      , nullptr      , ttype(Browse) , 3      , false      , true       , true      , -1},
-    {"jetbrains-clion"           , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    {"jetbrains-webstorm"        , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    {"jetbrains-idea"            , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    {"jetbrains-pycharm"         , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    {"jetbrains-studio"          , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    {"Steam"                     , nullptr      , nullptr      , ttype(Ent)    , 3      , true       , false      , false     , -1},
-    {"Spotify"                   , nullptr      , nullptr      , ttype(Ent)    , 1      , false      , false      , false     , -1},
-    {"st-256color"               , nullptr      , "spotify"    , ttype(Ent)    , 3      , false      , false      , true      , -1},
-    {"st-256color"               , nullptr      , "sysmon"     , ttype(Sys)    , 3      , false      , false      , true      , -1},
-    {"VirtualBox Machine"        , nullptr      , nullptr      , ttype(Sys)    , 1      , false      , false      , false     , -1},
-    {"qemu-system-i386"          , nullptr      , nullptr      , ttype(Sys)    , 0      , true       , true       , true      , -1},
-    {"Gimp"                      , nullptr      , nullptr      , ttype(Creat)  , 3      , false      , false      , false     , -1},
-    {"Blender"                   , nullptr      , nullptr      , ttype(Creat)  , 3      , false      , false      , false     , -1},
-    {"Darktable"                 , nullptr      , nullptr      , ttype(Creat)  , 1      , false      , false      , false     , -1},
-    {"MuseScore3"                , nullptr      , nullptr      , ttype(Creat)  , 1      , false      , false      , false     , -1},
-    {"discord"                   , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"Slack"                     , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"Mattermost"                , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"Microsoft Teams - Preview" , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"thunderbird"               , nullptr      , "Msgcompose" , ttype(Chat)   , 1      , false      , true       , true      , -1},
-    {"thunderbird"               , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"Zulip"                     , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"Signal"                    , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"zoom"                      , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    {"testing"                   , nullptr      , nullptr      , 0             , 0      , true       , true       , true      , -1},
-    {"Xephyr"                    , nullptr      , nullptr      , 0             , 0      , true       , true       , true      , -1},
-    {"st-256color"               , nullptr      , nullptr      , 0             , 0      , false      , true       , true      , -1},
-    {"kitty"                     , nullptr      , nullptr      , 0             , 0      , false      , true       , true      , -1},
+    /*     class                     , inst         , title        , tags          , switch , isfloating , isterminal , noswallow , monitor */
+    Rule{"firefox"                   , nullptr      , nullptr      , ttype(Browse) , 3      , false      , false      , false     , -1},
+    Rule{"Google-chrome"             , nullptr      , nullptr      , ttype(Browse) , 3      , false      , true       , true      , -1},
+    Rule{"jetbrains-clion"           , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-webstorm"        , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-idea"            , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-pycharm"         , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-studio"          , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"Steam"                     , nullptr      , nullptr      , ttype(Ent)    , 3      , true       , false      , false     , -1},
+    Rule{"Spotify"                   , nullptr      , nullptr      , ttype(Ent)    , 1      , false      , false      , false     , -1},
+    Rule{"st-256color"               , nullptr      , "spotify"    , ttype(Ent)    , 3      , false      , false      , true      , -1},
+    Rule{"st-256color"               , nullptr      , "sysmon"     , ttype(Sys)    , 3      , false      , false      , true      , -1},
+    Rule{"VirtualBox Machine"        , nullptr      , nullptr      , ttype(Sys)    , 1      , false      , false      , false     , -1},
+    Rule{"qemu-system-i386"          , nullptr      , nullptr      , ttype(Sys)    , 0      , true       , true       , true      , -1},
+    Rule{"Gimp"                      , nullptr      , nullptr      , ttype(Creat)  , 3      , false      , false      , false     , -1},
+    Rule{"Blender"                   , nullptr      , nullptr      , ttype(Creat)  , 3      , false      , false      , false     , -1},
+    Rule{"Darktable"                 , nullptr      , nullptr      , ttype(Creat)  , 1      , false      , false      , false     , -1},
+    Rule{"MuseScore3"                , nullptr      , nullptr      , ttype(Creat)  , 1      , false      , false      , false     , -1},
+    Rule{"discord"                   , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Slack"                     , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Mattermost"                , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Microsoft Teams - Preview" , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"thunderbird"               , nullptr      , "Msgcompose" , ttype(Chat)   , 1      , false      , true       , true      , -1},
+    Rule{"thunderbird"               , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Zulip"                     , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Signal"                    , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"zoom"                      , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"testing"                   , nullptr      , nullptr      , 0             , 0      , true       , true       , true      , -1},
+    Rule{"Xephyr"                    , nullptr      , nullptr      , 0             , 0      , true       , true       , true      , -1},
+    Rule{"st-256color"               , nullptr      , nullptr      , 0             , 0      , false      , true       , true      , -1},
+    Rule{"kitty"                     , nullptr      , nullptr      , 0             , 0      , false      , true       , true      , -1},
     // clang-format on
 };
 
@@ -149,23 +147,23 @@ static float const mfact = 0.5;   /* factor of master area size [0.05..0.95] */
 static int const nmaster = 1;     /* number of clients in master area */
 static int const resizehints = 1; /* 1 means respect size hints in tiled resizals */
 
-static Layout const layouts[] = {
-    /* symbol      arrange function */
-    {"[]=",                   tile}, /* first entry is default */
-    {"><>",                nullptr}, /* no layout function means floating behavior */
-    {"[M]",                monocle},
-    {"|M|",         centeredmaster},
-    {">M>", centeredfloatingmaster},
+static auto const layouts = std::array {
+    /*       symbol      arrange function */
+    Layout {"[]=",                   tile}, /* first entry is default */
+    Layout {"><>",                nullptr}, /* no layout function means floating behavior */
+    Layout {"[M]",                monocle},
+    Layout {"|M|",         centeredmaster},
+    Layout {">M>", centeredfloatingmaster},
 };
 
 /* key definitions */
 #define MODKEY Mod4Mask
 // clang-format off
 #define TAGKEYS(KEY, TAG)                                                                                 \
-    {MODKEY, KEY, view, {.ui = 1 << (TAG)}},                                                              \
-    {MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << (TAG)}},                                          \
-    {MODKEY | ShiftMask, KEY, tag, {.ui = 1 << (TAG)}},                                                   \
-    {MODKEY | ControlMask | ShiftMask, KEY, toggletag, { .ui = 1 << (TAG) }}
+    Key{MODKEY, KEY, view, {.ui = 1 << (TAG)}},                                                              \
+    Key{MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << (TAG)}},                                          \
+    Key{MODKEY | ShiftMask, KEY, tag, {.ui = 1 << (TAG)}},                                                   \
+    Key{MODKEY | ControlMask | ShiftMask, KEY, toggletag, { .ui = 1 << (TAG) }}
 // clang-format on
 
 /* commands */
@@ -191,68 +189,68 @@ static char const *grkdmnu[] = {"greek", nullptr};       // Mathematical symbol 
 static char const *scrdmnu[] = {"screenshot", nullptr};  // Screenshot taker
 
 
-static Key const keys[] = {
+static auto const keys = std::array {
 
     // clang-format off
-    /* modifier                         key         function       argument */
+    /*    modifier                         key         function       argument */
     // Utility spawners
-    {MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
+    Key{MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
 #ifdef ASOUND
-    {MODKEY                           , XK_F1     , volumechange   , {.i = VOL_MT  }}    ,
-    {MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN*5}}    ,
-    {MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP*5}}    ,
+    Key{MODKEY                           , XK_F1     , volumechange   , {.i = VOL_MT  }}    ,
+    Key{MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN*5}}    ,
+    Key{MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP*5}}    ,
 #endif // ASOUND
-    {MODKEY                           , XK_Return , spawn          , {.v = termcmd}}     ,
-    {MODKEY                           , XK_Next   , spawn          , {.v = lockcmd}}     ,
-    {MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , {.v = powrcmd}}     ,
-    {MODKEY | Mod1Mask                , XK_s      , spawn          , {.v = symdmnu}}     ,
-    {MODKEY | Mod1Mask                , XK_g      , spawn          , {.v = grkdmnu}}     ,
-    {MODKEY | Mod1Mask                , XK_i      , spawn          , {.v = scrdmnu}}     ,
-    {MODKEY | Mod1Mask                , XK_p      , winpicker      , {0}}     ,
+    Key{MODKEY                           , XK_Return , spawn          , {.v = termcmd}}     ,
+    Key{MODKEY                           , XK_Next   , spawn          , {.v = lockcmd}}     ,
+    Key{MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , {.v = powrcmd}}     ,
+    Key{MODKEY | Mod1Mask                , XK_s      , spawn          , {.v = symdmnu}}     ,
+    Key{MODKEY | Mod1Mask                , XK_g      , spawn          , {.v = grkdmnu}}     ,
+    Key{MODKEY | Mod1Mask                , XK_i      , spawn          , {.v = scrdmnu}}     ,
+    Key{MODKEY | Mod1Mask                , XK_p      , winpicker      , {0}}     ,
 
     // Application spawn
-    {MODKEY | ControlMask             , XK_b      , spawn          , {.v = brwscmd}}     ,
-    {MODKEY | ControlMask             , XK_m      , spawn          , {.v = musccmd}}     ,
-    {MODKEY | ControlMask             , XK_d      , spawn          , {.v = chatcmd}}     ,
-    {MODKEY | ControlMask             , XK_n      , spawn          , {.v = nvimcmd}}     ,
-    {MODKEY | ControlMask             , XK_Escape , spawn          , {.v = htopcmd}}     ,
+    Key{MODKEY | ControlMask             , XK_b      , spawn          , {.v = brwscmd}}     ,
+    Key{MODKEY | ControlMask             , XK_m      , spawn          , {.v = musccmd}}     ,
+    Key{MODKEY | ControlMask             , XK_d      , spawn          , {.v = chatcmd}}     ,
+    Key{MODKEY | ControlMask             , XK_n      , spawn          , {.v = nvimcmd}}     ,
+    Key{MODKEY | ControlMask             , XK_Escape , spawn          , {.v = htopcmd}}     ,
 
 
     // dwm control
-    {MODKEY                           , XK_b      , togglebar      , {0}}                ,
-    {MODKEY | ShiftMask               , XK_j      , rotatestack    , {.i = +1}}          ,
-    {MODKEY | ShiftMask               , XK_k      , rotatestack    , {.i = -1}}          ,
-    {MODKEY                           , XK_j      , focusstack     , {.i = +1}}          ,
-    {MODKEY                           , XK_k      , focusstack     , {.i = -1}}          ,
-    // {MODKEY                           , XK_z      , iconify        , {0}}                ,
-    {MODKEY                           , XK_i      , incnmaster     , {.i = +1}}          ,
-    {MODKEY                           , XK_d      , incnmaster     , {.i = -1}}          ,
-    {MODKEY                           , XK_h      , setmfact       , {.f = -0.02f}}       ,
-    {MODKEY                           , XK_l      , setmfact       , {.f = +0.02f}}       ,
-    {MODKEY | ShiftMask               , XK_h      , setcfact       , {.f = +0.25f}}       ,
-    {MODKEY | ShiftMask               , XK_l      , setcfact       , {.f = -0.25f}}       ,
-    {MODKEY | ShiftMask               , XK_o      , resetmcfact    , {0}}                ,
-    {MODKEY | ShiftMask               , XK_Return , zoom           , {0}}                ,
-    {MODKEY                           , XK_Tab    , view           , {0}}                ,
-    {MODKEY                           , XK_w      , killclient     , {0}}                ,
-    {MODKEY                           , XK_F5     , bright_dec     , {.f = 5.0f}}         ,
-    {MODKEY                           , XK_F6     , bright_inc     , {.f = 5.0f}}         ,
-    {MODKEY                           , XK_F11    , togglefs       , {0}}                ,
-    {MODKEY                           , XK_t      , setlayout      , {.v = &layouts[0]}} ,
-    {MODKEY                           , XK_f      , setlayout      , {.v = &layouts[1]}} ,
-    {MODKEY                           , XK_m      , setlayout      , {.v = &layouts[2]}} ,
-    {MODKEY                           , XK_u      , setlayout      , {.v = &layouts[3]}} ,
-    {MODKEY                           , XK_o      , setlayout      , {.v = &layouts[4]}} ,
-    {MODKEY                           , XK_space  , setlayout      , {0}}                ,
-    {MODKEY | ShiftMask               , XK_space  , togglefloating , {0}}                ,
-    {MODKEY                           , XK_0      , view           , {.ui = ~0u}}         ,
-    {MODKEY | ShiftMask               , XK_0      , tag            , {.ui = ~0u}}         ,
-    {MODKEY                           , XK_comma  , focusmon       , {.i = -1}}          ,
-    {MODKEY                           , XK_period , focusmon       , {.i = +1}}          ,
-    {MODKEY | ShiftMask               , XK_comma  , tagmon         , {.i = -1}}          ,
-    {MODKEY | ShiftMask               , XK_period , tagmon         , {.i = +1}}          ,
-    {MODKEY | ShiftMask               , XK_q      , quit           , {0}}                ,
-    {MODKEY | ShiftMask               , XK_r      , restart        , {0}}                ,
+    Key{MODKEY                           , XK_b      , togglebar      , {0}}                ,
+    Key{MODKEY | ShiftMask               , XK_j      , rotatestack    , {.i = +1}}          ,
+    Key{MODKEY | ShiftMask               , XK_k      , rotatestack    , {.i = -1}}          ,
+    Key{MODKEY                           , XK_j      , focusstack     , {.i = +1}}          ,
+    Key{MODKEY                           , XK_k      , focusstack     , {.i = -1}}          ,
+    // Key{MODKEY                           , XK_z      , iconify        , {0}}                ,
+    Key{MODKEY                           , XK_i      , incnmaster     , {.i = +1}}          ,
+    Key{MODKEY                           , XK_d      , incnmaster     , {.i = -1}}          ,
+    Key{MODKEY                           , XK_h      , setmfact       , {.f = -0.02f}}       ,
+    Key{MODKEY                           , XK_l      , setmfact       , {.f = +0.02f}}       ,
+    Key{MODKEY | ShiftMask               , XK_h      , setcfact       , {.f = +0.25f}}       ,
+    Key{MODKEY | ShiftMask               , XK_l      , setcfact       , {.f = -0.25f}}       ,
+    Key{MODKEY | ShiftMask               , XK_o      , resetmcfact    , {0}}                ,
+    Key{MODKEY | ShiftMask               , XK_Return , zoom           , {0}}                ,
+    Key{MODKEY                           , XK_Tab    , view           , {0}}                ,
+    Key{MODKEY                           , XK_w      , killclient     , {0}}                ,
+    Key{MODKEY                           , XK_F5     , bright_dec     , {.f = 5.0f}}         ,
+    Key{MODKEY                           , XK_F6     , bright_inc     , {.f = 5.0f}}         ,
+    Key{MODKEY                           , XK_F11    , togglefs       , {0}}                ,
+    Key{MODKEY                           , XK_t      , setlayout      , {.v = &layouts[0]}} ,
+    Key{MODKEY                           , XK_f      , setlayout      , {.v = &layouts[1]}} ,
+    Key{MODKEY                           , XK_m      , setlayout      , {.v = &layouts[2]}} ,
+    Key{MODKEY                           , XK_u      , setlayout      , {.v = &layouts[3]}} ,
+    Key{MODKEY                           , XK_o      , setlayout      , {.v = &layouts[4]}} ,
+    Key{MODKEY                           , XK_space  , setlayout      , {0}}                ,
+    Key{MODKEY | ShiftMask               , XK_space  , togglefloating , {0}}                ,
+    Key{MODKEY                           , XK_0      , view           , {.ui = ~0u}}         ,
+    Key{MODKEY | ShiftMask               , XK_0      , tag            , {.ui = ~0u}}         ,
+    Key{MODKEY                           , XK_comma  , focusmon       , {.i = -1}}          ,
+    Key{MODKEY                           , XK_period , focusmon       , {.i = +1}}          ,
+    Key{MODKEY | ShiftMask               , XK_comma  , tagmon         , {.i = -1}}          ,
+    Key{MODKEY | ShiftMask               , XK_period , tagmon         , {.i = +1}}          ,
+    Key{MODKEY | ShiftMask               , XK_q      , quit           , {0}}                ,
+    Key{MODKEY | ShiftMask               , XK_r      , restart        , {0}}                ,
     // clang-format on
 
     TAGKEYS(XK_1, 0),
@@ -267,20 +265,20 @@ static Key const keys[] = {
 };
 
 /* button definitions */
-/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
-static Button const buttons[] = {
+static auto const buttons = std::array {
+    /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
     // clang-format off
-    /* click       , event mask , button  , function       , argument            , */
-    {ClkLtSymbol   , 0          , Button1 , setlayout      , {0}}                ,
-    {ClkLtSymbol   , 0          , Button3 , setlayout      , {.v = &layouts[2]}} ,
-    {ClkWinTitle   , 0          , Button2 , zoom           , {0}}                ,
-    {ClkClientWin  , MODKEY     , Button1 , movemouse      , {0}}                ,
-    {ClkClientWin  , MODKEY     , Button2 , togglefloating , {0}}                ,
-    {ClkClientWin  , MODKEY     , Button3 , resizemouse    , {0}}                ,
-    {ClkTagBar     , 0          , Button1 , view           , {0}}                ,
-    {ClkTagBar     , 0          , Button3 , toggleview     , {0}}                ,
-    {ClkTagBar     , MODKEY     , Button1 , tag            , {0}}                ,
-    {ClkTagBar     , MODKEY     , Button3 , toggletag      , {0}}                ,
+    /*       click       , event mask , button  , function       , argument            , */
+    Button{ClkLtSymbol   , 0          , Button1 , setlayout      , {0}}                ,
+    Button{ClkLtSymbol   , 0          , Button3 , setlayout      , {.v = &layouts[2]}} ,
+    Button{ClkWinTitle   , 0          , Button2 , zoom           , {0}}                ,
+    Button{ClkClientWin  , MODKEY     , Button1 , movemouse      , {0}}                ,
+    Button{ClkClientWin  , MODKEY     , Button2 , togglefloating , {0}}                ,
+    Button{ClkClientWin  , MODKEY     , Button3 , resizemouse    , {0}}                ,
+    Button{ClkTagBar     , 0          , Button1 , view           , {0}}                ,
+    Button{ClkTagBar     , 0          , Button3 , toggleview     , {0}}                ,
+    Button{ClkTagBar     , MODKEY     , Button1 , tag            , {0}}                ,
+    Button{ClkTagBar     , MODKEY     , Button3 , toggletag      , {0}}                ,
     // clang-format on
 };
 

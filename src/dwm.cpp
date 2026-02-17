@@ -84,7 +84,6 @@ static constexpr auto INTERSECT(
          * std::max(0, std::min(y + h, m->window_size.y + m->window_size.h) - std::max(y, m->window_size.y));
 }
 
-#define LENGTH(X) (sizeof(X) / sizeof(X)[0])
 #define WIDTH(X)  ((unsigned)(X)->size.w + 2 * (unsigned)(X)->bw + gappx)
 #define HEIGHT(X) ((unsigned)(X)->size.h + 2 * (unsigned)(X)->bw + gappx)
 #define TEXTW(X)  (drw->fontset_getwidth((X)) + (unsigned)lrpad)
@@ -533,10 +532,10 @@ void buttonpress(XEvent *e) {
         XAllowEvents(dpy, ReplayPointer, CurrentTime);
         click = ClkClientWin;
     }
-    for (i = 0; i < LENGTH(buttons); i++) {
-        if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
-            && CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state)) {
-            buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? arg : buttons[i].arg);
+    for (auto const &button : buttons) {
+        if (click == button.click && button.func && button.button == ev->button
+            && CLEANMASK(button.mask) == CLEANMASK(ev->state)) {
+            button.func(click == ClkTagBar && button.arg.i == 0 ? arg : button.arg);
         }
     }
 }
@@ -716,7 +715,7 @@ MonitorPtr createmon() {
     m->showbar = showbar;
     m->topbar = topbar;
     m->lt[0] = &layouts[0];
-    m->lt[1] = &layouts[1 % LENGTH(layouts)];
+    m->lt[1] = &layouts[1 % layouts.size()];
     strncpy(m->layoutSymbol, layouts[0].symbol, sizeof m->layoutSymbol);
     m->pertag = new Pertag {};
     m->pertag->curtag = m->pertag->prevtag = 1;
@@ -1112,19 +1111,17 @@ int gettextprop(Window w, Atom atom, char *text, unsigned int size) {
 void grabbuttons(Client *c, int focused) {
     updatenumlockmask();
     {
-        unsigned int i;
-        unsigned int j;
         unsigned int modifiers[] = {0, LockMask, numlockmask, numlockmask | LockMask};
         XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
         if (!focused) {
             XGrabButton(dpy, AnyButton, AnyModifier, c->win, False, BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
         }
-        for (i = 0; i < LENGTH(buttons); i++) {
-            if (buttons[i].click == ClkClientWin) {
-                for (j = 0; j < LENGTH(modifiers); j++) {
+        for (auto const &button : buttons) {
+            if (button.click == ClkClientWin) {
+                for (unsigned int modifier : modifiers) {
                     XGrabButton(dpy,
-                        buttons[i].button,
-                        buttons[i].mask | modifiers[j],
+                        button.button,
+                        button.mask | modifier,
                         c->win,
                         False,
                         BUTTONMASK,
@@ -1196,9 +1193,9 @@ void keypress(XEvent *e) {
     XKeyEvent *ev = &e->xkey;
 
     KeySym keysym = XLookupKeysym(ev, 0);
-    for (unsigned int i = 0; i < LENGTH(keys); i++) {
-        if (keysym == keys[i].keysym && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state) && keys[i].func) {
-            keys[i].func((keys[i].arg));
+    for (auto const &key : keys) {
+        if (keysym == key.keysym && CLEANMASK(key.mod) == CLEANMASK(ev->state) && key.func) {
+            key.func((key.arg));
         }
     }
 }
@@ -1897,7 +1894,7 @@ void setup() {
     sh = DisplayHeight(dpy, screen);
     root = RootWindow(dpy, screen);
     drw = new Drw(dpy, screen, root, (unsigned)sw, (unsigned)sh);
-    if (!drw->fontset_create(fonts, LENGTH(fonts))) {
+    if (!drw->fontset_create(fonts)) {
         lg::fatal("no fonts could be loaded.");
     }
 

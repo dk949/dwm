@@ -10,6 +10,7 @@
 #include <X11/Xlib.h>
 
 #include <optional>
+#include <span>
 #include <utility>
 
 enum struct CurShape : unsigned { Normal = XC_left_ptr, Resize = XC_sizing, Move = XC_fleur };
@@ -83,7 +84,7 @@ public:
 
     void resize(unsigned int w, unsigned int h);
     [[nodiscard]]
-    bool fontset_create(char const *const fonts[], size_t fontcount);
+    bool fontset_create(std::span<char const *const> fonts);
 
 
     void setColorScheme(ColorSchemeName clrnames);
