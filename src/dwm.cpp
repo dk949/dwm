@@ -112,8 +112,6 @@ enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMChangeState, WMLast }; /* 
 
 /* function declarations */
 
-static void applyrules(Client *c);
-static bool applysizehints(Client *c, Rect<int> *rect, int interact);
 static void arrange(MonitorPtr const &m);
 static void arrangemon(MonitorPtr const &m);
 static void attach(Client *c);
@@ -125,7 +123,6 @@ static void checkotherwm();
 static void cleanup();
 static void cleanupmon(MonitorPtr const &mon);
 static void clientmessage(XEvent *e);
-static void configure(Client *c);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
 static MonitorPtr createmon();
@@ -164,8 +161,6 @@ static void handle_notifyself_fade_anim(FadeBarEvent);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
 static MonitorPtr recttomon(int x, int y, int w, int h);
-static void resize(Client *c, Rect<int> size, int interact);
-static void resizeclient(Client *c, Rect<int> new_size);
 static void restack(MonitorPtr const &m);
 static void scan();
 static bool sendevent(Client *c, Atom proto);
@@ -251,127 +246,123 @@ struct NumTags {
 };
 
 /* function implementations */
-void applyrules(Client *c) {
-    unsigned int i;
+void Client::applyrules() {
     unsigned int newtagset;
-    Rule const *r;
 
     /* rule matching */
-    c->props.isfloating = false;
-    c->tags = 0;
-    auto ch = c->classHint(dpy);
+    props.isfloating = false;
+    tags = 0;
+    auto ch = classHint(dpy);
     char const *class_ = ch.class_hint ? ch.class_hint.get() : broken;
     char const *instance = ch.instance_hint ? ch.instance_hint.get() : broken;
 
-    for (i = 0; i < LENGTH(rules); i++) {
-        r = &rules[i];
-        if ((!r->title || strstr(c->name, r->title)) && (!r->class_ || strstr(class_, r->class_))
-            && (!r->instance || strstr(instance, r->instance))) {
-            c->props.isterminal = r->isterminal;
-            c->props.isfloating = r->isfloating;
-            c->props.noswallow = r->noswallow;
-            c->tags |= r->tags;
-            auto mon_it = rng::find_if(mons, [&](MonitorPtr const &m) noexcept { return m->num == r->monitor; });
-            if (mon_it != mons.end()) c->mon = *mon_it;
+    for (auto const &r : rules) {
+        if ((!r.title || strstr(name, r.title)) && (!r.class_ || strstr(class_, r.class_))
+            && (!r.instance || strstr(instance, r.instance))) {
+            props.isterminal = r.isterminal;
+            props.isfloating = r.isfloating;
+            props.noswallow = r.noswallow;
+            tags |= r.tags;
+            auto mon_it = rng::find_if(mons, [&](MonitorPtr const &m) noexcept { return m->num == r.monitor; });
+            if (mon_it != mons.end()) mon = *mon_it;
 
-            if (r->switchtotag) {
-                selmon = c->mon;
-                if (r->switchtotag == 2 || r->switchtotag == 4) {
-                    newtagset = c->mon->tagset[c->mon->seltags] ^ c->tags;
+            if (r.switchtotag) {
+                selmon = mon;
+                if (r.switchtotag == 2 || r.switchtotag == 4) {
+                    newtagset = mon->tagset[mon->seltags] ^ tags;
                 } else {
-                    newtagset = c->tags;
+                    newtagset = tags;
                 }
 
-                if (newtagset && !(c->tags & c->mon->tagset[c->mon->seltags])) {
-                    if (r->switchtotag == 3 || r->switchtotag == 4) {
-                        c->switchtotag = c->mon->tagset[c->mon->seltags];
+                if (newtagset && !(tags & mon->tagset[mon->seltags])) {
+                    if (r.switchtotag == 3 || r.switchtotag == 4) {
+                        switchtotag = mon->tagset[mon->seltags];
                     }
-                    if (r->switchtotag == 1 || r->switchtotag == 3) {
+                    if (r.switchtotag == 1 || r.switchtotag == 3) {
                         view(Arg {.ui = newtagset});
                     } else {
-                        c->mon->tagset[c->mon->seltags] = newtagset;
-                        arrange(c->mon);
+                        mon->tagset[mon->seltags] = newtagset;
+                        arrange(mon);
                     }
                 }
             }
         }
     }
-    c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
+    tags = tags & TAGMASK ? tags & TAGMASK : mon->tagset[mon->seltags];
 }
 
-bool applysizehints(Client *c, Rect<int> *size, int interact) {
-    auto &m = c->mon;
+bool Client::applysizehints(Rect<int> *new_size, int interact) {
 
     /* set minimum possible */
-    size->w = std::max(1, size->w);
-    size->h = std::max(1, size->h);
+    new_size->w = std::max(1, new_size->w);
+    new_size->h = std::max(1, new_size->h);
     if (interact) {
-        if (size->x > sw) {
-            size->x = (int)((unsigned)sw - WIDTH(c));
+        if (new_size->x > sw) {
+            new_size->x = (int)((unsigned)sw - WIDTH(this));
         }
-        if (size->y > sh) {
-            size->y = (int)((unsigned)sh - HEIGHT(c));
+        if (new_size->y > sh) {
+            new_size->y = (int)((unsigned)sh - HEIGHT(this));
         }
-        if (size->x + size->w + 2 * c->bw < 0) {
-            size->x = 0;
+        if (new_size->x + new_size->w + 2 * bw < 0) {
+            new_size->x = 0;
         }
-        if (size->y + size->h + 2 * c->bw < 0) {
-            size->y = 0;
+        if (new_size->y + new_size->h + 2 * bw < 0) {
+            new_size->y = 0;
         }
     } else {
-        if (size->x >= m->window_size.x + m->window_size.w) {
-            size->x = (int)((unsigned)(m->window_size.x + m->window_size.w) - WIDTH(c));
+        if (new_size->x >= mon->window_size.x + mon->window_size.w) {
+            new_size->x = (int)((unsigned)(mon->window_size.x + mon->window_size.w) - WIDTH(this));
         }
-        if (size->y >= m->window_size.y + m->window_size.h) {
-            size->y = (int)((unsigned)(m->window_size.y + m->window_size.h) - HEIGHT(c));
+        if (new_size->y >= mon->window_size.y + mon->window_size.h) {
+            new_size->y = (int)((unsigned)(mon->window_size.y + mon->window_size.h) - HEIGHT(this));
         }
-        if (size->x + size->w + 2 * c->bw <= m->window_size.x) {
-            size->x = m->window_size.x;
+        if (new_size->x + new_size->w + 2 * bw <= mon->window_size.x) {
+            new_size->x = mon->window_size.x;
         }
-        if (size->y + size->h + 2 * c->bw <= m->window_size.y) {
-            size->y = m->window_size.y;
+        if (new_size->y + new_size->h + 2 * bw <= mon->window_size.y) {
+            new_size->y = mon->window_size.y;
         }
     }
-    size->h = std::max(size->h, bar_height);
-    size->w = std::max(size->w, bar_height);
-    if (resizehints || c->props.isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
-        if (!c->hintsvalid) updatesizehints(c);
+    new_size->h = std::max(new_size->h, bar_height);
+    new_size->w = std::max(new_size->w, bar_height);
+    if (resizehints || props.isfloating || !mon->lt[mon->sellt]->arrange) {
+        if (!hintsvalid) updatesizehints(this);
         /* see last two sentences in ICCCM 4.1.2.3 */
-        bool baseismin = c->basew == c->minw && c->baseh == c->minh;
+        bool baseismin = basew == minw && baseh == minh;
         if (!baseismin) { /* temporarily remove base dimensions */
-            size->w -= c->basew;
-            size->h -= c->baseh;
+            new_size->w -= basew;
+            new_size->h -= baseh;
         }
         /* adjust for aspect limits */
-        if (c->mina > 0 && c->maxa > 0) {
-            if (c->maxa < (float)size->w / (float)size->h) {
-                size->w = (int)(((float)size->h * c->maxa) + 0.5f);
-            } else if (c->mina < (float)size->h / (float)size->w) {
-                size->h = (int)(((float)size->w * c->mina) + 0.5f);
+        if (mina > 0 && maxa > 0) {
+            if (maxa < (float)new_size->w / (float)new_size->h) {
+                new_size->w = (int)(((float)new_size->h * maxa) + 0.5f);
+            } else if (mina < (float)new_size->h / (float)new_size->w) {
+                new_size->h = (int)(((float)new_size->w * mina) + 0.5f);
             }
         }
         if (baseismin) { /* increment calculation requires this */
-            size->w -= c->basew;
-            size->h -= c->baseh;
+            new_size->w -= basew;
+            new_size->h -= baseh;
         }
         /* adjust for increment value */
-        if (c->incw) {
-            size->w -= size->w % c->incw;
+        if (incw) {
+            new_size->w -= new_size->w % incw;
         }
-        if (c->inch) {
-            size->h -= size->h % c->inch;
+        if (inch) {
+            new_size->h -= new_size->h % inch;
         }
         /* restore base dimensions */
-        size->w = std::max(size->w + c->basew, c->minw);
-        size->h = std::max(size->h + c->baseh, c->minh);
-        if (c->maxw) {
-            size->w = std::min(size->w, c->maxw);
+        new_size->w = std::max(new_size->w + basew, minw);
+        new_size->h = std::max(new_size->h + baseh, minh);
+        if (maxw) {
+            new_size->w = std::min(new_size->w, maxw);
         }
-        if (c->maxh) {
-            size->h = std::min(size->h, c->maxh);
+        if (maxh) {
+            new_size->h = std::min(new_size->h, maxh);
         }
     }
-    return size->x != c->size.x || size->y != c->size.y || size->w != c->size.w || size->h != c->size.h;
+    return new_size->x != size.x || new_size->y != size.y || new_size->w != size.w || new_size->h != size.h;
 }
 
 void arrange(MonitorPtr const &m) {
@@ -449,7 +440,7 @@ void swallow(Client *p, Client *c) {
     updatetitle(p);
     arrange(p->mon);
     XMoveResizeWindow(dpy, p->win, p->size.x, p->size.y, (unsigned)p->size.w, (unsigned)p->size.h);
-    configure(p);
+    p->configure();
     updateclientlist();
 }
 
@@ -464,7 +455,7 @@ void unswallow(Client *c) {
     arrange(c->mon);
     XMapWindow(dpy, c->win);
     XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
-    configure(c);
+    c->configure();
     setclientstate(c, NormalState);
 }
 
@@ -605,21 +596,24 @@ void clientmessage(XEvent *e) {
     }*/
 }
 
-void configure(Client *c) {
-    XConfigureEvent ce;
+void Client::configure() const {
+    auto ce = XConfigureEvent {
+        .type = ConfigureNotify,
+        .serial = 0,      // UNUSED
+        .send_event = 0,  // UNUSED
+        .display = dpy,
+        .event = win,
+        .window = win,
+        .x = size.x,
+        .y = size.y,
+        .width = size.w,
+        .height = size.h,
+        .border_width = bw,
+        .above = None,
+        .override_redirect = False,
+    };
 
-    ce.type = ConfigureNotify;
-    ce.display = dpy;
-    ce.event = c->win;
-    ce.window = c->win;
-    ce.x = c->size.x;
-    ce.y = c->size.y;
-    ce.width = c->size.w;
-    ce.height = c->size.h;
-    ce.border_width = c->bw;
-    ce.above = None;
-    ce.override_redirect = False;
-    XSendEvent(dpy, c->win, False, StructureNotifyMask, (XEvent *)&ce);
+    XSendEvent(dpy, win, False, StructureNotifyMask, reinterpret_cast<XEvent *>(&ce));
 }
 
 void configurenotify(XEvent *e) {
@@ -639,7 +633,7 @@ void configurenotify(XEvent *e) {
         for (auto const &m : mons) {
             for (c = m->clients; c; c = c->next) {
                 if (c->props.isfullscreen) {
-                    resizeclient(c, m->monitor_size);
+                    c->resizeclient(m->monitor_size);
                 }
             }
             XMoveResizeWindow(dpy, m->barwin, m->window_size.x, m->bar_y, (unsigned)m->window_size.w, (unsigned)bar_height);
@@ -684,13 +678,13 @@ void configurerequest(XEvent *e) {
                                   + ((unsigned)(m->monitor_size.h / 2) - HEIGHT(c) / 2)); /* center in y direction */
             }
             if ((ev->value_mask & (CWX | CWY)) && !(ev->value_mask & (CWWidth | CWHeight))) {
-                configure(c);
+                c->configure();
             }
             if (ISVISIBLE(c)) {
                 XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
             }
         } else {
-            configure(c);
+            c->configure();
         }
     } else {
         wc.x = ev->x;
@@ -1239,7 +1233,7 @@ void manage(Window w, XWindowAttributes *wa) {
         c->tags = t->tags;
     } else {
         c->mon = selmon;
-        applyrules(c);
+        c->applyrules();
         term = termforwin(c);
     }
 
@@ -1257,7 +1251,7 @@ void manage(Window w, XWindowAttributes *wa) {
     wc.border_width = c->bw;
     XConfigureWindow(dpy, w, CWBorderWidth, &wc);
     XSetWindowBorder(dpy, w, drw->scheme().norm.border.pixel);
-    configure(c); /* propagates border_width, if size doesn't change */
+    c->configure(); /* propagates border_width, if size doesn't change */
     updatewindowtype(c);
     updatesizehints(c);
     updatewmhints(c);
@@ -1325,7 +1319,7 @@ void monocle(MonitorPtr const &m) {
         snprintf(m->layoutSymbol, sizeof m->layoutSymbol, "[%d]", n);
     }
     for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
-        resize(c,
+        c->resize(
             {
                 m->window_size.x,
                 m->window_size.y,
@@ -1419,7 +1413,7 @@ void movemouse(Arg const &arg) {
                     togglefloating({});
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
-                    resize(c, {nx, ny, c->size.w, c->size.h}, 1);
+                    c->resize({nx, ny, c->size.w, c->size.h}, 1);
                 }
                 break;
             default: lg::warn("Unexpected event type {} in movemouse", ev.type); break;
@@ -1520,25 +1514,24 @@ MonitorPtr recttomon(int x, int y, int w, int h) {
     return r;
 }
 
-void resize(Client *c, Rect<int> new_size, int interact) {
-    if (applysizehints(c, &new_size, interact)) resizeclient(c, new_size);
+void Client::resize(Rect<int> new_size, int interact) {
+    if (applysizehints(&new_size, interact)) resizeclient(new_size);
 }
 
-void resizeclient(Client *c, Rect<int> new_size) {
+void Client::resizeclient(Rect<int> new_size) {
     XWindowChanges wc;
     unsigned int n;
     unsigned int gapoffset;
     unsigned int gapincr;
     Client *nbc;
-    auto mon = c->mon;
 
-    wc.border_width = c->bw;
+    wc.border_width = bw;
 
     /* Get number of clients for the selected monitor */
     for (n = 0, nbc = nexttiled(mon->clients); nbc; nbc = nexttiled(nbc->next), n++) { }
 
     /* Do nothing if layout is floating */
-    if (c->props.isfloating || mon->lt[mon->sellt]->arrange == nullptr) {
+    if (props.isfloating || mon->lt[mon->sellt]->arrange == nullptr) {
         gapincr = gapoffset = 0;
     } else {
         /* Remove border and gap if layout is monocle or only one client */
@@ -1552,17 +1545,17 @@ void resizeclient(Client *c, Rect<int> new_size) {
         }
     }
 
-    c->old_size.x = c->size.x;
-    c->size.x = wc.x = (int)((unsigned)new_size.x + gapoffset);
-    c->old_size.y = c->size.y;
-    c->size.y = wc.y = (int)((unsigned)new_size.y + gapoffset);
-    c->old_size.w = c->size.w;
-    c->size.w = wc.width = (int)((unsigned)new_size.w - gapincr);
-    c->old_size.h = c->size.h;
-    c->size.h = wc.height = (int)((unsigned)new_size.h - gapincr);
+    old_size.x = size.x;
+    size.x = wc.x = (int)((unsigned)new_size.x + gapoffset);
+    old_size.y = size.y;
+    size.y = wc.y = (int)((unsigned)new_size.y + gapoffset);
+    old_size.w = size.w;
+    size.w = wc.width = (int)((unsigned)new_size.w - gapincr);
+    old_size.h = size.h;
+    size.h = wc.height = (int)((unsigned)new_size.h - gapincr);
 
-    XConfigureWindow(dpy, c->win, CWX | CWY | CWWidth | CWHeight | CWBorderWidth, &wc);
-    configure(c);
+    XConfigureWindow(dpy, win, CWX | CWY | CWWidth | CWHeight | CWBorderWidth, &wc);
+    configure();
     XSync(dpy, False);
 }
 
@@ -1618,7 +1611,7 @@ void resizemouse(Arg const &arg) {
                     }
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
-                    resize(c, {c->size.x, c->size.y, nw, nh}, 1);
+                    c->resize({c->size.x, c->size.y, nw, nh}, 1);
                 }
                 break;
             default: lg::warn("Unknown event type {} in resizemouse", ev.type); break;
@@ -1805,7 +1798,7 @@ void setfullscreen(Client *c, bool fullscreen) {
         c->oldbw = c->bw;
         c->bw = 0;
         c->props.isfloating = true;
-        resizeclient(c, c->mon->monitor_size);
+        c->resizeclient(c->mon->monitor_size);
         XRaiseWindow(dpy, c->win);
     } else if (!fullscreen && c->props.isfullscreen) {
         XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, nullptr, 0);
@@ -1816,7 +1809,7 @@ void setfullscreen(Client *c, bool fullscreen) {
         c->size.y = c->old_size.y;
         c->size.w = c->old_size.w;
         c->size.h = c->old_size.h;
-        resizeclient(c, c->size);
+        c->resizeclient(c->size);
         arrange(c->mon);
     }
 }
@@ -1983,7 +1976,7 @@ void showhide(Client *c) {
         /* show clients top down */
         XMoveWindow(dpy, c->win, c->size.x, c->size.y);
         if ((!c->mon->lt[c->mon->sellt]->arrange || c->props.isfloating) && !c->props.isfullscreen) {
-            resize(c, c->size, 0);
+            c->resize(c->size, 0);
         }
         showhide(c->snext);
     } else {
@@ -2044,7 +2037,7 @@ void tile(MonitorPtr const &m) {
     for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
         if (std::cmp_less(i, m->nmaster)) {
             h = (unsigned)((float)((unsigned)m->window_size.h - my) * (c->cfact / mfacts));
-            resize(c,
+            c->resize(
                 {
                     m->window_size.x,
                     (int)((unsigned)m->window_size.y + my),
@@ -2060,7 +2053,7 @@ void tile(MonitorPtr const &m) {
             }
         } else {
             h = (unsigned)((float)((unsigned)m->window_size.h - ty) * (c->cfact / sfacts));
-            resize(c,
+            c->resize(
                 {
                     (int)((unsigned)m->window_size.x + mw),
                     (int)((unsigned)m->window_size.y + ty),
@@ -2105,7 +2098,7 @@ void togglefloating(Arg const &arg) {
 
     selmon->sel->props.isfloating = !selmon->sel->props.isfloating || selmon->sel->props.isfixed;
     if (selmon->sel->props.isfloating) {
-        resize(selmon->sel, selmon->sel->size, 0);
+        selmon->sel->resize(selmon->sel->size, 0);
     }
     arrange(selmon);
 }
@@ -2184,7 +2177,7 @@ static void uniconifyclient(Client *c) {
     arrange(c->mon);
     XMapWindow(dpy, c->win);
     XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
-    configure(c);
+    c->configure();
     setclientstate(c, NormalState);
     attachstack(c);
     attach(c);
@@ -2967,7 +2960,7 @@ void centeredmaster(MonitorPtr const &m) {
             /* nmaster clients are stacked vertically, in the center
              * of the screen */
             h = ((unsigned)m->window_size.h - my) / (std::min(n, (unsigned)m->nmaster) - i);
-            resize(c,
+            c->resize(
                 {
                     (int)((unsigned)m->window_size.x + mx),
                     (int)((unsigned)m->window_size.y + my),
@@ -2983,7 +2976,7 @@ void centeredmaster(MonitorPtr const &m) {
             /* stack clients are stacked vertically */
             if ((i - (unsigned)m->nmaster) % 2) {
                 h = ((unsigned)m->window_size.h - ety) / ((1 + n - i) / 2);
-                resize(c,
+                c->resize(
                     {
                         m->window_size.x,
                         (int)((unsigned)m->window_size.y + ety),
@@ -2997,7 +2990,7 @@ void centeredmaster(MonitorPtr const &m) {
                 if (ety + HEIGHT(c) < (unsigned)m->window_size.h) ety += HEIGHT(c);
             } else {
                 h = ((unsigned)m->window_size.h - oty) / ((1 + n - i) / 2);
-                resize(c,
+                c->resize(
                     {
                         (int)((unsigned)m->window_size.x + mx + mw),
                         (int)((unsigned)m->window_size.y + oty),
@@ -3057,7 +3050,7 @@ void centeredfloatingmaster(MonitorPtr const &m) {
             /* nmaster clients are stacked horizontally, in the center
              * of the screen */
             w = (mw + mxo - mx) / (std::min(n, (unsigned)m->nmaster) - i);
-            resize(c,
+            c->resize(
                 {
                     (int)((unsigned)m->window_size.x + mx),
                     (int)((unsigned)m->window_size.y + my),
@@ -3069,7 +3062,7 @@ void centeredfloatingmaster(MonitorPtr const &m) {
         } else {
             /* stack clients are stacked horizontally */
             w = ((unsigned)m->window_size.w - tx) / (n - i);
-            resize(c,
+            c->resize(
                 {
                     (int)((unsigned)m->window_size.x + tx),
                     m->window_size.y,

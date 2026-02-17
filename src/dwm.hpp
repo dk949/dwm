@@ -112,6 +112,12 @@ struct Client {
         for (auto const *client = this; client; client = client->next, ++count) { }
         return count;
     }
+
+    void configure() const;
+    void applyrules();
+    void resizeclient(Rect<int> new_size);
+    bool applysizehints(Rect<int> *size, int interact);
+    void resize(Rect<int> size, int interact);
 };
 
 #define ISVISIBLEONTAG(C, T) (((C)->tags & (T)))
