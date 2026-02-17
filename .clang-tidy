@@ -58,6 +58,7 @@
 #   cppcoreguidelines-pro-type-vararg                      # This code calls too many C APIs for this to be useful
 #   cppcoreguidelines-pro-bounds-pointer-arithmetic        # No
 #   cppcoreguidelines-pro-bounds-array-to-pointer-decay    # This is perfectly normal
+#   cppcoreguidelines-pro-bounds-constant-array-index      # Too many false positives
 
 User: dk949
 Checks:
@@ -102,6 +103,7 @@ Checks:
   -cppcoreguidelines-pro-type-vararg,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
   google-*,
   -google-build-namespaces,
   -google-readability-avoid-underscore-in-googletest-name,
