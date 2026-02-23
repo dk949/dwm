@@ -55,7 +55,6 @@
 #include <format>
 #include <memory>
 #include <print>
-#include <ranges>
 #include <utility>
 namespace rng = std::ranges;
 namespace vws = std::views;
@@ -79,7 +78,7 @@ namespace vws = std::views;
         & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
 
 static constexpr auto INTERSECT(
-    std::integral auto x, std::integral auto y, std::integral auto w, std::integral auto h, MonitorPtr const &m) {
+    std::integral auto x, std::integral auto y, std::integral auto w, std::integral auto h, MonitorRef const &m) {
     return std::max(0, std::min(x + w, m->window_size.x + m->window_size.w) - std::max(x, m->window_size.x))
          * std::max(0, std::min(y + h, m->window_size.y + m->window_size.h) - std::max(y, m->window_size.y));
 }
@@ -112,8 +111,8 @@ enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMChangeState, WMLast }; /* 
 
 /* function declarations */
 
-static void arrange(MonitorPtr const &m);
-static void arrangemon(MonitorPtr const &m);
+static void arrange(MonitorRef const &m);
+static void arrangemon(MonitorRef const &m);
 static void attach(Client *c);
 static void attachaside(Client *c);
 static void attachstack(Client *c);
@@ -121,17 +120,17 @@ static int avgheight();
 static void buttonpress(XEvent *e);
 static void checkotherwm();
 static void cleanup();
-static void cleanupmon(MonitorPtr const &mon);
+static void cleanupmon(MonitorRef const &mon);
 static void clientmessage(XEvent *e);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
-static MonitorPtr createmon();
+static MonitorRef createmon();
 static void destroynotify(XEvent *e);
 /// Remove client `c` from the list of clients on the monitor `c` is on
 static void detach(Client *c);
 static void detachstack(Client *c);
-static MonitorPtr dirtomon(int dir);
-static void drawbar(MonitorPtr m);
+static MonitorRef dirtomon(int dir);
+static void drawbar(MonitorRef m);
 static void drawbars();
 static void drawprogress(unsigned long long total, unsigned long long current, Color const *color);
 static void enqueue(Client *c);
@@ -160,13 +159,12 @@ static Client *nexttiled(Client *c);
 static void handle_notifyself_fade_anim(FadeBarEvent);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
-static MonitorPtr recttomon(int x, int y, int w, int h);
-static void restack(MonitorPtr const &m);
+static MonitorRef recttomon(int x, int y, int w, int h);
+static void restack(MonitorRef const &m);
 static void scan();
 static bool sendevent(Client *c, Atom proto);
-static void sendmon(Client *c, MonitorPtr m);
+static void sendmon(Client *c, MonitorRef const &m);
 static void setclientstate(Client *c, long state);
-static void setfocus(Client *c);
 static void setfullscreen(Client *c, bool fullscreen);
 static void setup();
 static void seturgent(Client *c, bool urg);
@@ -174,11 +172,10 @@ static void showhide(Client *c);
 static Client *swallowingclient(Window w);
 static Client *termforwin(Client const *w);
 static double timespecdiff(const struct timespec *a, const struct timespec *b);
-static void unfocus(Client *c, int setfocus);
 static void uniconifyclient(Client *c);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
-static void updatebarpos(MonitorPtr m);
+static void updatebarpos(MonitorRef m);
 static void updatebars();
 static void updateclientlist();
 static int updategeom();
@@ -192,7 +189,7 @@ static void updatewmhints(Client *c);
 
 static pid_t winpid(Window w);
 static Client *wintoclient(Window w);
-static MonitorPtr wintomon(Window w);
+static MonitorRef wintomon(Window w);
 static void wmchange(Client *c, XClientMessageEvent *cme);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
@@ -219,7 +216,7 @@ static int need_restart = 0;
 static Display *dpy;
 static Drw *drw;
 static Monitors mons;
-static MonitorPtr selmon;
+static MonitorRef selmon;
 static Window root, wmcheckwin;
 #ifdef ASOUND
 static volc_t *volc;
@@ -263,7 +260,7 @@ void Client::applyrules() {
             props.isfloating = r.isfloating;
             props.noswallow = r.noswallow;
             tags |= r.tags;
-            auto mon_it = rng::find_if(mons, [&](MonitorPtr const &m) noexcept { return m->num == r.monitor; });
+            auto mon_it = rng::find_if(mons, [&](MonitorRef const &m) noexcept { return m->num == r.monitor; });
             if (mon_it != mons.end()) mon = *mon_it;
 
             if (r.switchtotag) {
@@ -365,7 +362,7 @@ bool Client::applysizehints(Rect<int> *new_size, bool interact) {
     return new_size->x != size.x || new_size->y != size.y || new_size->w != size.w || new_size->h != size.h;
 }
 
-void arrange(MonitorPtr const &m) {
+void arrange(MonitorRef const &m) {
     if (m) {
         showhide(m->stack);
     } else {
@@ -381,7 +378,7 @@ void arrange(MonitorPtr const &m) {
     }
 }
 
-void arrangemon(MonitorPtr const &m) {
+void arrangemon(MonitorRef const &m) {
     strncpy(m->layoutSymbol, m->lt[m->sellt]->symbol, sizeof(m->layoutSymbol) - 1);
     if (m->lt[m->sellt]->arrange) {
         m->lt[m->sellt]->arrange(m);
@@ -492,13 +489,13 @@ void buttonpress(XEvent *e) {
     unsigned int click;
     Arg arg = {0};
     Client *c;
-    MonitorPtr m;
+    MonitorRef m;
     XButtonPressedEvent *ev = &e->xbutton;
 
     click = ClkRootWin;
     /* focus monitor if necessary */
     if ((m = wintomon(ev->window)) && m != selmon) {
-        unfocus(selmon->sel, 1);
+        selmon->sel->unfocus(true);
         selmon = m;
         focus(nullptr);
     }
@@ -566,7 +563,7 @@ void cleanup() {
 #endif /* ASOUND */
 }
 
-void cleanupmon(MonitorPtr const &mon) {
+void cleanupmon(MonitorRef const &mon) {
     // TODO(dk949): this needs to go in the Monitor destructor!
     XUnmapWindow(dpy, mon->barwin);
     XDestroyWindow(dpy, mon->barwin);
@@ -699,7 +696,7 @@ void configurerequest(XEvent *e) {
     XSync(dpy, False);
 }
 
-MonitorPtr createmon() {
+MonitorRef createmon() {
     // TODO(dk949): Some of this should probably be in Monitor constructor
 
     auto m = std::make_shared<Monitor>();
@@ -761,7 +758,7 @@ void detachstack(Client *c) {
     }
 }
 
-MonitorPtr dirtomon(int dir) {
+MonitorRef dirtomon(int dir) {
     auto mon_it = rng::find(mons, selmon);
     if (mon_it == mons.end()) return nullptr;
     if (dir > 0) {
@@ -779,7 +776,7 @@ MonitorPtr dirtomon(int dir) {
 
 // TODO(dk949): handle the case where the tags overlap with status
 //              (common if monitor is vertical)
-void drawbar(MonitorPtr m) {
+void drawbar(MonitorRef m) {
     int x;
     int w;
     int text_width = 0;
@@ -920,7 +917,7 @@ void enternotify(XEvent *e) {
     c = wintoclient(ev->window);
     auto mon = c ? c->mon : wintomon(ev->window);
     if (mon != selmon) {
-        unfocus(selmon->sel, 1);
+        selmon->sel->unfocus(true);
         selmon = mon;
     } else if (!c || c == selmon->sel) {
         return;
@@ -929,7 +926,7 @@ void enternotify(XEvent *e) {
 }
 
 void expose(XEvent *e) {
-    MonitorPtr m;
+    MonitorRef m;
     XExposeEvent *ev = &e->xexpose;
 
     if (ev->count == 0 && (m = wintomon(ev->window))) {
@@ -944,7 +941,7 @@ void focus(Client *c) {
         }
     }
     if (selmon->sel && selmon->sel != c) {
-        unfocus(selmon->sel, 0);
+        selmon->sel->unfocus(false);
     }
     if (c) {
         if (c->mon != selmon) {
@@ -957,7 +954,7 @@ void focus(Client *c) {
         attachstack(c);
         grabbuttons(c, 1);
         XSetWindowBorder(dpy, c->win, drw->scheme().sel.border.pixel);
-        setfocus(c);
+        c->setfocus();
     } else {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
@@ -971,13 +968,13 @@ void focusin(XEvent *e) {
     XFocusChangeEvent *ev = &e->xfocus;
 
     if (selmon->sel && ev->window != selmon->sel->win) {
-        setfocus(selmon->sel);
+        selmon->sel->setfocus();
     }
 }
 
 void focusmon(Arg const &arg) {
     if (mons.size() == 1) return;
-    MonitorPtr m;
+    MonitorRef m;
     auto selmon_it = rng::find(mons, selmon);
     if (selmon_it == mons.end()) lg::fatal("Selected monitor is not in the monitor array");
     auto selmon_idx = std::distance(mons.begin(), selmon_it);
@@ -992,7 +989,7 @@ void focusmonabs(Arg const &arg) {
     if (mons.size() == 1) return;
     if (mons.size() <= arg.ui) return;
     if (mons[arg.ui] == selmon) return;
-    unfocus(selmon->sel, 0);
+    selmon->sel->unfocus(false);
     selmon = mons[arg.ui];
     /* move cursor to the center of the new monitor */
     XWarpPointer(dpy, 0, selmon->barwin, 0, 0, 0, 0, selmon->window_size.w / 2, selmon->window_size.h / 2);
@@ -1274,7 +1271,7 @@ void manage(Window w, XWindowAttributes *wa) {
         (unsigned)c->size.h); /* some windows require this */
     setclientstate(c, NormalState);
     if (c->mon == selmon) {
-        unfocus(selmon->sel, 0);
+        selmon->sel->unfocus(false);
     }
     c->mon->sel = c;
     arrange(c->mon);
@@ -1306,7 +1303,7 @@ void maprequest(XEvent *e) {
     }
 }
 
-void monocle(MonitorPtr const &m) {
+void monocle(MonitorRef const &m) {
     unsigned int n = 0;
     Client *c;
 
@@ -1334,8 +1331,8 @@ void motionnotify(XEvent *e) {
     // TODO(dk949): get rid of this static variable!!!
     //              Currently made it weak_ptr, to avoid keeping a monitor pointer alive
     //              for the duration of the program.
-    static WeakMonitorPtr mon;
-    MonitorPtr m;
+    static WeakMonitorRef mon;
+    MonitorRef m;
     XMotionEvent *ev = &e->xmotion;
 
     if (ev->window != root) {
@@ -1343,7 +1340,7 @@ void motionnotify(XEvent *e) {
     }
     m = recttomon(ev->x_root, ev->y_root, 1, 1);
     if (!mon.expired() && mon.lock() != m) {
-        unfocus(selmon->sel, 1);
+        selmon->sel->unfocus(true);
         selmon = m;
         focus(nullptr);
     }
@@ -1359,7 +1356,7 @@ void movemouse(Arg const &arg) {
     int nx;
     int ny;
     Client *c;
-    MonitorPtr m;
+    MonitorRef m;
     XEvent ev;
     Time lasttime = 0;
 
@@ -1496,9 +1493,9 @@ void restart(Arg const &arg) {
     need_restart = 1;
 }
 
-// TODO(dk949): this should take aaRect<int>
-MonitorPtr recttomon(int x, int y, int w, int h) {
-    MonitorPtr r = selmon;
+// TODO(dk949): this should take a Rect<int>
+MonitorRef recttomon(int x, int y, int w, int h) {
+    MonitorRef r = selmon;
     int a;
     int area = 0;
 
@@ -1564,7 +1561,7 @@ void resizemouse(Arg const &arg) {
     int nw;
     int nh;
     Client *c;
-    MonitorPtr m;
+    MonitorRef m;
     XEvent ev;
     Time lasttime = 0;
 
@@ -1627,7 +1624,7 @@ void resizemouse(Arg const &arg) {
     }
 }
 
-void restack(MonitorPtr const &m) {
+void restack(MonitorRef const &m) {
     Client *c;
     XEvent ev;
     XWindowChanges wc;
@@ -1683,7 +1680,7 @@ void rotatestack(Arg const &arg) {
     }
     if (c) {
         arrange(selmon);
-        // unfocus(f, 1);
+        // f->unfocus( 1);
         focus(f);
         restack(selmon);
     }
@@ -1726,10 +1723,10 @@ void handle_notifyself_fade_anim(FadeBarEvent) {
     drawprogress(PROGRESS_FADE);
 }
 
-void sendmon(Client *c, MonitorPtr m) {
+void sendmon(Client *c, MonitorRef const &m) {
     if (c->mon == m) return;
 
-    unfocus(c, 1);
+    c->unfocus(true);
     detach(c);
     detachstack(c);
     c->mon = m;
@@ -1773,12 +1770,19 @@ bool sendevent(Client *c, Atom proto) {
     return exists;
 }
 
-void setfocus(Client *c) {
-    if (!c->props.neverfocus) {
-        XSetInputFocus(dpy, c->win, RevertToPointerRoot, CurrentTime);
-        XChangeProperty(dpy, root, netatom[NetActiveWindow], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&(c->win), 1);
+void Client::setfocus() {
+    if (!props.neverfocus) {
+        XSetInputFocus(dpy, win, RevertToPointerRoot, CurrentTime);
+        XChangeProperty(dpy,
+            root,
+            netatom[NetActiveWindow],
+            XA_WINDOW,
+            32,
+            PropModeReplace,
+            reinterpret_cast<unsigned char *>(&win),
+            1);
     }
-    sendevent(c, wmatom[WMTakeFocus]);
+    sendevent(this, wmatom[WMTakeFocus]);
 }
 
 void setfullscreen(Client *c, bool fullscreen) {
@@ -2007,7 +2011,7 @@ void tagmon(Arg const &arg) {
     sendmon(selmon->sel, dirtomon(arg.i));
 }
 
-void tile(MonitorPtr const &m) {
+void tile(MonitorRef const &m) {
     unsigned int i;
     unsigned int n;
     unsigned int h;
@@ -2157,11 +2161,9 @@ void toggleview(Arg const &arg) {
     }
 }
 
-void unfocus(Client *c, int setfocus) {
-    if (!c) return;
-
-    grabbuttons(c, 0);
-    XSetWindowBorder(dpy, c->win, drw->scheme().norm.border.pixel);
+void Client::unfocus(bool setfocus) {
+    grabbuttons(this, 0);
+    XSetWindowBorder(dpy, win, drw->scheme().norm.border.pixel);
     if (setfocus) {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
@@ -2288,7 +2290,7 @@ void updatebars() {
     }
 }
 
-void updatebarpos(MonitorPtr m) {
+void updatebarpos(MonitorRef m) {
     m->window_size.y = m->monitor_size.y;
     m->window_size.h = m->monitor_size.h;
     if (m->showbar) {
@@ -2806,7 +2808,7 @@ Client *wintoclient(Window w) {
     return nullptr;
 }
 
-MonitorPtr wintomon(Window w) {
+MonitorRef wintomon(Window w) {
     int x;
     int y;
 
@@ -2913,7 +2915,7 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-void centeredmaster(MonitorPtr const &m) {
+void centeredmaster(MonitorRef const &m) {
     unsigned int i;
     unsigned int n;
     unsigned int h;
@@ -3002,7 +3004,7 @@ void centeredmaster(MonitorPtr const &m) {
     }
 }
 
-void centeredfloatingmaster(MonitorPtr const &m) {
+void centeredfloatingmaster(MonitorRef const &m) {
     unsigned int i;
     unsigned int n;
     unsigned int w;

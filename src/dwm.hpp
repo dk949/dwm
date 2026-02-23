@@ -44,9 +44,9 @@ struct ClassHint {
     }
 };
 
-using MonitorPtr = std::shared_ptr<Monitor>;
-using WeakMonitorPtr = std::weak_ptr<Monitor>;
-using Monitors = std::vector<MonitorPtr>;
+using MonitorRef = std::shared_ptr<Monitor>;
+using WeakMonitorRef = std::weak_ptr<Monitor>;
+using Monitors = std::vector<MonitorRef>;
 
 struct Monitor {
     char layoutSymbol[16];
@@ -96,7 +96,7 @@ struct Client {
     Client *next;
     Client *snext;
     Client *swallowing;
-    MonitorPtr mon;
+    MonitorRef mon;
     Window win;
 
     [[nodiscard]]
@@ -119,14 +119,16 @@ struct Client {
     void resizeclient(Rect<int> new_size);
     bool applysizehints(Rect<int> *size, bool interact);
     void resize(Rect<int> size, bool interact);
+    void unfocus(bool setfocus);
+    void setfocus();
 
     [[nodiscard]]
-    constexpr bool isVisibleOnTag(unsigned tag) const {
+    bool isVisibleOnTag(unsigned tag) const {
         return (tags & tag) != 0u;
     }
 
     [[nodiscard]]
-    constexpr bool isVisible() const {
+    bool isVisible() const {
         return isVisibleOnTag(mon->tagset[mon->seltags]);
     }
 };
