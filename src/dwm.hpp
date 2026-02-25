@@ -1,6 +1,7 @@
 #ifndef DWM_HPP
 #define DWM_HPP
 
+#include "boolenum.hpp"
 #include "layout.hpp"
 #include "xidptr.hpp"
 
@@ -15,6 +16,8 @@
 struct Pertag;
 struct Monitor;
 struct Client;
+
+BOOLEAN_ENUM(FullScreen) {off = false, on = true};
 
 template<typename T>
 struct Rect {
@@ -75,7 +78,7 @@ struct ClientProps {
     bool isurgent;
     bool neverfocus;
     bool old_float_state;
-    bool isfullscreen;
+    FullScreen isfullscreen;
     bool isterminal;
     bool noswallow;
 };
@@ -123,6 +126,8 @@ struct Client {
     void setfocus();
     [[nodiscard]]
     bool sendevent(Atom proto) const;
+    [[nodiscard]]
+    Atom getatomprop(Atom prop) const;
 
     [[nodiscard]]
     bool isVisibleOnTag(unsigned tag) const {
