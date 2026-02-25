@@ -124,6 +124,7 @@ struct Client {
     void resize(Rect<int> size, bool interact);
     void unfocus(bool setfocus);
     void setfocus();
+    void setfullscreen(FullScreen fullscreen);
     [[nodiscard]]
     bool sendevent(Atom proto) const;
     [[nodiscard]]
