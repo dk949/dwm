@@ -162,7 +162,6 @@ static void restack(MonitorRef const &m);
 static void scan();
 static void sendmon(Client *c, MonitorRef const &m);
 static void setup();
-static void seturgent(Client *c, bool urg);
 static void showhide(Client *c);
 static Client *swallowingclient(Window w);
 static Client *termforwin(Client const *w);
@@ -581,7 +580,7 @@ void clientmessage(XEvent *e) {
         }
     } else if (cme->message_type == netatom[NetActiveWindow]) {
         if (c != selmon->sel && !c->props.isurgent) {
-            seturgent(c, true);
+            c->seturgent(IsUrgent::yes);
         }
     } /*else if (cme->message_type == wmatom[WMChangeState]) {
         wmchange(c, cme);
@@ -792,7 +791,7 @@ void drawbar(MonitorRef m) {
 
     for (Client *c = m->clients; c; c = c->next) {
         occ |= c->tags;
-        if (c->props.isurgent) {
+        if (c->props.isurgent == IsUrgent::yes) {
             urg |= c->tags;
         }
     }
@@ -942,8 +941,8 @@ void focus(Client *c) {
         if (c->mon != selmon) {
             selmon = c->mon;
         }
-        if (c->props.isurgent) {
-            seturgent(c, false);
+        if (c->props.isurgent == IsUrgent::yes) {
+            c->seturgent(IsUrgent::no);
         }
         detachstack(c);
         attachstack(c);
@@ -1959,16 +1958,13 @@ void setup() {
     focus(nullptr);
 }
 
-void seturgent(Client *c, bool urg) {
-    XWMHints *wmh;
-
-    c->props.isurgent = urg;
-    if (!(wmh = XGetWMHints(dpy, c->win))) {
-        return;
+void Client::seturgent(IsUrgent urg) {
+    props.isurgent = urg;
+    if (auto *wmh = XGetWMHints(dpy, win)) {
+        wmh->flags = urg == IsUrgent::yes ? (wmh->flags | XUrgencyHint) : (wmh->flags & ~XUrgencyHint);
+        XSetWMHints(dpy, win, wmh);
+        XFree(wmh);
     }
-    wmh->flags = urg ? (wmh->flags | XUrgencyHint) : (wmh->flags & ~XUrgencyHint);
-    XSetWMHints(dpy, c->win, wmh);
-    XFree(wmh);
 }
 
 void showhide(Client *c) {
@@ -2485,7 +2481,7 @@ void updatewmhints(Client *c) {
             wmh->flags &= ~XUrgencyHint;
             XSetWMHints(dpy, c->win, wmh);
         } else {
-            c->props.isurgent = (wmh->flags & XUrgencyHint) != 0;
+            c->props.isurgent = IsUrgent((wmh->flags & XUrgencyHint) != 0);
         }
         if (wmh->flags & InputHint) {
             c->props.neverfocus = wmh->input == 0;

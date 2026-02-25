@@ -18,6 +18,7 @@ struct Monitor;
 struct Client;
 
 BOOLEAN_ENUM(FullScreen) {off = false, on = true};
+BOOLEAN_ENUM(IsUrgent) {no = false, yes = true};
 
 template<typename T>
 struct Rect {
@@ -75,7 +76,7 @@ struct Monitor {
 struct ClientProps {
     bool isfixed;
     bool isfloating;
-    bool isurgent;
+    IsUrgent isurgent;
     bool neverfocus;
     bool old_float_state;
     FullScreen isfullscreen;
@@ -125,6 +126,7 @@ struct Client {
     void unfocus(bool setfocus);
     void setfocus();
     void setfullscreen(FullScreen fullscreen);
+    void seturgent(IsUrgent urg);
     void grabbuttons(bool focused) const;
     void setclientstate(long state) const;
     [[nodiscard]]
