@@ -143,7 +143,6 @@ static pid_t getparentprocess(pid_t p);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
 static int gettextprop(Window w, Atom atom, char *text, std::size_t size);
-static void grabbuttons(Client *c, int focused);
 static void grabkeys();
 static void iconifyclient(Client *c);
 static void installEventHandlers();
@@ -949,7 +948,7 @@ void focus(Client *c) {
         }
         detachstack(c);
         attachstack(c);
-        grabbuttons(c, 1);
+        c->grabbuttons(true);
         XSetWindowBorder(dpy, c->win, drw->scheme().sel.border.pixel);
         c->setfocus();
     } else {
@@ -1095,13 +1094,13 @@ int gettextprop(Window w, Atom atom, char *text, std::size_t size) {
     return 1;
 }
 
-void grabbuttons(Client *c, int focused) {
+void Client::grabbuttons(bool focused) const {
     updatenumlockmask();
     {
-        unsigned int modifiers[] = {0, LockMask, numlockmask, numlockmask | LockMask};
-        XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
+        std::array modifiers {0u, toUnsigned(LockMask), numlockmask, numlockmask | LockMask};
+        XUngrabButton(dpy, AnyButton, AnyModifier, win);
         if (!focused) {
-            XGrabButton(dpy, AnyButton, AnyModifier, c->win, False, BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
+            XGrabButton(dpy, AnyButton, AnyModifier, win, False, BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
         }
         for (auto const &button : buttons) {
             if (button.click == ClkClientWin) {
@@ -1109,7 +1108,7 @@ void grabbuttons(Client *c, int focused) {
                     XGrabButton(dpy,
                         button.button,
                         button.mask | modifier,
-                        c->win,
+                        win,
                         False,
                         BUTTONMASK,
                         GrabModeAsync,
@@ -1249,7 +1248,7 @@ void manage(Window w, XWindowAttributes *wa) {
     updatesizehints(c);
     updatewmhints(c);
     XSelectInput(dpy, w, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
-    grabbuttons(c, 0);
+    c->grabbuttons(false);
     if (!c->props.isfloating) {
         c->props.isfloating = c->props.old_float_state = trans != None || c->props.isfixed;
     }
@@ -2158,7 +2157,7 @@ void toggleview(Arg const &arg) {
 }
 
 void Client::unfocus(bool setfocus) {
-    grabbuttons(this, 0);
+    grabbuttons(false);
     XSetWindowBorder(dpy, win, drw->scheme().norm.border.pixel);
     if (setfocus) {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
