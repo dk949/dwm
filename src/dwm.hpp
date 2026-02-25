@@ -129,6 +129,7 @@ struct Client {
     void seturgent(IsUrgent urg);
     void updatesizehints();
     void updatetitle();
+    void updatewindowtype();
     void grabbuttons(bool focused) const;
     void setclientstate(long state) const;
     [[nodiscard]]
