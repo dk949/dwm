@@ -178,7 +178,7 @@ static void unmapnotify(XEvent *e);
 static void updatebarpos(MonitorRef m);
 static void updatebars();
 static void updateclientlist();
-static int updategeom();
+static bool updategeom();
 static void updatenumlockmask();
 static void updatesizehints(Client *c);
 static void updatestatus();
@@ -2313,8 +2313,8 @@ void updateclientlist() {
     }
 }
 
-int updategeom() {
-    int dirty = 0;
+bool updategeom() {
+    bool dirty = false;
 
     if (xineramaIsActive(dpy)) {
         std::size_t j = 0;
@@ -2340,7 +2340,7 @@ int updategeom() {
                 || u.y_org != mon->monitor_size.y  //
                 || u.width != mon->monitor_size.w  //
                 || u.height != mon->monitor_size.h) {
-                dirty = 1;
+                dirty = true;
                 mon->num = i;
                 mon->monitor_size.x = mon->window_size.x = u.x_org;
                 mon->monitor_size.y = mon->window_size.y = u.y_org;
@@ -2352,7 +2352,7 @@ int updategeom() {
         /* less monitors available nn < n */
         for (auto const &mon : mons | vws::drop(num_screen_infos) | vws::reverse) {
             while ((c = mon->clients)) {
-                dirty = 1;
+                dirty = true;
                 mon->clients = c->next;
                 detachstack(c);
                 c->mon = mons.front();
@@ -2370,7 +2370,7 @@ int updategeom() {
             mons.push_back(createmon());
         }
         if (mons.front()->monitor_size.w != sw || mons.front()->monitor_size.h != sh) {
-            dirty = 1;
+            dirty = true;
             mons.front()->monitor_size.w = mons.front()->window_size.w = sw;
             mons.front()->monitor_size.h = mons.front()->window_size.h = sh;
             updatebarpos(mons.front());
