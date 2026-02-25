@@ -161,7 +161,6 @@ static MonitorRef recttomon(int x, int y, int w, int h);
 static void restack(MonitorRef const &m);
 static void scan();
 static void sendmon(Client *c, MonitorRef const &m);
-static void setclientstate(Client *c, long state);
 static void setup();
 static void seturgent(Client *c, bool urg);
 static void showhide(Client *c);
@@ -421,7 +420,7 @@ void swallow(Client *p, Client *c) {
     detach(c);
     detachstack(c);
 
-    setclientstate(c, WithdrawnState);
+    c->setclientstate(WithdrawnState);
     XUnmapWindow(dpy, p->win);
 
     p->swallowing = c;
@@ -449,7 +448,7 @@ void unswallow(Client *c) {
     XMapWindow(dpy, c->win);
     XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
     c->configure();
-    setclientstate(c, NormalState);
+    c->setclientstate(NormalState);
 }
 
 void bright_dec(Arg const &arg) {
@@ -1264,7 +1263,7 @@ void manage(Window w, XWindowAttributes *wa) {
         c->size.y,
         (unsigned)c->size.w,
         (unsigned)c->size.h); /* some windows require this */
-    setclientstate(c, NormalState);
+    c->setclientstate(NormalState);
     if (c->mon == selmon) {
         selmon->sel->unfocus(false);
     }
@@ -1735,10 +1734,17 @@ void sendmon(Client *c, MonitorRef const &m) {
     }
 }
 
-void setclientstate(Client *c, long state) {
-    long data[] = {state, None};
+void Client::setclientstate(long state) const {
+    std::array data {state, None};
 
-    XChangeProperty(dpy, c->win, wmatom[WMState], wmatom[WMState], 32, PropModeReplace, (unsigned char *)data, 2);
+    XChangeProperty(dpy,
+        win,
+        wmatom[WMState],
+        wmatom[WMState],
+        32,
+        PropModeReplace,
+        reinterpret_cast<unsigned char *>(data.data()),
+        2);
 }
 
 bool Client::sendevent(Atom proto) const {
@@ -2173,7 +2179,7 @@ static void uniconifyclient(Client *c) {
     XMapWindow(dpy, c->win);
     XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
     c->configure();
-    setclientstate(c, NormalState);
+    c->setclientstate(NormalState);
     attachstack(c);
     attach(c);
 }
@@ -2206,7 +2212,7 @@ void unmanage(Client *c, int destroyed) {
         XSelectInput(dpy, c->win, NoEventMask);
         XConfigureWindow(dpy, c->win, CWBorderWidth, &wc); /* restore border */
         XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
-        setclientstate(c, WithdrawnState);
+        c->setclientstate(WithdrawnState);
         XSync(dpy, False);
         XSetErrorHandler(xerror);
         XUngrabServer(dpy);
@@ -2233,7 +2239,7 @@ void unmapnotify(XEvent *e) {
 
     if ((c = wintoclient(ev->window))) {
         if (ev->send_event) {
-            setclientstate(c, WithdrawnState);
+            c->setclientstate(WithdrawnState);
         } else {
             unmanage(c, 0);
         }
@@ -2710,6 +2716,7 @@ static __attribute_maybe_unused__ void dump_raw(uint8_t *data, size_t size, char
 }
 
 static void iconifyclient(Client *c) {
+    // TODO(dk949): Make this actually work?
     char *icon_name;
     XGetIconName(dpy, c->win, &icon_name);
     lg::debug("{} wants to iconify. Icon name: {}", c->name, icon_name);
@@ -2718,7 +2725,7 @@ static void iconifyclient(Client *c) {
     detach(c);
     detachstack(c);
 
-    setclientstate(c, IconicState);
+    c->setclientstate(IconicState);
     XUnmapWindow(dpy, c->win);
 
     arrange(c->mon);

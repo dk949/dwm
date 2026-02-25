@@ -126,6 +126,7 @@ struct Client {
     void setfocus();
     void setfullscreen(FullScreen fullscreen);
     void grabbuttons(bool focused) const;
+    void setclientstate(long state) const;
     [[nodiscard]]
     bool sendevent(Atom proto) const;
     [[nodiscard]]
