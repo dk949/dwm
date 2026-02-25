@@ -162,7 +162,6 @@ static void propertynotify(XEvent *e);
 static MonitorRef recttomon(int x, int y, int w, int h);
 static void restack(MonitorRef const &m);
 static void scan();
-static bool sendevent(Client *c, Atom proto);
 static void sendmon(Client *c, MonitorRef const &m);
 static void setclientstate(Client *c, long state);
 static void setfullscreen(Client *c, bool fullscreen);
@@ -1196,7 +1195,7 @@ void killclient(Arg const &arg) {
     if (!selmon->sel) {
         return;
     }
-    if (!sendevent(selmon->sel, wmatom[WMDelete])) {
+    if (!selmon->sel->sendevent(wmatom[WMDelete])) {
         XGrabServer(dpy);
         XSetErrorHandler(xerrordummy);
         XSetCloseDownMode(dpy, DestroyAll);
@@ -1746,27 +1745,26 @@ void setclientstate(Client *c, long state) {
     XChangeProperty(dpy, c->win, wmatom[WMState], wmatom[WMState], 32, PropModeReplace, (unsigned char *)data, 2);
 }
 
-bool sendevent(Client *c, Atom proto) {
+bool Client::sendevent(Atom proto) const {
     int n;
     Atom *protocols;
     bool exists = false;
     XEvent ev;
 
-    if (XGetWMProtocols(dpy, c->win, &protocols, &n)) {
+    if (XGetWMProtocols(dpy, win, &protocols, &n)) {
         while (!exists && n--) {
             exists = protocols[n] == proto;
         }
         XFree(protocols);
     }
-    if (exists) {
-        ev.type = ClientMessage;
-        ev.xclient.window = c->win;
-        ev.xclient.message_type = wmatom[WMProtocols];
-        ev.xclient.format = 32;
-        ev.xclient.data.l[0] = (long)proto;
-        ev.xclient.data.l[1] = CurrentTime;
-        XSendEvent(dpy, c->win, False, NoEventMask, &ev);
-    }
+    if (!exists) return false;
+    ev.type = ClientMessage;
+    ev.xclient.window = win;
+    ev.xclient.message_type = wmatom[WMProtocols];
+    ev.xclient.format = 32;
+    ev.xclient.data.l[0] = static_cast<long>(proto);
+    ev.xclient.data.l[1] = CurrentTime;
+    XSendEvent(dpy, win, False, NoEventMask, &ev);
     return exists;
 }
 
@@ -1782,7 +1780,7 @@ void Client::setfocus() {
             reinterpret_cast<unsigned char *>(&win),
             1);
     }
-    sendevent(this, wmatom[WMTakeFocus]);
+    (void)sendevent(wmatom[WMTakeFocus]);
 }
 
 void setfullscreen(Client *c, bool fullscreen) {

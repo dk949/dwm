@@ -121,6 +121,8 @@ struct Client {
     void resize(Rect<int> size, bool interact);
     void unfocus(bool setfocus);
     void setfocus();
+    [[nodiscard]]
+    bool sendevent(Atom proto) const;
 
     [[nodiscard]]
     bool isVisibleOnTag(unsigned tag) const {
