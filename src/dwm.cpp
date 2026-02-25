@@ -174,7 +174,6 @@ static void updatebars();
 static void updateclientlist();
 static bool updategeom();
 static void updatenumlockmask();
-static void updatesizehints(Client *c);
 static void updatestatus();
 static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
@@ -317,7 +316,7 @@ bool Client::applysizehints(Rect<int> *new_size, bool interact) {
     new_size->h = std::max(new_size->h, bar_height);
     new_size->w = std::max(new_size->w, bar_height);
     if (resizehints || props.isfloating || !mon->lt[mon->sellt]->arrange) {
-        if (!hintsvalid) updatesizehints(this);
+        if (!hintsvalid) updatesizehints();
         /* see last two sentences in ICCCM 4.1.2.3 */
         bool baseismin = basew == minw && baseh == minh;
         if (!baseismin) { /* temporarily remove base dimensions */
@@ -442,7 +441,7 @@ void unswallow(Client *c) {
     c->swallowing = nullptr;
 
     updatetitle(c);
-    updatesizehints(c);
+    c->updatesizehints();
     arrange(c->mon);
     XMapWindow(dpy, c->win);
     XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
@@ -1243,7 +1242,7 @@ void manage(Window w, XWindowAttributes *wa) {
     XSetWindowBorder(dpy, w, drw->scheme().norm.border.pixel);
     c->configure(); /* propagates border_width, if size doesn't change */
     updatewindowtype(c);
-    updatesizehints(c);
+    c->updatesizehints();
     updatewmhints(c);
     XSelectInput(dpy, w, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     c->grabbuttons(false);
@@ -2170,7 +2169,7 @@ void Client::unfocus(bool setfocus) {
 static void uniconifyclient(Client *c) {
     lg::debug("restoring iconified cliend {}", c->name);
     updatetitle(c);
-    updatesizehints(c);
+    c->updatesizehints();
     arrange(c->mon);
     XMapWindow(dpy, c->win);
     XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
@@ -2397,52 +2396,52 @@ void updatenumlockmask() {
     XFreeModifiermap(modmap);
 }
 
-void updatesizehints(Client *c) {
-    long msize;
-    XSizeHints size;
+void Client::updatesizehints() {
+    long user_size;
+    XSizeHints size_hints;
 
-    if (!XGetWMNormalHints(dpy, c->win, &size, &msize)) {
+    if (!XGetWMNormalHints(dpy, win, &size_hints, &user_size)) {
         /* size is uninitialized, ensure that size.flags aren't used */
-        size.flags = PSize;
+        size_hints.flags = PSize;
     }
-    if (size.flags & PBaseSize) {
-        c->basew = size.base_width;
-        c->baseh = size.base_height;
-    } else if (size.flags & PMinSize) {
-        c->basew = size.min_width;
-        c->baseh = size.min_height;
+    if (size_hints.flags & PBaseSize) {
+        basew = size_hints.base_width;
+        baseh = size_hints.base_height;
+    } else if (size_hints.flags & PMinSize) {
+        basew = size_hints.min_width;
+        baseh = size_hints.min_height;
     } else {
-        c->basew = c->baseh = 0;
+        basew = baseh = 0;
     }
-    if (size.flags & PResizeInc) {
-        c->incw = size.width_inc;
-        c->inch = size.height_inc;
+    if (size_hints.flags & PResizeInc) {
+        incw = size_hints.width_inc;
+        inch = size_hints.height_inc;
     } else {
-        c->incw = c->inch = 0;
+        incw = inch = 0;
     }
-    if (size.flags & PMaxSize) {
-        c->maxw = size.max_width;
-        c->maxh = size.max_height;
+    if (size_hints.flags & PMaxSize) {
+        maxw = size_hints.max_width;
+        maxh = size_hints.max_height;
     } else {
-        c->maxw = c->maxh = 0;
+        maxw = maxh = 0;
     }
-    if (size.flags & PMinSize) {
-        c->minw = size.min_width;
-        c->minh = size.min_height;
-    } else if (size.flags & PBaseSize) {
-        c->minw = size.base_width;
-        c->minh = size.base_height;
+    if (size_hints.flags & PMinSize) {
+        minw = size_hints.min_width;
+        minh = size_hints.min_height;
+    } else if (size_hints.flags & PBaseSize) {
+        minw = size_hints.base_width;
+        minh = size_hints.base_height;
     } else {
-        c->minw = c->minh = 0;
+        minw = minh = 0;
     }
-    if (size.flags & PAspect) {
-        c->mina = (float)size.min_aspect.y / (float)size.min_aspect.x;
-        c->maxa = (float)size.max_aspect.x / (float)size.max_aspect.y;
+    if (size_hints.flags & PAspect) {
+        mina = static_cast<float>(size_hints.min_aspect.y) / static_cast<float>(size_hints.min_aspect.x);
+        maxa = static_cast<float>(size_hints.max_aspect.x) / static_cast<float>(size_hints.max_aspect.y);
     } else {
-        c->maxa = c->mina = 0.0;
+        maxa = mina = 0.0;
     }
-    c->props.isfixed = c->maxw != 0 && c->maxh != 0 && c->maxw == c->minw && c->maxh == c->minh;
-    c->hintsvalid = true;
+    props.isfixed = maxw != 0 && maxh != 0 && maxw == minw && maxh == minh;
+    hintsvalid = true;
 }
 
 void updatestatus() {
