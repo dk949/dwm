@@ -175,7 +175,6 @@ static void updateclientlist();
 static bool updategeom();
 static void updatenumlockmask();
 static void updatestatus();
-static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 
@@ -427,7 +426,7 @@ void swallow(Client *p, Client *c) {
     Window w = p->win;
     p->win = c->win;
     c->win = w;
-    updatetitle(p);
+    p->updatetitle();
     arrange(p->mon);
     XMoveResizeWindow(dpy, p->win, p->size.x, p->size.y, (unsigned)p->size.w, (unsigned)p->size.h);
     p->configure();
@@ -440,7 +439,7 @@ void unswallow(Client *c) {
     delete c->swallowing;
     c->swallowing = nullptr;
 
-    updatetitle(c);
+    c->updatetitle();
     c->updatesizehints();
     arrange(c->mon);
     XMapWindow(dpy, c->win);
@@ -1216,7 +1215,7 @@ void manage(Window w, XWindowAttributes *wa) {
     c->oldbw = wa->border_width;
     c->cfact = 1.0;
 
-    updatetitle(c);
+    c->updatetitle();
     if (XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {
         c->mon = t->mon;
         c->tags = t->tags;
@@ -1461,7 +1460,7 @@ void propertynotify(XEvent *e) {
                 break;
         }
         if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
-            updatetitle(c);
+            c->updatetitle();
             if (c == c->mon->sel) {
                 drawbar(c->mon);
             }
@@ -2168,7 +2167,7 @@ void Client::unfocus(bool setfocus) {
 
 static void uniconifyclient(Client *c) {
     lg::debug("restoring iconified cliend {}", c->name);
-    updatetitle(c);
+    c->updatetitle();
     c->updatesizehints();
     arrange(c->mon);
     XMapWindow(dpy, c->win);
@@ -2451,13 +2450,12 @@ void updatestatus() {
     drawbar(selmon);
 }
 
-void updatetitle(Client *c) {
-    if (!gettextprop(c->win, netatom[NetWMName], c->name.data(), c->name.max_size())) {
-        gettextprop(c->win, XA_WM_NAME, c->name.data(), c->name.max_size());
-    }
-    if (c->name[0] == '\0') { /* hack to mark broken clients */
-        rng::copy(broken, c->name.begin());
-    }
+void Client::updatetitle() {
+    if (!gettextprop(win, netatom[NetWMName], name.data(), name.max_size()))
+        gettextprop(win, XA_WM_NAME, name.data(), name.max_size());
+
+    if (name[0] == '\0') /* hack to mark broken clients */
+        rng::copy(broken, name.begin());
 }
 
 void updatewindowtype(Client *c) {

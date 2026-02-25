@@ -128,6 +128,7 @@ struct Client {
     void setfullscreen(FullScreen fullscreen);
     void seturgent(IsUrgent urg);
     void updatesizehints();
+    void updatetitle();
     void grabbuttons(bool focused) const;
     void setclientstate(long state) const;
     [[nodiscard]]
