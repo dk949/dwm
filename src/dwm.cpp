@@ -84,6 +84,11 @@ static constexpr auto INTERSECT(
          * std::max(0, std::min(y + h, m->window_size.y + m->window_size.h) - std::max(y, m->window_size.y));
 }
 
+template<std::integral I>
+static constexpr auto INTERSECT(Rect<I> rect, MonitorRef const &m) {
+    return INTERSECT(rect.x, rect.y, rect.w, rect.h, m);
+}
+
 #define WIDTH(X)  ((unsigned)(X)->size.w + 2 * (unsigned)(X)->bw + gappx)
 #define HEIGHT(X) ((unsigned)(X)->size.h + 2 * (unsigned)(X)->bw + gappx)
 #define TEXTW(X)  (drw->fontset_getwidth((X)) + (unsigned)lrpad)
@@ -158,7 +163,7 @@ static Client *nexttiled(Client *c);
 static void handle_notifyself_fade_anim(FadeBarEvent);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
-static MonitorRef recttomon(int x, int y, int w, int h);
+static MonitorRef recttomon(Rect<int> rect);
 static void restack(MonitorRef const &m);
 static void scan();
 static void sendmon(Client *c, MonitorRef const &m);
@@ -1329,7 +1334,7 @@ void motionnotify(XEvent *e) {
     if (ev->window != root) {
         return;
     }
-    m = recttomon(ev->x_root, ev->y_root, 1, 1);
+    m = recttomon({ev->x_root, ev->y_root, 1, 1});
     if (!mon.expired() && mon.lock() != m) {
         if (selmon->sel) selmon->sel->unfocus(true);
         selmon = m;
@@ -1347,7 +1352,6 @@ void movemouse(Arg const &arg) {
     int nx;
     int ny;
     Client *c;
-    MonitorRef m;
     XEvent ev;
     Time lasttime = 0;
 
@@ -1408,7 +1412,7 @@ void movemouse(Arg const &arg) {
         }
     } while (ev.type != ButtonRelease);
     XUngrabPointer(dpy, CurrentTime);
-    if ((m = recttomon(c->size.x, c->size.y, c->size.w, c->size.h)) != selmon) {
+    if (auto m = recttomon(c->size); m != selmon) {
         sendmon(c, m);
         selmon = m;
         focus(nullptr);
@@ -1482,14 +1486,13 @@ void restart(Arg const &arg) {
     need_restart = 1;
 }
 
-// TODO(dk949): this should take a Rect<int>
-MonitorRef recttomon(int x, int y, int w, int h) {
+MonitorRef recttomon(Rect<int> rect) {
     MonitorRef r = selmon;
     int area = 0;
 
     // TODO(dk949): This is probably a max reduction
     for (auto const &mon : mons) {
-        if (auto a = INTERSECT(x, y, w, h, mon); a > area) {
+        if (auto a = INTERSECT(rect, mon); a > area) {
             area = a;
             r = mon;
         }
@@ -1549,7 +1552,6 @@ void resizemouse(Arg const &arg) {
     int nw;
     int nh;
     Client *c;
-    MonitorRef m;
     XEvent ev;
     Time lasttime = 0;
 
@@ -1606,7 +1608,7 @@ void resizemouse(Arg const &arg) {
     while (XCheckMaskEvent(dpy, EnterWindowMask, &ev)) {
         ;
     }
-    if ((m = recttomon(c->size.x, c->size.y, c->size.w, c->size.h)) != selmon) {
+    if (auto m = recttomon(c->size); m != selmon) {
         sendmon(c, m);
         selmon = m;
         focus(nullptr);
@@ -2839,7 +2841,7 @@ MonitorRef wintomon(Window w) {
     int x;
     int y;
 
-    if (w == root && getrootptr(&x, &y)) return recttomon(x, y, 1, 1);
+    if (w == root && getrootptr(&x, &y)) return recttomon({x, y, 1, 1});
 
     if (auto mon_it = rng::find_if(mons, [&](auto const &m) noexcept { return w == m->barwin; }); mon_it != mons.end())
         return *mon_it;
