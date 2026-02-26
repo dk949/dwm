@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <ut/static_string/static_string.hpp>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
@@ -193,7 +194,11 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 constexpr auto TAGMASK = (1uz << tag_symbols.size()) - 1uz;
 constexpr auto BUTTONMASK = toUnsigned(ButtonPressMask) | toUnsigned(ButtonReleaseMask);
 constexpr auto MOUSEMASK = BUTTONMASK | toUnsigned(PointerMotionMask);
-static char const broken[] = "broken";
+constexpr auto cfact_min = 0.25f;
+constexpr auto cfact_max = 4.0f;
+constexpr auto mfact_min = 0.05f;
+constexpr auto mfact_max = 0.95f;
+static constexpr ut::StaticString broken = "broken";
 static char stext[256];
 static int screen;
 static int sw, sh;                                                   /* X display screen geometry width, height */
@@ -201,7 +206,8 @@ static int bar_height, sel_bar_name_x = -1, sel_bar_name_width = -1; /* bar geom
 static int lrpad;                                                    /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
-static Atom wmatom[WMLast], netatom[NetLast];
+static std::array<Atom, WMLast> wmatom;
+static std::array<Atom, NetLast> netatom;
 static int need_restart = 0;
 static Display *dpy;
 static Drw *drw;
@@ -240,8 +246,8 @@ void Client::applyrules() {
     props.isfloating = false;
     tags = 0;
     auto ch = classHint(dpy);
-    char const *class_ = ch.class_hint ? ch.class_hint.get() : broken;
-    char const *instance = ch.instance_hint ? ch.instance_hint.get() : broken;
+    char const *class_ = ch.class_hint ? ch.class_hint.get() : broken.data();
+    char const *instance = ch.instance_hint ? ch.instance_hint.get() : broken.data();
 
     for (auto const &r : rules) {
         if ((!r.title || name.contains(r.title)) && (!r.class_ || strstr(class_, r.class_))
@@ -1821,38 +1827,30 @@ void setlayout(Arg const &arg) {
 }
 
 void setcfact(Arg const &arg) {
-    float f;
-    Client *c;
+    Client *c = selmon->sel;
 
-    c = selmon->sel;
+    if (!c || !selmon->lt[selmon->sellt]->arrange) return;
 
-    if (!c || !selmon->lt[selmon->sellt]->arrange) {
-        return;
-    }
-    f = arg.f + c->cfact;
-    if (arg.f == 0.0f) {
+    float f = arg.f + c->cfact;
+    if (arg.f == 0.0f)
         f = 1.0;
-    } else if (f < 0.25f || f > 4.0f) {
+    else if (f < cfact_min || f > cfact_max)
         return;
-    }
+
     c->cfact = f;
     arrange(selmon);
 }
 
 /* arg > 1.0 will set mfact absolutely */
 void setmfact(Arg const &arg) {
-    float f;
 
-    if (!selmon->lt[selmon->sellt]->arrange) {
-        return;
-    }
-    f = arg.f < 1.0f ? arg.f + selmon->mfact : arg.f - 1.0f;
-    if (f < 0.05f || f > 0.95f) {
-        return;
-    }
-    if (f == 0.0f) {
+    if (!selmon->lt[selmon->sellt]->arrange) return;
+
+    float f = arg.f < 1.0f ? arg.f + selmon->mfact : arg.f - 1.0f;
+    if (f < mfact_min || f > mfact_max) return;
+    if (f == 0.0f)  // TODO(dk949): This is never executed?
         f = 1.0f;
-    }
+
     selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag] = f;
     arrange(selmon);
 }
@@ -1935,7 +1933,7 @@ void setup() {
     XChangeProperty(dpy, wmcheckwin, netatom[NetWMName], utf8string, 8, PropModeReplace, (unsigned char *)"dwm", 3);
     XChangeProperty(dpy, root, netatom[NetWMCheck], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&wmcheckwin, 1);
     /* EWMH support per view */
-    XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)netatom, NetLast);
+    XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)netatom.data(), NetLast);
     XDeleteProperty(dpy, root, netatom[NetClientList]);
     /* select events */
     XSetWindowAttributes wa;

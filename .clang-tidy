@@ -60,6 +60,7 @@
 #   cppcoreguidelines-pro-bounds-array-to-pointer-decay    # This is perfectly normal
 #   cppcoreguidelines-pro-bounds-constant-array-index      # Too many false positives
 #   cppcoreguidelines-pro-type-reinterpret-cast            # Not possible when working with xlib
+#   cppcoreguidelines-pro-type-union-access                # Too many unions used here
 
 User: dk949
 Checks:
@@ -106,6 +107,7 @@ Checks:
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   -cppcoreguidelines-pro-bounds-constant-array-index,
   -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-union-access,
   google-*,
   -google-build-namespaces,
   -google-readability-avoid-underscore-in-googletest-name,
