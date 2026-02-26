@@ -213,7 +213,7 @@ static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
 static std::array<Atom, WMLast> wmatom;
 static std::array<Atom, NetLast> netatom;
-static int need_restart = 0;
+static bool need_restart = false;
 static Display *dpy;
 static Drw *drw;
 static Monitors mons;
@@ -1476,14 +1476,14 @@ void propertynotify(XEvent *e) {
 void quit(Arg const &arg) {
     (void)arg;
     loop->terminate();
-    need_restart = 0;
+    need_restart = false;
     lg::info("Initiating shutdowd");
 }
 
 void restart(Arg const &arg) {
     (void)arg;
     loop->terminate();
-    need_restart = 1;
+    need_restart = true;
 }
 
 MonitorRef recttomon(Rect<int> rect) {
