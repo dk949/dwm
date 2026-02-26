@@ -1480,12 +1480,11 @@ void restart(Arg const &arg) {
 // TODO(dk949): this should take a Rect<int>
 MonitorRef recttomon(int x, int y, int w, int h) {
     MonitorRef r = selmon;
-    int a;
     int area = 0;
 
     // TODO(dk949): This is probably a max reduction
     for (auto const &mon : mons) {
-        if ((a = INTERSECT(x, y, w, h, mon)) > area) {
+        if (auto a = INTERSECT(x, y, w, h, mon); a > area) {
             area = a;
             r = mon;
         }
