@@ -147,7 +147,7 @@ static bool gettextprop(Window w, Atom atom, char *text, std::size_t size);
 static void grabkeys();
 static void iconifyclient(Client *c);
 static void installEventHandlers();
-static int isdescprocess(pid_t p, pid_t c);
+static bool isdescprocess(pid_t p, pid_t c);
 static void keypress(XEvent *e);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
@@ -2786,12 +2786,11 @@ void installEventHandlers() {
     loop->on<FadeBarEvent>(handle_notifyself_fade_anim);
 }
 
-int isdescprocess(pid_t p, pid_t c) {
-    while (p != c && c != 0) {
+bool isdescprocess(pid_t p, pid_t c) {
+    while (p != c && c != 0)
         c = getparentprocess(c);
-    }
 
-    return (int)c;
+    return c != 0;
 }
 
 Client *termforwin(Client const *w) {
