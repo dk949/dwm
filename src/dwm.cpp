@@ -1150,8 +1150,7 @@ void setmaster(Arg const &arg) {
     arrange(selmon);
 }
 
-void iconify(Arg const &arg) {
-    (void)arg;
+void iconify(Arg const &) {
     if (!XIconifyWindow(dpy, selmon->sel->win, screen)) lg::debug("Could not iconify {}", selmon->sel->name);
 }
 
@@ -1181,8 +1180,7 @@ void keypress(XEvent *e) {
     }
 }
 
-void killclient(Arg const &arg) {
-    (void)arg;
+void killclient(Arg const &) {
     if (!selmon->sel) {
         return;
     }
@@ -1343,8 +1341,7 @@ void motionnotify(XEvent *e) {
     mon = m;
 }
 
-void movemouse(Arg const &arg) {
-    (void)arg;
+void movemouse(Arg const &) {
     int x;
     int y;
     int ocx;
@@ -1473,15 +1470,13 @@ void propertynotify(XEvent *e) {
     }
 }
 
-void quit(Arg const &arg) {
-    (void)arg;
+void quit(Arg const &) {
     loop->terminate();
     need_restart = false;
     lg::info("Initiating shutdowd");
 }
 
-void restart(Arg const &arg) {
-    (void)arg;
+void restart(Arg const &) {
     loop->terminate();
     need_restart = true;
 }
@@ -1535,8 +1530,7 @@ void Client::resizeclient(Rect<int> new_size) {
     XSync(dpy, False);
 }
 
-void resizemouse(Arg const &arg) {
-    (void)arg;
+void resizemouse(Arg const &) {
     int ocx;
     int ocy;
     int nw;
@@ -1848,8 +1842,7 @@ void setmfact(Arg const &arg) {
     arrange(selmon);
 }
 
-void resetmcfact(Arg const &unused) {
-    (void)unused;
+void resetmcfact(Arg const &) {
     if (!selmon->lt[selmon->sellt]->arrange) return;
 
     selmon->sel->cfact = 1.0;
@@ -2082,8 +2075,7 @@ double timespecdiff(const struct timespec *a, const struct timespec *b) {
     return (diff >= 0) ? diff : -diff;
 }
 
-void togglebar(Arg const &arg) {
-    (void)arg;
+void togglebar(Arg const &) {
     selmon->showbar = selmon->pertag->showbars[selmon->pertag->curtag] = !selmon->showbar;
     updatebarpos(selmon);
     XMoveResizeWindow(dpy,
@@ -2095,8 +2087,7 @@ void togglebar(Arg const &arg) {
     arrange(selmon);
 }
 
-void togglefloating(Arg const &arg) {
-    (void)arg;
+void togglefloating(Arg const &) {
     if (!selmon->sel) return;
 
     if (selmon->sel->props.isfullscreen == FullScreen::on) /* no support for fullscreen windows */
@@ -2867,21 +2858,18 @@ int xerror(Display *d, XErrorEvent *ee) {
     return xerrorxlib(d, ee); /* may call exit */
 }
 
-int xerrordummy(Display *_dpy, XErrorEvent *_ee) {
-    (void)_dpy, (void)_ee;
+int xerrordummy(Display *, XErrorEvent *) {
     return 0;
 }
 
 /* Startup Error handler to check if another window manager
  * is already running. */
-int xerrorstart(Display *_dpy, XErrorEvent *_ee) {
-    (void)_dpy, (void)_ee;
+int xerrorstart(Display *, XErrorEvent *) {
     lg::fatal("another window manager is already running");
     return -1;
 }
 
-void zoom(Arg const &arg) {
-    (void)arg;
+void zoom(Arg const &) {
     Client *c = selmon->sel;
 
     if (!selmon->lt[selmon->sellt]->arrange || !c || c->props.isfloating) return;
