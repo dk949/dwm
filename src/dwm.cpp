@@ -484,7 +484,6 @@ void buttonpress(XEvent *e) {
     unsigned int x;
     unsigned int click;
     Arg arg = {0};
-    Client *c;
     MonitorRef m;
     XButtonPressedEvent *ev = &e->xbutton;
 
@@ -510,7 +509,7 @@ void buttonpress(XEvent *e) {
         } else {
             click = ClkWinTitle;
         }
-    } else if ((c = wintoclient(ev->window))) {
+    } else if (auto *c = wintoclient(ev->window)) {
         focus(c);
         restack(selmon);
         XAllowEvents(dpy, ReplayPointer, CurrentTime);
@@ -610,7 +609,6 @@ void Client::configure() const {
 }
 
 void configurenotify(XEvent *e) {
-    Client *c;
     XConfigureEvent *ev = &e->xconfigure;
 
     // TODO(dk949): Figure out what this means??
@@ -624,7 +622,7 @@ void configurenotify(XEvent *e) {
         drw->resize((unsigned)sw, (unsigned)bar_height);
         updatebars();
         for (auto const &m : mons) {
-            for (c = m->clients; c; c = c->next) {
+            for (Client *c = m->clients; c; c = c->next) {
                 if (c->props.isfullscreen == FullScreen::on) {
                     c->resizeclient(m->monitor_size);
                 }
@@ -637,11 +635,10 @@ void configurenotify(XEvent *e) {
 }
 
 void configurerequest(XEvent *e) {
-    Client *c;
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
     XWindowChanges wc;
 
-    if ((c = wintoclient(ev->window))) {
+    if (auto *c = wintoclient(ev->window)) {
         if (ev->value_mask & CWBorderWidth) {
             c->bw = ev->border_width;
         } else if (c->props.isfloating || !selmon->lt[selmon->sellt]->arrange) {
@@ -722,13 +719,12 @@ MonitorRef createmon() {
 }
 
 void destroynotify(XEvent *e) {
-    Client *c;
     XDestroyWindowEvent *ev = &e->xdestroywindow;
 
-    if ((c = wintoclient(ev->window))) {
+    if (auto *c = wintoclient(ev->window)) {
         unmanage(c, 1);
-    } else if ((c = swallowingclient(ev->window))) {
-        unmanage(c->swallowing, 1);
+    } else if (auto *s = swallowingclient(ev->window)) {
+        unmanage(s->swallowing, 1);
     }
 }
 
