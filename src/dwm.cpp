@@ -1466,14 +1466,14 @@ void propertynotify(XEvent *e) {
 
 void quit(Arg const &arg) {
     (void)arg;
-    loop->push(TerminateEvent());
+    loop->terminate();
     need_restart = 0;
     lg::info("Initiating shutdowd");
 }
 
 void restart(Arg const &arg) {
     (void)arg;
-    loop->push(TerminateEvent());
+    loop->terminate();
     need_restart = 1;
 }
 

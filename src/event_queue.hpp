@@ -21,9 +21,7 @@
 
 struct FadeBarEvent { };
 
-struct TerminateEvent { };
-
-using InternalEvent = std::variant<FadeBarEvent, TerminateEvent>;
+using InternalEvent = std::variant<FadeBarEvent>;
 
 using InternalQueue = ut::MtQueue<InternalEvent>;
 
@@ -134,6 +132,7 @@ public:
     }
 
     void run();
+    void terminate();
 
 private:
     template<InVariant<InternalEvent> Ev>

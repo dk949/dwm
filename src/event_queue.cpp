@@ -94,7 +94,6 @@ EventLoop::EventLoop(Display *dpy, Window root)
                   | PropertyChangeMask;
     XChangeWindowAttributes(m_dpy, root, CWEventMask, &wa);
     XSelectInput(dpy, root, wa.event_mask);
-    on<TerminateEvent>([this](auto) noexcept { m_done = true; });
 }
 
 /**
@@ -178,7 +177,6 @@ void EventLoop::flushXEvents() {
             lg::error("XNextEvent error: {}", xstrerror(m_dpy, err));
             break;
         }
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
         auto &&handler = m_x_handlers[static_cast<std::size_t>(ev.type)];
         if (handler) handler(&ev);
     }
@@ -278,4 +276,8 @@ std::optional<std::string> EventLoop::readFd(int fd) {
         return std::optional {std::move(read->first)};
     }
     return std::nullopt;
+}
+
+void EventLoop::terminate() {
+    m_done = true;
 }
