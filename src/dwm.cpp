@@ -168,7 +168,7 @@ static Client *swallowingclient(Window w);
 static Client *termforwin(Client const *w);
 static double timespecdiff(const struct timespec *a, const struct timespec *b);
 static void uniconifyclient(Client *c);
-static void unmanage(Client *c, int destroyed);
+static void unmanage(Client *c, IsDestroyed destroyed);
 static void unmapnotify(XEvent *e);
 static void updatebarpos(MonitorRef const &m);
 static void updatebars();
@@ -539,7 +539,7 @@ void cleanup() {
     selmon->lt[selmon->sellt] = &foo;
     for (auto const &m : mons) {
         while (m->stack) {
-            unmanage(m->stack, 0);  // XXX: Potential problems
+            unmanage(m->stack, IsDestroyed::no);  // XXX: Potential problems
         }
     }
     XUngrabKey(dpy, AnyKey, AnyModifier, root);
@@ -722,9 +722,9 @@ void destroynotify(XEvent *e) {
     XDestroyWindowEvent *ev = &e->xdestroywindow;
 
     if (auto *c = wintoclient(ev->window)) {
-        unmanage(c, 1);
+        unmanage(c, IsDestroyed::yes);
     } else if (auto *s = swallowingclient(ev->window)) {
-        unmanage(s->swallowing, 1);
+        unmanage(s->swallowing, IsDestroyed::yes);
     }
 }
 
@@ -2197,7 +2197,7 @@ static void uniconifyclient(Client *c) {
     attach(c);
 }
 
-void unmanage(Client *c, int destroyed) {
+void unmanage(Client *c, IsDestroyed destroyed) {
     auto m = c->getMon();
     unsigned int switchtotag = c->switchtotag;
     XWindowChanges wc;
@@ -2218,7 +2218,7 @@ void unmanage(Client *c, int destroyed) {
 
     detach(c);
     detachstack(c);
-    if (!destroyed) {
+    if (destroyed == IsDestroyed::no) {
         wc.border_width = c->oldbw;
         XGrabServer(dpy); /* avoid race conditions */
         XSetErrorHandler(xerrordummy);
@@ -2254,7 +2254,7 @@ void unmapnotify(XEvent *e) {
         if (ev->send_event) {
             c->setclientstate(WithdrawnState);
         } else {
-            unmanage(c, 0);
+            unmanage(c, IsDestroyed::no);
         }
     }
 }

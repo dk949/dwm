@@ -20,6 +20,7 @@ struct Client;
 
 BOOLEAN_ENUM(FullScreen) {off = false, on = true};
 BOOLEAN_ENUM(IsUrgent) {no = false, yes = true};
+BOOLEAN_ENUM(IsDestroyed) {no = false, yes = true};
 
 template<typename T>
 struct Rect {
