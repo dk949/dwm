@@ -3,6 +3,7 @@
 
 #include "boolenum.hpp"
 #include "layout.hpp"
+#include "log.hpp"
 #include "xidptr.hpp"
 
 #include <ut/static_string/static_string.hpp>
@@ -100,7 +101,7 @@ struct Client {
     Client *next;
     Client *snext;
     Client *swallowing;
-    MonitorRef mon;
+    WeakMonitorRef mon;
     Window win;
 
     [[nodiscard]]
@@ -134,6 +135,8 @@ struct Client {
     void grabbuttons(bool focused) const;
     void setclientstate(long state) const;
     [[nodiscard]]
+    MonitorRef getMon();
+    [[nodiscard]]
     bool sendevent(Atom proto) const;
     [[nodiscard]]
     Atom getatomprop(Atom prop) const;
@@ -145,7 +148,11 @@ struct Client {
 
     [[nodiscard]]
     bool isVisible() const {
-        return isVisibleOnTag(mon->tagset[mon->seltags]);
+        if (auto m = mon.lock())
+            return isVisibleOnTag(m->tagset[m->seltags]);
+        else
+            lg::warn("Trying to query visibility of the client '{}' on a deleted monitor", name.view());
+        return false;
     }
 };
 
