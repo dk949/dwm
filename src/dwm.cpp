@@ -1487,17 +1487,7 @@ void restart(Arg const &arg) {
 }
 
 MonitorRef recttomon(Rect<int> rect) {
-    MonitorRef r = selmon;
-    int area = 0;
-
-    // TODO(dk949): This is probably a max reduction
-    for (auto const &mon : mons) {
-        if (auto a = INTERSECT(rect, mon); a > area) {
-            area = a;
-            r = mon;
-        }
-    }
-    return r;
+    return *rng::max_element(mons, [&](auto const &a, auto const &b) { return INTERSECT(rect, a) < INTERSECT(rect, b); });
 }
 
 void Client::resize(Rect<int> new_size, bool interact) {
