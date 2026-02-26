@@ -58,3 +58,4 @@ List of things I'd like to implement but don't have time for
       pasting into the swallowed terminal.
     * This might be a bug in kitty.
 * [ ] Clean up process reaping
+* [ ] Abstract away XChangeProperty

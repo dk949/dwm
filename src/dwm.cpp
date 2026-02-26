@@ -1253,7 +1253,14 @@ void manage(Window w, XWindowAttributes *wa) {
     }
     attachaside(c);
     attachstack(c);
-    XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend, (unsigned char *)&(c->win), 1);
+    XChangeProperty(dpy,
+        root,
+        netatom[NetClientList],
+        XA_WINDOW,
+        32,
+        PropModeAppend,
+        reinterpret_cast<unsigned char const *>(&c->win),
+        1);
     XMoveResizeWindow(dpy,
         c->win,
         c->size.x + (2 * sw),
@@ -1737,7 +1744,7 @@ void Client::setclientstate(long state) const {
         wmatom[WMState],
         32,
         PropModeReplace,
-        reinterpret_cast<unsigned char *>(data.data()),
+        reinterpret_cast<unsigned char const *>(data.data()),
         2);
 }
 
@@ -1773,7 +1780,7 @@ void Client::setfocus() {
             XA_WINDOW,
             32,
             PropModeReplace,
-            reinterpret_cast<unsigned char *>(&win),
+            reinterpret_cast<unsigned char const *>(&win),
             1);
     }
     (void)sendevent(wmatom[WMTakeFocus]);
@@ -1788,7 +1795,7 @@ void Client::setfullscreen(FullScreen fullscreen) {
             XA_ATOM,
             32,
             PropModeReplace,
-            reinterpret_cast<unsigned char *>(&netatom[NetWMFullscreen]),
+            reinterpret_cast<unsigned char const *>(&netatom[NetWMFullscreen]),
             1);
         props.isfullscreen = FullScreen::on;
         props.old_float_state = props.isfloating;
@@ -1929,11 +1936,39 @@ void setup() {
     updatestatus();
     /* supporting window for NetWMCheck */
     wmcheckwin = XCreateSimpleWindow(dpy, root, 0, 0, 1, 1, 0, 0, 0);
-    XChangeProperty(dpy, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&wmcheckwin, 1);
-    XChangeProperty(dpy, wmcheckwin, netatom[NetWMName], utf8string, 8, PropModeReplace, (unsigned char *)"dwm", 3);
-    XChangeProperty(dpy, root, netatom[NetWMCheck], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&wmcheckwin, 1);
+    XChangeProperty(dpy,
+        wmcheckwin,
+        netatom[NetWMCheck],
+        XA_WINDOW,
+        32,
+        PropModeReplace,
+        reinterpret_cast<unsigned char const *>(&wmcheckwin),
+        1);
+    XChangeProperty(dpy,
+        wmcheckwin,
+        netatom[NetWMName],
+        utf8string,
+        8,
+        PropModeReplace,
+        reinterpret_cast<unsigned char const *>("dwm"),
+        3);
+    XChangeProperty(dpy,
+        root,
+        netatom[NetWMCheck],
+        XA_WINDOW,
+        32,
+        PropModeReplace,
+        reinterpret_cast<unsigned char const *>(&wmcheckwin),
+        1);
     /* EWMH support per view */
-    XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)netatom.data(), NetLast);
+    XChangeProperty(dpy,
+        root,
+        netatom[NetSupported],
+        XA_ATOM,
+        32,
+        PropModeReplace,
+        reinterpret_cast<unsigned char const *>(netatom.data()),
+        NetLast);
     XDeleteProperty(dpy, root, netatom[NetClientList]);
     /* select events */
     XSetWindowAttributes wa;
@@ -2291,7 +2326,14 @@ void updateclientlist() {
     XDeleteProperty(dpy, root, netatom[NetClientList]);
     for (auto const &mon : mons) {
         for (c = mon->clients; c; c = c->next) {
-            XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend, (unsigned char *)&(c->win), 1);
+            XChangeProperty(dpy,
+                root,
+                netatom[NetClientList],
+                XA_WINDOW,
+                32,
+                PropModeAppend,
+                reinterpret_cast<unsigned char const *>(&c->win),
+                1);
         }
     }
 }
