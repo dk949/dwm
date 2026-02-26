@@ -143,7 +143,7 @@ static void focusin(XEvent *e);
 static pid_t getparentprocess(pid_t p);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
-static int gettextprop(Window w, Atom atom, char *text, std::size_t size);
+static bool gettextprop(Window w, Atom atom, char *text, std::size_t size);
 static void grabkeys();
 static void iconifyclient(Client *c);
 static void installEventHandlers();
@@ -1063,27 +1063,25 @@ long getstate(Window w) {
     return result;
 }
 
-int gettextprop(Window w, Atom atom, char *text, std::size_t size) {
+bool gettextprop(Window w, Atom atom, char *text, std::size_t size) {
     char **list = nullptr;
     int n;
     XTextProperty name;
 
-    if (!text || size == 0) {
-        return 0;
-    }
+    if (!text || size == 0) return false;
+
     text[0] = '\0';
-    if (!XGetTextProperty(dpy, w, &name, atom) || !name.nitems) {
-        return 0;
-    }
+    if (!XGetTextProperty(dpy, w, &name, atom) || !name.nitems) return false;
+
     if (name.encoding == XA_STRING) {
-        strncpy(text, (char *)name.value, size - 1);
+        strncpy(text, reinterpret_cast<char *>(name.value), size - 1);
     } else if (XmbTextPropertyToTextList(dpy, &name, &list, &n) >= Success && n > 0 && *list) {
         strncpy(text, *list, size - 1);
         XFreeStringList(list);
     }
     text[size - 1] = '\0';
     XFree(name.value);
-    return 1;
+    return true;
 }
 
 void Client::grabbuttons(bool focused) const {
