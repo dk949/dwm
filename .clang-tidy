@@ -61,7 +61,8 @@
 #   cppcoreguidelines-pro-bounds-constant-array-index      # Too many false positives
 #   cppcoreguidelines-pro-type-reinterpret-cast            # Not possible when working with xlib
 #   cppcoreguidelines-pro-type-union-access                # Too many unions used here
-
+#   performance-enum-size                                  # Dubious
+#
 User: dk949
 Checks:
   'boost-use-to-string,
@@ -132,6 +133,7 @@ Checks:
   -modernize-use-trailing-return-type,
   -modernize-use-designated-initializers,
   performance-*,
+  -performance-enum-size,
   portability-*,
   readability-*,
   -readability-container-data-pointer,
