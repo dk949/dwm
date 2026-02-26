@@ -485,7 +485,7 @@ void buttonpress(XEvent *e) {
     click = ClkRootWin;
     /* focus monitor if necessary */
     if ((m = wintomon(ev->window)) && m != selmon) {
-        selmon->sel->unfocus(true);
+        if (selmon->sel) selmon->sel->unfocus(true);
         selmon = m;
         focus(nullptr);
     }
@@ -905,7 +905,7 @@ void enternotify(XEvent *e) {
     c = wintoclient(ev->window);
     auto mon = c ? c->getMon() : wintomon(ev->window);
     if (mon != selmon) {
-        selmon->sel->unfocus(true);
+        if (selmon->sel) selmon->sel->unfocus(true);
         selmon = mon;
     } else if (!c || c == selmon->sel) {
         return;
@@ -928,9 +928,8 @@ void focus(Client *c) {
             ;
         }
     }
-    if (selmon->sel && selmon->sel != c) {
-        selmon->sel->unfocus(false);
-    }
+    if (selmon->sel && selmon->sel != c) selmon->sel->unfocus(false);
+
     if (c) {
         auto mon_ptr = c->getMon();
         if (mon_ptr != selmon) selmon = mon_ptr;
@@ -976,7 +975,7 @@ void focusmonabs(Arg const &arg) {
     if (mons.size() == 1) return;
     if (mons.size() <= arg.ui) return;
     if (mons[arg.ui] == selmon) return;
-    selmon->sel->unfocus(false);
+    if (selmon->sel) selmon->sel->unfocus(false);
     selmon = mons[arg.ui];
     /* move cursor to the center of the new monitor */
     XWarpPointer(dpy, 0, selmon->barwin, 0, 0, 0, 0, selmon->window_size.w / 2, selmon->window_size.h / 2);
@@ -1256,9 +1255,8 @@ void manage(Window w, XWindowAttributes *wa) {
         (unsigned)c->size.w,
         (unsigned)c->size.h); /* some windows require this */
     c->setclientstate(NormalState);
-    if (c->getMon() == selmon) {
-        selmon->sel->unfocus(false);
-    }
+    if (c->getMon() == selmon && selmon->sel) selmon->sel->unfocus(false);
+
     c->getMon()->sel = c;
     arrange(c->getMon());
     XMapWindow(dpy, c->win);
@@ -1326,7 +1324,7 @@ void motionnotify(XEvent *e) {
     }
     m = recttomon(ev->x_root, ev->y_root, 1, 1);
     if (!mon.expired() && mon.lock() != m) {
-        selmon->sel->unfocus(true);
+        if (selmon->sel) selmon->sel->unfocus(true);
         selmon = m;
         focus(nullptr);
     }
