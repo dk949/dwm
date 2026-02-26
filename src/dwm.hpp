@@ -130,6 +130,7 @@ struct Client {
     void updatesizehints();
     void updatetitle();
     void updatewindowtype();
+    void updatewmhints();
     void grabbuttons(bool focused) const;
     void setclientstate(long state) const;
     [[nodiscard]]

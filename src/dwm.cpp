@@ -23,13 +23,16 @@
 
 #include "dwm.hpp"
 
+#include "drw.hpp"
 #include "event_queue.hpp"
 #include "layout.hpp"
 #include "log.hpp"
 #include "mapping.hpp"
 #include "proc.hpp"
 #include "strerror.hpp"
+#include "util.hpp"
 #include "winpicker.hpp"
+#include "xidptr.hpp"
 #include "xinerama.hpp"
 
 #include <fcntl.h>
@@ -56,11 +59,6 @@
 #include <memory>
 #include <print>
 #include <utility>
-namespace rng = std::ranges;
-namespace vws = std::views;
-
-#include "drw.hpp"
-#include "util.hpp"
 
 #ifdef ASOUND
 #    include "volc.hpp"
@@ -71,6 +69,8 @@ namespace vws = std::views;
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
 #include <xcb/res.h>
+namespace rng = std::ranges;
+namespace vws = std::views;
 
 /* macros */
 #define CLEANMASK(mask)                 \
@@ -175,7 +175,6 @@ static void updateclientlist();
 static bool updategeom();
 static void updatenumlockmask();
 static void updatestatus();
-static void updatewmhints(Client *c);
 
 
 static pid_t winpid(Window w);
@@ -1241,7 +1240,7 @@ void manage(Window w, XWindowAttributes *wa) {
     c->configure(); /* propagates border_width, if size doesn't change */
     c->updatewindowtype();
     c->updatesizehints();
-    updatewmhints(c);
+    c->updatewmhints();
     XSelectInput(dpy, w, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     c->grabbuttons(false);
     if (!c->props.isfloating) {
@@ -1454,7 +1453,7 @@ void propertynotify(XEvent *e) {
                 break;
             case XA_WM_NORMAL_HINTS: c->hintsvalid = false; break;
             case XA_WM_HINTS:
-                updatewmhints(c);
+                c->updatewmhints();
                 drawbars();
                 break;
         }
@@ -1957,10 +1956,9 @@ void setup() {
 
 void Client::seturgent(IsUrgent urg) {
     props.isurgent = urg;
-    if (auto *wmh = XGetWMHints(dpy, win)) {
+    if (auto wmh = XPtr<XWMHints>(XGetWMHints(dpy, win))) {
         wmh->flags = urg == IsUrgent::yes ? (wmh->flags | XUrgencyHint) : (wmh->flags & ~XUrgencyHint);
-        XSetWMHints(dpy, win, wmh);
-        XFree(wmh);
+        XSetWMHints(dpy, win, wmh.get());
     }
 }
 
@@ -2469,22 +2467,20 @@ void Client::updatewindowtype() {
     }
 }
 
-void updatewmhints(Client *c) {
-    XWMHints *wmh;
+void Client::updatewmhints() {
 
-    if ((wmh = XGetWMHints(dpy, c->win))) {
-        if (c == selmon->sel && wmh->flags & XUrgencyHint) {
+    if (auto wmh = XPtr<XWMHints>(XGetWMHints(dpy, win))) {
+        if (this == selmon->sel && wmh->flags & XUrgencyHint) {
             wmh->flags &= ~XUrgencyHint;
-            XSetWMHints(dpy, c->win, wmh);
+            XSetWMHints(dpy, win, wmh.get());
         } else {
-            c->props.isurgent = IsUrgent((wmh->flags & XUrgencyHint) != 0);
+            props.isurgent = IsUrgent((wmh->flags & XUrgencyHint) != 0);
         }
         if (wmh->flags & InputHint) {
-            c->props.neverfocus = wmh->input == 0;
+            props.neverfocus = wmh->input == 0;
         } else {
-            c->props.neverfocus = false;
+            props.neverfocus = false;
         }
-        XFree(wmh);
     }
 }
 
