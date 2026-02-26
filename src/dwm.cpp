@@ -130,7 +130,7 @@ static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
 static MonitorRef dirtomon(int dir);
-static void drawbar(MonitorRef m);
+static void drawbar(MonitorRef const &m);
 static void drawbars();
 static void drawprogress(unsigned long long total, unsigned long long current, Color const *color);
 static void enqueue(Client *c);
@@ -169,7 +169,7 @@ static double timespecdiff(const struct timespec *a, const struct timespec *b);
 static void uniconifyclient(Client *c);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
-static void updatebarpos(MonitorRef m);
+static void updatebarpos(MonitorRef const &m);
 static void updatebars();
 static void updateclientlist();
 static bool updategeom();
@@ -766,7 +766,7 @@ MonitorRef dirtomon(int dir) {
 
 // TODO(dk949): handle the case where the tags overlap with status
 //              (common if monitor is vertical)
-void drawbar(MonitorRef m) {
+void drawbar(MonitorRef const &m) {
     int x;
     int w;
     int text_width = 0;
@@ -2282,7 +2282,7 @@ void updatebars() {
     }
 }
 
-void updatebarpos(MonitorRef m) {
+void updatebarpos(MonitorRef const &m) {
     m->window_size.y = m->monitor_size.y;
     m->window_size.h = m->monitor_size.h;
     if (m->showbar) {
