@@ -139,6 +139,7 @@ static MonitorRef dirtomon(int dir);
 static void drawbar(MonitorRef const &m);
 static void drawbars();
 static void drawprogress(unsigned long long total, unsigned long long current, Color const *color);
+static Client *ensureUnattached(Client *c);
 static void enqueue(Client *c);
 static void enqueuestack(Client *c);
 static void enternotify(XEvent *e);
@@ -445,7 +446,7 @@ void swallow(Client *p, Client *c) {
 void unswallow(Client *c) {
     c->win = c->swallowing->win;
 
-    delete c->swallowing;
+    delete ensureUnattached(c->swallowing);
     c->swallowing = nullptr;
 
     c->updatetitle();
@@ -882,6 +883,13 @@ void drawprogress(unsigned long long t, unsigned long long c, Color const *color
         drw->map(selmon->barwin, x, y, (unsigned)w, (unsigned)h);
         loop->push(FadeBarEvent());
     }
+}
+
+Client *ensureUnattached(Client *c) {
+    for (auto const &m : mons)
+        for (auto *cc = m->clients; cc; cc = cc->next)
+            if (cc == c) lg::error("Client {} still attached", c->name.view());
+    return c;
 }
 
 void enqueue(Client *c) {
@@ -2181,7 +2189,6 @@ static void uniconifyclient(Client *c) {
 void unmanage(Client *c, IsDestroyed destroyed) {
     auto m = c->getMon();
     unsigned int switchtotag = c->switchtotag;
-    XWindowChanges wc;
 
     if (c->swallowing) {
         unswallow(c);
@@ -2190,7 +2197,7 @@ void unmanage(Client *c, IsDestroyed destroyed) {
 
     Client *s = swallowingclient(c->win);
     if (s) {
-        delete s->swallowing;
+        delete ensureUnattached(s->swallowing);
         s->swallowing = nullptr;
         arrange(m);
         focus(nullptr);
@@ -2200,6 +2207,7 @@ void unmanage(Client *c, IsDestroyed destroyed) {
     detach(c);
     detachstack(c);
     if (destroyed == IsDestroyed::no) {
+        XWindowChanges wc;
         wc.border_width = c->oldbw;
         XGrabServer(dpy); /* avoid race conditions */
         XSetErrorHandler(xerrordummy);
@@ -2211,7 +2219,7 @@ void unmanage(Client *c, IsDestroyed destroyed) {
         XSetErrorHandler(xerror);
         XUngrabServer(dpy);
     }
-    delete c;
+    delete ensureUnattached(c);
     if (!s) {
         arrange(m);
         focus(nullptr);
