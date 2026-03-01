@@ -433,7 +433,7 @@ void swallow(Client *p, Client *c) {
     c->win = w;
     p->updatetitle();
     arrange(p->getMon());
-    XMoveResizeWindow(dpy, p->win, p->size.x, p->size.y, (unsigned)p->size.w, (unsigned)p->size.h);
+    XMoveResizeWindow(dpy, p->win, p->size.x, p->size.y, static_cast<unsigned>(p->size.w), static_cast<unsigned>(p->size.h));
     p->configure();
     updateclientlist();
 }
@@ -448,7 +448,7 @@ void unswallow(Client *c) {
     c->updatesizehints();
     arrange(c->getMon());
     XMapWindow(dpy, c->win);
-    XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
+    XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, static_cast<unsigned>(c->size.w), static_cast<unsigned>(c->size.h));
     c->configure();
     c->setclientstate(NormalState);
 }
@@ -628,7 +628,12 @@ void configurenotify(XEvent *e) {
                     c->resizeclient(m->monitor_size);
                 }
             }
-            XMoveResizeWindow(dpy, m->barwin, m->window_size.x, m->bar_y, (unsigned)m->window_size.w, (unsigned)bar_height);
+            XMoveResizeWindow(dpy,
+                m->barwin,
+                m->window_size.x,
+                m->bar_y,
+                static_cast<unsigned>(m->window_size.w),
+                static_cast<unsigned>(bar_height));
         }
         focus(nullptr);
         arrange(nullptr);
@@ -672,7 +677,12 @@ void configurerequest(XEvent *e) {
                 c->configure();
             }
             if (c->isVisible()) {
-                XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
+                XMoveResizeWindow(dpy,
+                    c->win,
+                    c->size.x,
+                    c->size.y,
+                    static_cast<unsigned>(c->size.w),
+                    static_cast<unsigned>(c->size.h));
             }
         } else {
             c->configure();
@@ -685,7 +695,7 @@ void configurerequest(XEvent *e) {
         wc.border_width = ev->border_width;
         wc.sibling = ev->above;
         wc.stack_mode = ev->detail;
-        XConfigureWindow(dpy, ev->window, (unsigned int)ev->value_mask, &wc);
+        XConfigureWindow(dpy, ev->window, static_cast<unsigned int>(ev->value_mask), &wc);
     }
     XSync(dpy, False);
 }
@@ -873,7 +883,12 @@ void drawprogress(unsigned long long t, unsigned long long c, Color const *color
         drw->setColor(cscheme);
 
         drw->draw_rect(x, y, (unsigned)w, (unsigned)h, true, bg != 0);
-        drw->draw_rect(x, y, (unsigned)(((double)w * (double)current) / (double)total), (unsigned)h, true, fg != 0);
+        drw->draw_rect(x,
+            y,
+            (unsigned)((static_cast<double>(w) * static_cast<double>(current)) / static_cast<double>(total)),
+            (unsigned)h,
+            true,
+            fg != 0);
 
         drw->map(selmon->barwin, x, y, (unsigned)w, (unsigned)h);
         loop->push(FadeBarEvent());
@@ -1133,7 +1148,7 @@ void grabkeys() {
 
     XUngrabKey(dpy, AnyKey, AnyModifier, root);
     XDisplayKeycodes(dpy, &start, &end);
-    KeySym *syms = XGetKeyboardMapping(dpy, (KeyCode)start, end - start + 1, &skip);
+    KeySym *syms = XGetKeyboardMapping(dpy, static_cast<KeyCode>(start), end - start + 1, &skip);
     if (!syms) return;
     for (int k = start; k <= end; k++) {
         for (auto const &key : keys) {
@@ -1265,8 +1280,8 @@ void manage(Window w, XWindowAttributes *wa) {
         c->win,
         c->size.x + (2 * sw),
         c->size.y,
-        (unsigned)c->size.w,
-        (unsigned)c->size.h); /* some windows require this */
+        static_cast<unsigned>(c->size.w),
+        static_cast<unsigned>(c->size.h)); /* some windows require this */
     c->setclientstate(NormalState);
     if (c->getMon() == selmon && selmon->sel) selmon->sel->unfocus(false);
 
@@ -1984,7 +1999,7 @@ void showhide(Client *c) {
     } else {
         /* hide clients bottom up */
         showhide(c->snext);
-        XMoveWindow(dpy, c->win, (int)(WIDTH(c) * -2u), c->size.y);
+        XMoveWindow(dpy, c->win, static_cast<int>(WIDTH(c) * -2u), c->size.y);
     }
 }
 
@@ -2085,8 +2100,8 @@ void togglebar(Arg const &) {
         selmon->barwin,
         selmon->window_size.x,
         selmon->bar_y,
-        (unsigned)selmon->window_size.w,
-        (unsigned)bar_height);
+        static_cast<unsigned>(selmon->window_size.w),
+        static_cast<unsigned>(bar_height));
     arrange(selmon);
 }
 
@@ -2174,7 +2189,7 @@ static void uniconifyclient(Client *c) {
     c->updatesizehints();
     arrange(c->getMon());
     XMapWindow(dpy, c->win);
-    XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, (unsigned)c->size.w, (unsigned)c->size.h);
+    XMoveResizeWindow(dpy, c->win, c->size.x, c->size.y, static_cast<unsigned>(c->size.w), static_cast<unsigned>(c->size.h));
     c->configure();
     c->setclientstate(NormalState);
     attachstack(c);
@@ -2274,8 +2289,8 @@ void updatebars() {
             root,
             mon->window_size.x,
             mon->bar_y,
-            (unsigned)mon->window_size.w,
-            (unsigned)bar_height,
+            static_cast<unsigned>(mon->window_size.w),
+            static_cast<unsigned>(bar_height),
             0,
             DefaultDepth(dpy, screen),
             CopyFromParent,
