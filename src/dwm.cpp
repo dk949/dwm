@@ -57,6 +57,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <format>
+#include <limits>
 #include <memory>
 #include <print>
 #include <utility>
@@ -239,14 +240,11 @@ struct Pertag {
     bool showbars[tag_symbols.size() + 1];           /* display bar for the current tag */
 };
 
-/* compile-time check if all tags fit into an unsigned int bit array. */
-struct NumTags {
-    char limitexceeded[tag_symbols.size() > 31 ? -1 : 1];
-};
+static_assert(tag_symbols.size() <= std::numeric_limits<unsigned int>::digits - 1,
+    "All tags have to fit into an unsigned int bit array");
 
 /* function implementations */
 void Client::applyrules() {
-    unsigned int newtagset;
 
     /* rule matching */
     props.isfloating = false;
@@ -267,13 +265,10 @@ void Client::applyrules() {
 
             if (r.switchtotag) {
                 selmon = getMon();
-                if (r.switchtotag == 2 || r.switchtotag == 4) {
-                    newtagset = getMon()->tagset[getMon()->seltags] ^ tags;
-                } else {
-                    newtagset = tags;
-                }
-
-                if (newtagset && !(tags & getMon()->tagset[getMon()->seltags])) {
+                auto const newtagset = (r.switchtotag == 2 || r.switchtotag == 4)  //
+                                         ? (getMon()->tagset[getMon()->seltags] ^ tags)
+                                         : tags;
+                if (newtagset != 0u && ((tags & getMon()->tagset[getMon()->seltags]) == 0u)) {
                     if (r.switchtotag == 3 || r.switchtotag == 4) {
                         switchtotag = getMon()->tagset[getMon()->seltags];
                     }
