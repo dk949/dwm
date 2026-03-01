@@ -143,9 +143,9 @@ static auto rules = std::array {
 
 
 /* layout(s) */
-static float const mfact = 0.5;   /* factor of master area size [0.05..0.95] */
-static int const nmaster = 1;     /* number of clients in master area */
-static int const resizehints = 1; /* 1 means respect size hints in tiled resizals */
+static constexpr float mfact = 0.5;       /* factor of master area size [0.05..0.95] */
+static constexpr int nmaster = 1;         /* number of clients in master area */
+static constexpr bool resizehints = true; /* 1 means respect size hints in tiled resizals */
 
 static auto const layouts = std::array {
     /*       symbol      arrange function */
