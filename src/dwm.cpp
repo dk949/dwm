@@ -232,12 +232,12 @@ static unsigned int gappx;    /* gaps between windows */
 static unsigned int snap;     /* snap pixel */
 
 struct Pertag {
-    unsigned int curtag, prevtag;                    /* current and previous tag */
-    int nmasters[tag_symbols.size() + 1];            /* number of windows in master area */
-    float mfacts[tag_symbols.size() + 1];            /* mfacts per tag */
-    unsigned int sellts[tag_symbols.size() + 1];     /* selected layouts */
-    Layout const *ltidxs[tag_symbols.size() + 1][2]; /* matrix of tags and layouts indexes  */
-    bool showbars[tag_symbols.size() + 1];           /* display bar for the current tag */
+    unsigned int curtag, prevtag;                                             /* current and previous tag */
+    std::array<int, tag_symbols.size() + 1> nmasters;                         /* number of windows in master area */
+    std::array<float, tag_symbols.size() + 1> mfacts;                         /* mfacts per tag */
+    std::array<unsigned int, tag_symbols.size() + 1> sellts;                  /* selected layouts */
+    std::array<std::array<Layout const *, 2>, tag_symbols.size() + 1> ltidxs; /* matrix of tags and layouts indexes  */
+    std::array<bool, tag_symbols.size() + 1> showbars;                        /* display bar for the current tag */
 };
 
 static_assert(tag_symbols.size() <= std::numeric_limits<unsigned int>::digits - 1,
@@ -1821,7 +1821,8 @@ void setlayout(Arg const &arg) {
         selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1;
     }
     if (arg.v) {
-        selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)arg.v;
+        selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] =
+            static_cast<Layout const *>(arg.v);
     }
     strncpy(selmon->layoutSymbol, selmon->lt[selmon->sellt]->symbol, sizeof(selmon->layoutSymbol) - 1);
     if (selmon->sel) {
