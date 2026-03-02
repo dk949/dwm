@@ -60,6 +60,7 @@ public:
     static pid_t spawnDetached(Display *dpy, std::vector<std::string> args);
 
     static pid_t spawnDetached(Display *dpy, char *const *argv);
+    static pid_t spawnDetached(Display *dpy, char const *const *argv);
     static std::size_t cleanUpZombies();
 
     // Can be used to redirect any file descriptor to any other file descriptor

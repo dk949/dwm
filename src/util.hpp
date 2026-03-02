@@ -41,4 +41,19 @@ consteval auto toUnsigned(Int i) {
     return static_cast<Uint>(i);
 }
 
+/**
+ * Provides a sentinel for null terminated arrays
+ *
+ * WARNING: It is UNDEFINED BEHAVIOUR to use this with a non null terminated array!
+ */
+template<typename T>
+requires std::is_pointer_v<T>
+struct NullSentinel {
+    [[nodiscard]]
+    constexpr bool operator==(T const &t) const noexcept {
+        return *t == std::remove_pointer_t<T> {0};
+    }
+};
+
+
 #endif  // DWM_UTIL_HPP

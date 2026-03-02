@@ -2006,7 +2006,7 @@ void showhide(Client *c) {
 
 void spawn(Arg const &arg) {
     if (arg.v == dmenucmd) dmenumon[0] = (char)('0' + selmon->num);
-    Proc::spawnDetached(dpy, static_cast<char *const *>(arg.v));
+    Proc::spawnDetached(dpy, static_cast<char const *const *>(arg.v));
 }
 
 void tag(Arg const &arg) {

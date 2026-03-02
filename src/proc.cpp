@@ -3,6 +3,7 @@
 #include "file.hpp"
 #include "log.hpp"
 #include "strerror.hpp"
+#include "util.hpp"
 
 #include <fcntl.h>
 #include <libgen.h>
@@ -12,6 +13,7 @@
 #include <unistd.h>
 #include <ut/sv_to_num/sv_to_num.hpp>
 
+#include <algorithm>
 #include <array>
 #include <cerrno>
 #include <cstdlib>
@@ -27,6 +29,17 @@ pid_t Proc::spawnDetached(Display *dpy, std::vector<std::string> args) {
     auto argv = args | vws::transform([](auto &str) noexcept { return str.data(); }) | rng::to<std::vector>();
     argv.push_back(nullptr);
     return spawnDetached(dpy, argv.data());
+}
+
+pid_t Proc::spawnDetached(Display *dpy, char const *const *argv) {
+    auto count =
+        static_cast<std::size_t>(std::distance(argv, rng::find(argv, NullSentinel<char const *const *> {}, nullptr))) + 1;
+    std::vector<char *> mut_argv;
+    mut_argv.resize(count);
+    std::transform(argv, argv + count, mut_argv.begin(), [](auto arg) noexcept { return arg ? strdup(arg) : nullptr; });
+    auto pid = spawnDetached(dpy, mut_argv.data());
+    rng::for_each(mut_argv, [](auto arg) noexcept { free(arg); });  // NOLINT(cppcoreguidelines-no-malloc)
+    return pid;
 }
 
 pid_t Proc::spawnDetached(Display *dpy, char *const *argv) {
