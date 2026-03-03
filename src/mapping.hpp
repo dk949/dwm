@@ -1,6 +1,7 @@
 #ifndef DWM_MAPPING_HPP
 #define DWM_MAPPING_HPP
 
+#include "layout.hpp"
 #include <X11/X.h>
 
 /// Arg functions for key and mouse bindings
@@ -22,6 +23,7 @@ union Arg {
     unsigned int ui;
     float f;
     double d;
+    Layout const *l;
     void const *v;
 };
 

@@ -1815,19 +1815,16 @@ void Client::setfullscreen(FullScreen fullscreen) {
 }
 
 void setlayout(Arg const &arg) {
-    if (!arg.v || arg.v != selmon->lt[selmon->sellt]) {
-        selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1;
-    }
-    if (arg.v) {
-        selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] =
-            static_cast<Layout const *>(arg.v);
-    }
+    if (!arg.l || arg.l != selmon->lt[selmon->sellt])
+        selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1u;
+
+    if (arg.l) selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = arg.l;
+
     strncpy(selmon->layoutSymbol, selmon->lt[selmon->sellt]->symbol, sizeof(selmon->layoutSymbol) - 1);
-    if (selmon->sel) {
+    if (selmon->sel)
         arrange(selmon);
-    } else {
+    else
         drawbar(selmon);
-    }
 }
 
 void setcfact(Arg const &arg) {
