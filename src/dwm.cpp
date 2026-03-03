@@ -53,6 +53,7 @@
 #include <array>
 #include <cerrno>
 #include <clocale>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -454,30 +455,27 @@ void unswallow(Client *c) {
 }
 
 void bright_dec(Arg const &arg) {
-    int ret;
-    if ((ret = bright_dec_((double)arg.f))) return;
+    if (bright_dec_(arg.d)) return;
 
-    double newval;
-    if ((ret = bright_get_(&newval))) return;
+    double newval = NAN;
+    if (bright_get_(&newval)) return;
 
-    drawprogress(100, (unsigned long long)newval, &drw->scheme().bright_progress);
+    drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_inc(Arg const &arg) {
-    int ret;
-    if ((ret = bright_inc_((double)arg.f))) return;
+    if (bright_inc_(arg.d)) return;
 
-    double newval;
-    if ((ret = bright_get_(&newval))) return;
+    double newval = NAN;
+    if (bright_get_(&newval)) return;
 
-    drawprogress(100, (unsigned long long)newval, &drw->scheme().bright_progress);
+    drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_set(Arg const &arg) {
-    int ret;
-    if ((ret = bright_set_((double)arg.f))) return;
+    if (bright_set_(arg.d)) return;
 
-    drawprogress(100, (unsigned long long)arg.f, &drw->scheme().bright_progress);
+    drawprogress(100, static_cast<unsigned long long>(arg.f), &drw->scheme().bright_progress);
 }
 
 void buttonpress(XEvent *e) {

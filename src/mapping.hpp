@@ -21,6 +21,7 @@ union Arg {
     int i;
     unsigned int ui;
     float f;
+    double d;
     void const *v;
 };
 
