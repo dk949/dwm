@@ -24,6 +24,7 @@ union Arg {
     float f;
     double d;
     Layout const *l;
+    char const*const*cpp;
     void const *v;
 };
 
