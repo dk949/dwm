@@ -516,8 +516,13 @@ void buttonpress(XEvent *e) {
         click = ClkClientWin;
     }
     for (auto const &button : buttons)
-        if (click == button.click && button.button == ev->button && CLEANMASK(button.mask) == CLEANMASK(ev->state))
-            variantInvoke(button.func, click == ClkTagBar && button.arg.index() == 0 ? arg : button.arg);
+        if (click == button.click && button.button == ev->button && CLEANMASK(button.mask) == CLEANMASK(ev->state)) {
+            auto fn_arg = click == ClkTagBar && button.arg.index() == 0 ? arg : button.arg;
+            if (!variantInvoke(button.func, fn_arg))
+                lg::error("Could not run button mapping: function index is {}, but arg is {}",
+                    button.func.index(),
+                    fn_arg.index());
+        }
 }
 
 void checkotherwm() {
@@ -1188,7 +1193,12 @@ void keypress(XEvent *e) {
 
     KeySym keysym = XLookupKeysym(ev, 0);
     for (auto const &key : keys)
-        if (keysym == key.keysym && CLEANMASK(key.mod) == CLEANMASK(ev->state)) variantInvoke(key.func, key.arg);
+        if (keysym == key.keysym && CLEANMASK(key.mod) == CLEANMASK(ev->state))
+            if (!variantInvoke(key.func, key.arg)) {
+                lg::error("Could not run key mapping: function index is {}, but arg is {}",
+                    key.func.index(),
+                    key.arg.index());
+            }
 }
 
 void killclient() {
