@@ -24,7 +24,7 @@ inline constexpr auto fonts = std::array {
     "JetBrainsMono Nerd Font:size=" NERD_FONT_SIZE ":antialias=true:autohint=true",
     "Noto Emoji:size=" FONT_SIZE ":antialias=true:autohint=true",
 };
-static char const dmenufont[] = "JetBrains Mono:size=" FONT_SIZE ":antialias=true:autohint=true";
+static constexpr char const *dmenufont = "JetBrains Mono:size=" FONT_SIZE ":antialias=true:autohint=true";
 
 static int const bright_time = 60;             /* time in useconds to go from one screen brightness value to the next*/
 static int const bright_steps = 20;            /* number of steps it takes to move between brightness values */
@@ -35,17 +35,17 @@ static double const progress_fade_time = 1.5;  // How long progress bar will not
 /* colors */
 
 // clang-format off
-static const char c_active[]   = "#F8F8F2";
-static const char c_inactive[] = "#101421";
-static const char c_black[]    = "#000000";
-static const char c_red[]      = "#FF5555";
-static const char c_green[]    = "#50FA7B";
-static const char c_yellow[]   = "#F1FA8C";
-static const char c_blue[]     = "#BD93F9";
-static const char c_magenta[]  = "#FF79C6";
-static const char c_cyan[]     = "#8BE9FD";
-static const char c_white[]    = "#BFBFBF";
-static const char c_blank[]    = "#000000";
+static constexpr char const *c_active   = "#F8F8F2";
+static constexpr char const *c_inactive = "#101421";
+static constexpr char const *c_black    = "#000000";
+static constexpr char const *c_red      = "#FF5555";
+static constexpr char const *c_green    = "#50FA7B";
+static constexpr char const *c_yellow   = "#F1FA8C";
+static constexpr char const *c_blue     = "#BD93F9";
+static constexpr char const *c_magenta  = "#FF79C6";
+static constexpr char const *c_cyan     = "#8BE9FD";
+static constexpr char const *c_white    = "#BFBFBF";
+static constexpr char const *c_blank    = "#000000";
 // clang-format on
 
 /* Color assignment */
@@ -93,7 +93,8 @@ static constexpr auto tag_symbols = [] {
     return out;
 }();
 
-static auto rules = std::array {
+
+static constexpr auto rules = std::array {
     /* xprop(1):
      *    WM_CLASS(STRING) = instance, class
      *    WM_NAME(STRING) = title
@@ -168,90 +169,85 @@ static constexpr Layout const *null_layout = nullptr;
 // clang-format on
 
 /* commands */
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static char const *dmenucmd[] = {
-    "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", nullptr};
-
-static char const *termcmd[] = {"kitty", "-1", nullptr};
-
-static char const *lockcmd[] = {"slock", nullptr};    // Lock the screen with slock
-static char const *powrcmd[] = {"turnoff", nullptr};  // Lock the screen with slock
-static char const *brwscmd[] = {"firefox", nullptr};  // Firefox browser
-static char const *musccmd[] = {"spotify", nullptr};  // spotify-tui
-static char const *htopcmd[] = {"sysmon", nullptr};   // system monitor aka htop
-static char const *nvimcmd[] = {"neovim", nullptr};   // opens neovim
-static char const *chatcmd[] = {"disc", nullptr};     // does discord
-// static char const *mttrmst[] = {"mattermost-desktop", nullptr};  // mattermost
-// static char const *zulpcmd[] = {"zulip", nullptr};               // zulip
-
-
-static char const *symdmnu[] = {"sym", nullptr};         // Mathematical symbol selection
-static char const *grkdmnu[] = {"greek", nullptr};       // Mathematical symbol selection
-static char const *scrdmnu[] = {"screenshot", nullptr};  // Screenshot taker
+static constexpr char const *cmd_end = nullptr;
+static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */  // FIXME
+static constexpr char const *dmenucmd[] = {
+    "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", cmd_end};
+static constexpr auto termcmd = std::array {"kitty", "-1", cmd_end};
+static constexpr auto lockcmd = std::array {"slock", cmd_end};       // Lock the screen with slock
+static constexpr auto powrcmd = std::array {"turnoff", cmd_end};     // Lock the screen with slock
+static constexpr auto brwscmd = std::array {"firefox", cmd_end};     // Firefox browser
+static constexpr auto musccmd = std::array {"spotify", cmd_end};     // spotify-tui
+static constexpr auto htopcmd = std::array {"sysmon", cmd_end};      // system monitor aka htop
+static constexpr auto nvimcmd = std::array {"neovim", cmd_end};      // opens neovim
+static constexpr auto chatcmd = std::array {"disc", cmd_end};        // does discord
+static constexpr auto symdmnu = std::array {"sym", cmd_end};         // Mathematical symbol selection
+static constexpr auto grkdmnu = std::array {"greek", cmd_end};       // Mathematical symbol selection
+static constexpr auto scrdmnu = std::array {"screenshot", cmd_end};  // Screenshot taker
 
 
-static auto const keys = std::array {
+static constexpr auto keys = std::array {
 
     // clang-format off
     /*    modifier                         key         function       argument */
     // Utility spawners
-    Key{MODKEY                           , XK_r      , spawn          , dmenucmd} ,
+    Key{MODKEY                           , XK_r      , spawn          , dmenucmd       } ,
 #ifdef ASOUND
-    Key{MODKEY                           , XK_F1     , volumechange   , VOL_MT  } ,
-    Key{MODKEY                           , XK_F2     , volumechange   , VOL_DN*5} ,
-    Key{MODKEY                           , XK_F3     , volumechange   , VOL_UP*5} ,
+    Key{MODKEY                           , XK_F1     , volumechange   , VOL_MT         } ,
+    Key{MODKEY                           , XK_F2     , volumechange   , VOL_DN*5       } ,
+    Key{MODKEY                           , XK_F3     , volumechange   , VOL_UP*5       } ,
 #endif // ASOUND
-    Key{MODKEY                           , XK_Return , spawn          , termcmd    } ,
-    Key{MODKEY                           , XK_Next   , spawn          , lockcmd    } ,
-    Key{MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , powrcmd    } ,
-    Key{MODKEY | Mod1Mask                , XK_s      , spawn          , symdmnu    } ,
-    Key{MODKEY | Mod1Mask                , XK_g      , spawn          , grkdmnu    } ,
-    Key{MODKEY | Mod1Mask                , XK_i      , spawn          , scrdmnu    } ,
-    Key{MODKEY | Mod1Mask                , XK_p      , winpicker      , {}         } ,
+    Key{MODKEY                           , XK_Return , spawn          , termcmd.data() } ,
+    Key{MODKEY                           , XK_Next   , spawn          , lockcmd.data() } ,
+    Key{MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , powrcmd.data() } ,
+    Key{MODKEY | Mod1Mask                , XK_s      , spawn          , symdmnu.data() } ,
+    Key{MODKEY | Mod1Mask                , XK_g      , spawn          , grkdmnu.data() } ,
+    Key{MODKEY | Mod1Mask                , XK_i      , spawn          , scrdmnu.data() } ,
+    Key{MODKEY | Mod1Mask                , XK_p      , winpicker      , {}             } ,
 
     // Application spawn
-    Key{MODKEY | ControlMask             , XK_b      , spawn          , brwscmd    } ,
-    Key{MODKEY | ControlMask             , XK_m      , spawn          , musccmd    } ,
-    Key{MODKEY | ControlMask             , XK_d      , spawn          , chatcmd    } ,
-    Key{MODKEY | ControlMask             , XK_n      , spawn          , nvimcmd    } ,
-    Key{MODKEY | ControlMask             , XK_Escape , spawn          , htopcmd    } ,
+    Key{MODKEY | ControlMask             , XK_b      , spawn          , brwscmd.data() } ,
+    Key{MODKEY | ControlMask             , XK_m      , spawn          , musccmd.data() } ,
+    Key{MODKEY | ControlMask             , XK_d      , spawn          , chatcmd.data() } ,
+    Key{MODKEY | ControlMask             , XK_n      , spawn          , nvimcmd.data() } ,
+    Key{MODKEY | ControlMask             , XK_Escape , spawn          , htopcmd.data() } ,
 
 
     // dwm control
-    Key{MODKEY                           , XK_b      , togglebar      , {}         } ,
-    Key{MODKEY | ShiftMask               , XK_j      , rotatestack    , +1         } ,
-    Key{MODKEY | ShiftMask               , XK_k      , rotatestack    , -1         } ,
-    Key{MODKEY                           , XK_j      , focusstack     , +1         } ,
-    Key{MODKEY                           , XK_k      , focusstack     , -1         } ,
-    // Key{MODKEY                           , XK_z      , iconify        , {}}       ,
-    Key{MODKEY                           , XK_i      , incnmaster     , +1         } ,
-    Key{MODKEY                           , XK_d      , incnmaster     , -1         } ,
-    Key{MODKEY                           , XK_h      , setmfact       , -0.02f     } ,
-    Key{MODKEY                           , XK_l      , setmfact       , +0.02f     } ,
-    Key{MODKEY | ShiftMask               , XK_h      , setcfact       , +0.25f     } ,
-    Key{MODKEY | ShiftMask               , XK_l      , setcfact       , -0.25f     } ,
-    Key{MODKEY | ShiftMask               , XK_o      , resetmcfact    , {}         } ,
-    Key{MODKEY | ShiftMask               , XK_Return , zoom           , {}         } ,
-    Key{MODKEY                           , XK_Tab    , view           , {}         } ,
-    Key{MODKEY                           , XK_w      , killclient     , {}         } ,
-    Key{MODKEY                           , XK_F5     , bright_dec     , 5.0        } ,
-    Key{MODKEY                           , XK_F6     , bright_inc     , 5.0        } ,
-    Key{MODKEY                           , XK_F11    , togglefs       , {}         } ,
-    Key{MODKEY                           , XK_t      , setlayout      , &layouts[0]} ,
-    Key{MODKEY                           , XK_f      , setlayout      , &layouts[1]} ,
-    Key{MODKEY                           , XK_m      , setlayout      , &layouts[2]} ,
-    Key{MODKEY                           , XK_u      , setlayout      , &layouts[3]} ,
-    Key{MODKEY                           , XK_o      , setlayout      , &layouts[4]} ,
-    Key{MODKEY                           , XK_space  , setlayout      , null_layout} ,
-    Key{MODKEY | ShiftMask               , XK_space  , togglefloating , {}         } ,
-    Key{MODKEY                           , XK_0      , view           , ~0u        } ,
-    Key{MODKEY | ShiftMask               , XK_0      , tag            , ~0u        } ,
-    Key{MODKEY                           , XK_comma  , focusmon       , -1         } ,
-    Key{MODKEY                           , XK_period , focusmon       , +1         } ,
-    Key{MODKEY | ShiftMask               , XK_comma  , tagmon         , -1         } ,
-    Key{MODKEY | ShiftMask               , XK_period , tagmon         , +1         } ,
-    Key{MODKEY | ShiftMask               , XK_q      , quit           , {}         } ,
-    Key{MODKEY | ShiftMask               , XK_r      , restart        , {}         } ,
+    Key{MODKEY                           , XK_b      , togglebar      , {}             } ,
+    Key{MODKEY | ShiftMask               , XK_j      , rotatestack    , +1             } ,
+    Key{MODKEY | ShiftMask               , XK_k      , rotatestack    , -1             } ,
+    Key{MODKEY                           , XK_j      , focusstack     , +1             } ,
+    Key{MODKEY                           , XK_k      , focusstack     , -1             } ,
+    // Key{MODKEY                           , XK_z      , iconify        , {}}           ,
+    Key{MODKEY                           , XK_i      , incnmaster     , +1             } ,
+    Key{MODKEY                           , XK_d      , incnmaster     , -1             } ,
+    Key{MODKEY                           , XK_h      , setmfact       , -0.02f         } ,
+    Key{MODKEY                           , XK_l      , setmfact       , +0.02f         } ,
+    Key{MODKEY | ShiftMask               , XK_h      , setcfact       , +0.25f         } ,
+    Key{MODKEY | ShiftMask               , XK_l      , setcfact       , -0.25f         } ,
+    Key{MODKEY | ShiftMask               , XK_o      , resetmcfact    , {}             } ,
+    Key{MODKEY | ShiftMask               , XK_Return , zoom           , {}             } ,
+    Key{MODKEY                           , XK_Tab    , view           , {}             } ,
+    Key{MODKEY                           , XK_w      , killclient     , {}             } ,
+    Key{MODKEY                           , XK_F5     , bright_dec     , 5.0            } ,
+    Key{MODKEY                           , XK_F6     , bright_inc     , 5.0            } ,
+    Key{MODKEY                           , XK_F11    , togglefs       , {}             } ,
+    Key{MODKEY                           , XK_t      , setlayout      , &layouts[0]    } ,
+    Key{MODKEY                           , XK_f      , setlayout      , &layouts[1]    } ,
+    Key{MODKEY                           , XK_m      , setlayout      , &layouts[2]    } ,
+    Key{MODKEY                           , XK_u      , setlayout      , &layouts[3]    } ,
+    Key{MODKEY                           , XK_o      , setlayout      , &layouts[4]    } ,
+    Key{MODKEY                           , XK_space  , setlayout      , null_layout    } ,
+    Key{MODKEY | ShiftMask               , XK_space  , togglefloating , {}             } ,
+    Key{MODKEY                           , XK_0      , view           , ~0u            } ,
+    Key{MODKEY | ShiftMask               , XK_0      , tag            , ~0u            } ,
+    Key{MODKEY                           , XK_comma  , focusmon       , -1             } ,
+    Key{MODKEY                           , XK_period , focusmon       , +1             } ,
+    Key{MODKEY | ShiftMask               , XK_comma  , tagmon         , -1             } ,
+    Key{MODKEY | ShiftMask               , XK_period , tagmon         , +1             } ,
+    Key{MODKEY | ShiftMask               , XK_q      , quit           , {}             } ,
+    Key{MODKEY | ShiftMask               , XK_r      , restart        , {}             } ,
     // clang-format on
 
     TAGKEYS(XK_1, 0u),
@@ -266,7 +262,7 @@ static auto const keys = std::array {
 };
 
 /* button definitions */
-static auto const buttons = std::array {
+static constexpr auto buttons = std::array {
     /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
     // clang-format off
     /*       click       , event mask , button  , function       , argument      , */
