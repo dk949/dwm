@@ -2561,7 +2561,7 @@ void winpicker() {
                 focus(client);
                 restack(selmon);
             } else {
-                lg::warn("Could not find rewuested window");
+                lg::warn("Could not find requested window");
                 return;
             }
         });

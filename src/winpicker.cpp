@@ -40,7 +40,7 @@ static std::string encodeClientName(
     if (needs_mon) std::format_to(std::back_inserter(out), ":{}", mon_idx);
 
     auto class_hint = c->classHint(dpy);
-    std::format_to(std::back_inserter(out), "] {} ({})", class_hint.class_hint.get(), c->name);
+    std::format_to(std::back_inserter(out), "] {} ({})", class_hint.class_hint.get(), c->name.view());
 
     return out;
 }
