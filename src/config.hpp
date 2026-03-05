@@ -5,10 +5,10 @@
 #include "layout.hpp"
 #include "mapping.hpp"
 
-#include <stdlib.h>
 #include <X11/keysym.h>
 
 #include <array>
+#include <cstdlib>
 
 
 /* appearance */
@@ -155,15 +155,16 @@ static auto const layouts = std::array {
     Layout {"|M|",         centeredmaster},
     Layout {">M>", centeredfloatingmaster},
 };
+static constexpr Layout const *null_layout = nullptr;
 
 /* key definitions */
 #define MODKEY Mod4Mask
 // clang-format off
-#define TAGKEYS(KEY, TAG)                                                                                 \
-    Key{MODKEY, KEY, view, {.ui = 1 << (TAG)}},                                                              \
-    Key{MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << (TAG)}},                                          \
-    Key{MODKEY | ShiftMask, KEY, tag, {.ui = 1 << (TAG)}},                                                   \
-    Key{MODKEY | ControlMask | ShiftMask, KEY, toggletag, { .ui = 1 << (TAG) }}
+#define TAGKEYS(KEY, TAG)                                                  \
+    Key{MODKEY, KEY, view, 1u << (TAG)},                                   \
+    Key{MODKEY | ControlMask, KEY, toggleview, 1u << (TAG)},               \
+    Key{MODKEY | ShiftMask, KEY, tag, 1u << (TAG)},                        \
+    Key{MODKEY | ControlMask | ShiftMask, KEY, toggletag,  1u << (TAG) }
 // clang-format on
 
 /* commands */
@@ -194,107 +195,107 @@ static auto const keys = std::array {
     // clang-format off
     /*    modifier                         key         function       argument */
     // Utility spawners
-    Key{MODKEY                           , XK_r      , spawn          , {.v = dmenucmd}}    ,
+    Key{MODKEY                           , XK_r      , spawn          , dmenucmd} ,
 #ifdef ASOUND
-    Key{MODKEY                           , XK_F1     , volumechange   , {.i = VOL_MT  }}    ,
-    Key{MODKEY                           , XK_F2     , volumechange   , {.i = VOL_DN*5}}    ,
-    Key{MODKEY                           , XK_F3     , volumechange   , {.i = VOL_UP*5}}    ,
+    Key{MODKEY                           , XK_F1     , volumechange   , VOL_MT  } ,
+    Key{MODKEY                           , XK_F2     , volumechange   , VOL_DN*5} ,
+    Key{MODKEY                           , XK_F3     , volumechange   , VOL_UP*5} ,
 #endif // ASOUND
-    Key{MODKEY                           , XK_Return , spawn          , {.v = termcmd}}     ,
-    Key{MODKEY                           , XK_Next   , spawn          , {.v = lockcmd}}     ,
-    Key{MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , {.v = powrcmd}}     ,
-    Key{MODKEY | Mod1Mask                , XK_s      , spawn          , {.v = symdmnu}}     ,
-    Key{MODKEY | Mod1Mask                , XK_g      , spawn          , {.v = grkdmnu}}     ,
-    Key{MODKEY | Mod1Mask                , XK_i      , spawn          , {.v = scrdmnu}}     ,
-    Key{MODKEY | Mod1Mask                , XK_p      , winpicker      , {0}}     ,
+    Key{MODKEY                           , XK_Return , spawn          , termcmd    } ,
+    Key{MODKEY                           , XK_Next   , spawn          , lockcmd    } ,
+    Key{MODKEY | ShiftMask | ControlMask , XK_Next   , spawn          , powrcmd    } ,
+    Key{MODKEY | Mod1Mask                , XK_s      , spawn          , symdmnu    } ,
+    Key{MODKEY | Mod1Mask                , XK_g      , spawn          , grkdmnu    } ,
+    Key{MODKEY | Mod1Mask                , XK_i      , spawn          , scrdmnu    } ,
+    Key{MODKEY | Mod1Mask                , XK_p      , winpicker      , {}         } ,
 
     // Application spawn
-    Key{MODKEY | ControlMask             , XK_b      , spawn          , {.v = brwscmd}}     ,
-    Key{MODKEY | ControlMask             , XK_m      , spawn          , {.v = musccmd}}     ,
-    Key{MODKEY | ControlMask             , XK_d      , spawn          , {.v = chatcmd}}     ,
-    Key{MODKEY | ControlMask             , XK_n      , spawn          , {.v = nvimcmd}}     ,
-    Key{MODKEY | ControlMask             , XK_Escape , spawn          , {.v = htopcmd}}     ,
+    Key{MODKEY | ControlMask             , XK_b      , spawn          , brwscmd    } ,
+    Key{MODKEY | ControlMask             , XK_m      , spawn          , musccmd    } ,
+    Key{MODKEY | ControlMask             , XK_d      , spawn          , chatcmd    } ,
+    Key{MODKEY | ControlMask             , XK_n      , spawn          , nvimcmd    } ,
+    Key{MODKEY | ControlMask             , XK_Escape , spawn          , htopcmd    } ,
 
 
     // dwm control
-    Key{MODKEY                           , XK_b      , togglebar      , {0}}                ,
-    Key{MODKEY | ShiftMask               , XK_j      , rotatestack    , {.i = +1}}          ,
-    Key{MODKEY | ShiftMask               , XK_k      , rotatestack    , {.i = -1}}          ,
-    Key{MODKEY                           , XK_j      , focusstack     , {.i = +1}}          ,
-    Key{MODKEY                           , XK_k      , focusstack     , {.i = -1}}          ,
-    // Key{MODKEY                           , XK_z      , iconify        , {0}}                ,
-    Key{MODKEY                           , XK_i      , incnmaster     , {.i = +1}}          ,
-    Key{MODKEY                           , XK_d      , incnmaster     , {.i = -1}}          ,
-    Key{MODKEY                           , XK_h      , setmfact       , {.f = -0.02f}}       ,
-    Key{MODKEY                           , XK_l      , setmfact       , {.f = +0.02f}}       ,
-    Key{MODKEY | ShiftMask               , XK_h      , setcfact       , {.f = +0.25f}}       ,
-    Key{MODKEY | ShiftMask               , XK_l      , setcfact       , {.f = -0.25f}}       ,
-    Key{MODKEY | ShiftMask               , XK_o      , resetmcfact    , {0}}                ,
-    Key{MODKEY | ShiftMask               , XK_Return , zoom           , {0}}                ,
-    Key{MODKEY                           , XK_Tab    , view           , {0}}                ,
-    Key{MODKEY                           , XK_w      , killclient     , {0}}                ,
-    Key{MODKEY                           , XK_F5     , bright_dec     , {.d = 5.0}}         ,
-    Key{MODKEY                           , XK_F6     , bright_inc     , {.d = 5.0}}         ,
-    Key{MODKEY                           , XK_F11    , togglefs       , {0}}                ,
-    Key{MODKEY                           , XK_t      , setlayout      , {.l = &layouts[0]}} ,
-    Key{MODKEY                           , XK_f      , setlayout      , {.l = &layouts[1]}} ,
-    Key{MODKEY                           , XK_m      , setlayout      , {.l = &layouts[2]}} ,
-    Key{MODKEY                           , XK_u      , setlayout      , {.l = &layouts[3]}} ,
-    Key{MODKEY                           , XK_o      , setlayout      , {.l = &layouts[4]}} ,
-    Key{MODKEY                           , XK_space  , setlayout      , {.l = nullptr}}                ,
-    Key{MODKEY | ShiftMask               , XK_space  , togglefloating , {0}}                ,
-    Key{MODKEY                           , XK_0      , view           , {.ui = ~0u}}         ,
-    Key{MODKEY | ShiftMask               , XK_0      , tag            , {.ui = ~0u}}         ,
-    Key{MODKEY                           , XK_comma  , focusmon       , {.i = -1}}          ,
-    Key{MODKEY                           , XK_period , focusmon       , {.i = +1}}          ,
-    Key{MODKEY | ShiftMask               , XK_comma  , tagmon         , {.i = -1}}          ,
-    Key{MODKEY | ShiftMask               , XK_period , tagmon         , {.i = +1}}          ,
-    Key{MODKEY | ShiftMask               , XK_q      , quit           , {0}}                ,
-    Key{MODKEY | ShiftMask               , XK_r      , restart        , {0}}                ,
+    Key{MODKEY                           , XK_b      , togglebar      , {}         } ,
+    Key{MODKEY | ShiftMask               , XK_j      , rotatestack    , +1         } ,
+    Key{MODKEY | ShiftMask               , XK_k      , rotatestack    , -1         } ,
+    Key{MODKEY                           , XK_j      , focusstack     , +1         } ,
+    Key{MODKEY                           , XK_k      , focusstack     , -1         } ,
+    // Key{MODKEY                           , XK_z      , iconify        , {}}       ,
+    Key{MODKEY                           , XK_i      , incnmaster     , +1         } ,
+    Key{MODKEY                           , XK_d      , incnmaster     , -1         } ,
+    Key{MODKEY                           , XK_h      , setmfact       , -0.02f     } ,
+    Key{MODKEY                           , XK_l      , setmfact       , +0.02f     } ,
+    Key{MODKEY | ShiftMask               , XK_h      , setcfact       , +0.25f     } ,
+    Key{MODKEY | ShiftMask               , XK_l      , setcfact       , -0.25f     } ,
+    Key{MODKEY | ShiftMask               , XK_o      , resetmcfact    , {}         } ,
+    Key{MODKEY | ShiftMask               , XK_Return , zoom           , {}         } ,
+    Key{MODKEY                           , XK_Tab    , view           , {}         } ,
+    Key{MODKEY                           , XK_w      , killclient     , {}         } ,
+    Key{MODKEY                           , XK_F5     , bright_dec     , 5.0        } ,
+    Key{MODKEY                           , XK_F6     , bright_inc     , 5.0        } ,
+    Key{MODKEY                           , XK_F11    , togglefs       , {}         } ,
+    Key{MODKEY                           , XK_t      , setlayout      , &layouts[0]} ,
+    Key{MODKEY                           , XK_f      , setlayout      , &layouts[1]} ,
+    Key{MODKEY                           , XK_m      , setlayout      , &layouts[2]} ,
+    Key{MODKEY                           , XK_u      , setlayout      , &layouts[3]} ,
+    Key{MODKEY                           , XK_o      , setlayout      , &layouts[4]} ,
+    Key{MODKEY                           , XK_space  , setlayout      , null_layout} ,
+    Key{MODKEY | ShiftMask               , XK_space  , togglefloating , {}         } ,
+    Key{MODKEY                           , XK_0      , view           , ~0u        } ,
+    Key{MODKEY | ShiftMask               , XK_0      , tag            , ~0u        } ,
+    Key{MODKEY                           , XK_comma  , focusmon       , -1         } ,
+    Key{MODKEY                           , XK_period , focusmon       , +1         } ,
+    Key{MODKEY | ShiftMask               , XK_comma  , tagmon         , -1         } ,
+    Key{MODKEY | ShiftMask               , XK_period , tagmon         , +1         } ,
+    Key{MODKEY | ShiftMask               , XK_q      , quit           , {}         } ,
+    Key{MODKEY | ShiftMask               , XK_r      , restart        , {}         } ,
     // clang-format on
 
-    TAGKEYS(XK_1, 0),
-    TAGKEYS(XK_2, 1),
-    TAGKEYS(XK_3, 2),
-    TAGKEYS(XK_4, 3),
-    TAGKEYS(XK_5, 4),
-    TAGKEYS(XK_6, 5),
-    TAGKEYS(XK_7, 6),
-    TAGKEYS(XK_8, 7),
-    TAGKEYS(XK_9, 8),
+    TAGKEYS(XK_1, 0u),
+    TAGKEYS(XK_2, 1u),
+    TAGKEYS(XK_3, 2u),
+    TAGKEYS(XK_4, 3u),
+    TAGKEYS(XK_5, 4u),
+    TAGKEYS(XK_6, 5u),
+    TAGKEYS(XK_7, 6u),
+    TAGKEYS(XK_8, 7u),
+    TAGKEYS(XK_9, 8u),
 };
 
 /* button definitions */
 static auto const buttons = std::array {
     /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
     // clang-format off
-    /*       click       , event mask , button  , function       , argument            , */
-    Button{ClkLtSymbol   , 0          , Button1 , setlayout      , {.l = nullptr}}                ,
-    Button{ClkLtSymbol   , 0          , Button3 , setlayout      , {.l = &layouts[2]}} ,
-    Button{ClkWinTitle   , 0          , Button2 , zoom           , {0}}                ,
-    Button{ClkClientWin  , MODKEY     , Button1 , movemouse      , {0}}                ,
-    Button{ClkClientWin  , MODKEY     , Button2 , togglefloating , {0}}                ,
-    Button{ClkClientWin  , MODKEY     , Button3 , resizemouse    , {0}}                ,
-    Button{ClkTagBar     , 0          , Button1 , view           , {0}}                ,
-    Button{ClkTagBar     , 0          , Button3 , toggleview     , {0}}                ,
-    Button{ClkTagBar     , MODKEY     , Button1 , tag            , {0}}                ,
-    Button{ClkTagBar     , MODKEY     , Button3 , toggletag      , {0}}                ,
+    /*       click       , event mask , button  , function       , argument      , */
+    Button{ClkLtSymbol   , 0          , Button1 , setlayout      , null_layout } ,
+    Button{ClkLtSymbol   , 0          , Button3 , setlayout      , &layouts[2] } ,
+    Button{ClkWinTitle   , 0          , Button2 , zoom           , {}          } ,
+    Button{ClkClientWin  , MODKEY     , Button1 , movemouse      , {}          } ,
+    Button{ClkClientWin  , MODKEY     , Button2 , togglefloating , {}          } ,
+    Button{ClkClientWin  , MODKEY     , Button3 , resizemouse    , {}          } ,
+    Button{ClkTagBar     , 0          , Button1 , view           , {}          } ,
+    Button{ClkTagBar     , 0          , Button3 , toggleview     , {}          } ,
+    Button{ClkTagBar     , MODKEY     , Button1 , tag            , {}          } ,
+    Button{ClkTagBar     , MODKEY     , Button3 , toggletag      , {}          } ,
     // clang-format on
 };
 
-inline char const *get_bright_set_file(void) {
+inline char const *get_bright_set_file() {
     char const *filename = getenv("DWM_BACKLIGHT_SET_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/brightness";
 }
 
-inline char const *get_bright_get_file(void) {
+inline char const *get_bright_get_file() {
     char const *filename = getenv("DWM_BACKLIGHT_GET_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/actual_brightness";
 }
 
-inline char const *get_bright_max_file(void) {
+inline char const *get_bright_max_file() {
     char const *filename = getenv("DWM_BACKLIGHT_MAX_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/max_brightness";

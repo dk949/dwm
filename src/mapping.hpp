@@ -2,8 +2,11 @@
 #define DWM_MAPPING_HPP
 
 #include "layout.hpp"
+#include "variant_utils.hpp"
 
 #include <X11/X.h>
+
+#include <variant>
 
 /// Arg functions for key and mouse bindings
 struct Rule {
@@ -18,19 +21,20 @@ struct Rule {
     int monitor;
 };
 
-/// Union to pass generic data to key/mouse binding functions
-union Arg {
-    int i;
-    unsigned int ui;
-    float f;
-    double d;
-    Layout const *l;
-    char const *const *cpp;
-    void const *v;
-};
+/// Variant to pass generic data to key/mouse binding functions
+using Arg = std::variant<  //
+    std::monostate,
+    int,
+    unsigned int,
+    float,
+    double,
+    Layout const *,
+    char const *const *,
+    void const *>;
+static_assert(sizeof(Arg) == sizeof(void *) * 2);
 
 /// Key or mouse combination callback
-using MappingCallback = void (*)(Arg const &);
+using MappingCallback = fn_ptr_variant_t<Arg>;
 
 /// Key combination
 struct Key {
@@ -62,71 +66,41 @@ enum {
 enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
 #endif  // ASOUND
 
-// .d
-void bright_dec(Arg const &arg);
-// .d
-void bright_inc(Arg const &arg);
-// .d
+void bright_dec(double arg);
+void bright_inc(double arg);
 [[maybe_unused]]
-void bright_set(Arg const &arg);
-// .i
-void focusmon(Arg const &arg);
-// .ui
-void focusmonabs(Arg const &arg);
-// .i
-void focusstack(Arg const &arg);
-// void
-void iconify(Arg const &);
-// .i
-void incnmaster(Arg const &arg);
-// void
-void killclient(Arg const &arg);
-// void
-void movemouse(Arg const &arg);
-// void
-void quit(Arg const &arg);
-// void
-void resetmcfact(Arg const &unused);
-// void
-void resizemouse(Arg const &arg);
-// void
-void restart(Arg const &arg);
-// .i
-void rotatestack(Arg const &arg);
-// .f
-void setcfact(Arg const &arg);
-// .l
-void setlayout(Arg const &arg);
-// .i
-void setmaster(Arg const &arg);
-// .f
-void setmfact(Arg const &arg);
-// .cpp
-void spawn(Arg const &arg);
-// .ui
-void tag(Arg const &arg);
-// .i
-void tagmon(Arg const &arg);
-// void
-void togglebar(Arg const &arg);
-// void
-void togglefloating(Arg const &arg);
-// void
-void togglefs(Arg const &arg);
-// .ui
-void toggletag(Arg const &arg);
-// .ui
-void toggleview(Arg const &arg);
-// .ui
-void view(Arg const &arg);
-// void
-void winpicker(Arg const &arg);
-// void
-void zoom(Arg const &arg);
+void bright_set(double arg);
+void focusmon(int arg);
+void focusmonabs(unsigned arg);
+void focusstack(int arg);
+void iconify();
+void incnmaster(int arg);
+void killclient();
+void movemouse();
+void quit();
+void resetmcfact();
+void resizemouse();
+void restart();
+void rotatestack(int arg);
+void setcfact(float arg);
+void setlayout(Layout const *arg);
+void setmaster(int arg);
+void setmfact(float arg);
+void spawn(char const *const *arg);
+void tag(unsigned arg);
+void tagmon(int arg);
+void togglebar();
+void togglefloating();
+void togglefs();
+void toggletag(unsigned arg);
+void toggleview(unsigned arg);
+void view(unsigned arg);
+void winpicker();
+void zoom();
 
 #ifdef ASOUND
 // .i
-void volumechange(Arg const &arg);
+void volumechange(int arg);
 
 #endif  // ASOUND
 

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <concepts>
 #include <functional>
-#include <numeric>
 #include <type_traits>
 #include <utility>
 #ifndef NDEBUG

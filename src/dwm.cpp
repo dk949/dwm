@@ -31,6 +31,7 @@
 #include "proc.hpp"
 #include "strerror.hpp"
 #include "util.hpp"
+#include "variant_utils.hpp"
 #include "winpicker.hpp"
 #include "xidptr.hpp"
 #include "xinerama.hpp"
@@ -274,7 +275,7 @@ void Client::applyrules() {
                         switchtotag = getMon()->tagset[getMon()->seltags];
                     }
                     if (r.switchtotag == 1 || r.switchtotag == 3) {
-                        view(Arg {.ui = newtagset});
+                        view(newtagset);
                     } else {
                         getMon()->tagset[getMon()->seltags] = newtagset;
                         arrange(getMon());
@@ -454,8 +455,8 @@ void unswallow(Client *c) {
     c->setclientstate(NormalState);
 }
 
-void bright_dec(Arg const &arg) {
-    if (bright_dec_(arg.d)) return;
+void bright_dec(double arg) {
+    if (bright_dec_(arg)) return;
 
     double newval = NAN;
     if (bright_get_(&newval)) return;
@@ -463,8 +464,8 @@ void bright_dec(Arg const &arg) {
     drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
-void bright_inc(Arg const &arg) {
-    if (bright_inc_(arg.d)) return;
+void bright_inc(double arg) {
+    if (bright_inc_(arg)) return;
 
     double newval = NAN;
     if (bright_get_(&newval)) return;
@@ -472,10 +473,10 @@ void bright_inc(Arg const &arg) {
     drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
-void bright_set(Arg const &arg) {
-    if (bright_set_(arg.d)) return;
+void bright_set(double arg) {
+    if (bright_set_(arg)) return;
 
-    drawprogress(100, static_cast<unsigned long long>(arg.f), &drw->scheme().bright_progress);
+    drawprogress(100, static_cast<unsigned long long>(arg), &drw->scheme().bright_progress);
 }
 
 void buttonpress(XEvent *e) {
@@ -500,7 +501,7 @@ void buttonpress(XEvent *e) {
         } while (std::cmp_greater_equal(ev->x, x) && ++i < tag_symbols.size());
         if (i < tag_symbols.size()) {
             click = ClkTagBar;
-            arg.ui = 1 << i;
+            arg = 1u << i;
         } else if ((unsigned)ev->x < x + TEXTW(selmon->layoutSymbol)) {
             click = ClkLtSymbol;
         } else if (ev->x > selmon->window_size.w - (int)TEXTW(stext)) {
@@ -514,12 +515,9 @@ void buttonpress(XEvent *e) {
         XAllowEvents(dpy, ReplayPointer, CurrentTime);
         click = ClkClientWin;
     }
-    for (auto const &button : buttons) {
-        if (click == button.click && button.func && button.button == ev->button
-            && CLEANMASK(button.mask) == CLEANMASK(ev->state)) {
-            button.func(click == ClkTagBar && button.arg.i == 0 ? arg : button.arg);
-        }
-    }
+    for (auto const &button : buttons)
+        if (click == button.click && button.button == ev->button && CLEANMASK(button.mask) == CLEANMASK(ev->state))
+            variantInvoke(button.func, click == ClkTagBar && button.arg.index() == 0 ? arg : button.arg);
 }
 
 void checkotherwm() {
@@ -534,7 +532,7 @@ void checkotherwm() {
 void cleanup() {
     Layout foo = {.symbol = "", .arrange = nullptr};
 
-    view(Arg {.ui = ~0u});
+    view(~0u);
     selmon->lt[selmon->sellt] = &foo;
     for (auto const &m : mons) {
         while (m->stack) {
@@ -981,38 +979,38 @@ void focusin(XEvent *e) {
     }
 }
 
-void focusmon(Arg const &arg) {
+void focusmon(int arg) {
     if (mons.size() == 1) return;
     MonitorRef m;
     auto selmon_it = rng::find(mons, selmon);
     if (selmon_it == mons.end()) lg::fatal("Selected monitor is not in the monitor array");
     auto selmon_idx = std::distance(mons.begin(), selmon_it);
-    selmon_idx += arg.i;
+    selmon_idx += arg;
     if (std::ssize(mons) <= selmon_idx) selmon_idx = 0;
     if (selmon_idx < 0) selmon_idx = std::ssize(mons) - 1;
 
-    focusmonabs({.ui = static_cast<unsigned>(selmon_idx)});
+    focusmonabs(static_cast<unsigned>(selmon_idx));
 }
 
-void focusmonabs(Arg const &arg) {
+void focusmonabs(unsigned arg) {
     if (mons.size() == 1) return;
-    if (mons.size() <= arg.ui) return;
-    if (mons[arg.ui] == selmon) return;
+    if (mons.size() <= arg) return;
+    if (mons[arg] == selmon) return;
     if (selmon->sel) selmon->sel->unfocus(false);
-    selmon = mons[arg.ui];
+    selmon = mons[arg];
     /* move cursor to the center of the new monitor */
     XWarpPointer(dpy, 0, selmon->barwin, 0, 0, 0, 0, selmon->window_size.w / 2, selmon->window_size.h / 2);
     focus(nullptr);
 }
 
-void focusstack(Arg const &arg) {
+void focusstack(int arg) {
     Client *c = nullptr;
     Client *i;
 
     if (!selmon->sel || selmon->sel->props.isfullscreen) {
         return;
     }
-    if (arg.i > 0) {
+    if (arg > 0) {
         for (c = selmon->sel->next; c && !c->isVisible(); c = c->next) {
             ;
         }
@@ -1161,17 +1159,17 @@ void grabkeys() {
     XFree(syms);
 }
 
-void setmaster(Arg const &arg) {
-    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = std::max(arg.i, 0);
+void setmaster(int arg) {
+    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = std::max(arg, 0);
     arrange(selmon);
 }
 
-void iconify(Arg const &) {
+void iconify() {
     if (!XIconifyWindow(dpy, selmon->sel->win, screen)) lg::debug("Could not iconify {}", selmon->sel->name);
 }
 
-void incnmaster(Arg const &arg) {
-    setmaster(Arg {.i = std::max(selmon->nmaster + arg.i, 0)});
+void incnmaster(int arg) {
+    setmaster(std::max(selmon->nmaster + arg, 0));
 }
 
 static int isuniquegeom(std::span<ScreenInfo const> unique, size_t n, ScreenInfo info) {
@@ -1189,14 +1187,11 @@ void keypress(XEvent *e) {
     XKeyEvent *ev = &e->xkey;
 
     KeySym keysym = XLookupKeysym(ev, 0);
-    for (auto const &key : keys) {
-        if (keysym == key.keysym && CLEANMASK(key.mod) == CLEANMASK(ev->state) && key.func) {
-            key.func((key.arg));
-        }
-    }
+    for (auto const &key : keys)
+        if (keysym == key.keysym && CLEANMASK(key.mod) == CLEANMASK(ev->state)) variantInvoke(key.func, key.arg);
 }
 
-void killclient(Arg const &) {
+void killclient() {
     if (!selmon->sel) {
         return;
     }
@@ -1357,7 +1352,7 @@ void motionnotify(XEvent *e) {
     mon = m;
 }
 
-void movemouse(Arg const &) {
+void movemouse() {
     int x;
     int y;
     int ocx;
@@ -1415,7 +1410,7 @@ void movemouse(Arg const &) {
                 }
                 if (!c->props.isfloating && selmon->lt[selmon->sellt]->arrange
                     && (std::cmp_greater(abs(nx - c->size.x), snap) || std::cmp_greater(abs(ny - c->size.y), snap))) {
-                    togglefloating({});
+                    togglefloating();
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
                     c->resize({nx, ny, c->size.w, c->size.h}, true);
@@ -1486,13 +1481,13 @@ void propertynotify(XEvent *e) {
     }
 }
 
-void quit(Arg const &) {
+void quit() {
     loop->terminate();
     need_restart = false;
     lg::info("Initiating shutdowd");
 }
 
-void restart(Arg const &) {
+void restart() {
     loop->terminate();
     need_restart = true;
 }
@@ -1546,7 +1541,7 @@ void Client::resizeclient(Rect<int> new_size) {
     XSync(dpy, False);
 }
 
-void resizemouse(Arg const &) {
+void resizemouse() {
     int ocx;
     int ocy;
     int nw;
@@ -1593,7 +1588,7 @@ void resizemouse(Arg const &) {
                     && mon_ptr->window_size.y + nh <= selmon->window_size.y + selmon->window_size.h) {
                     if (!c->props.isfloating && selmon->lt[selmon->sellt]->arrange
                         && (std::cmp_greater(abs(nw - c->size.w), snap) || std::cmp_greater(abs(nh - c->size.h), snap))) {
-                        togglefloating({});
+                        togglefloating();
                     }
                 }
                 if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
@@ -1643,7 +1638,7 @@ void restack(MonitorRef const &m) {
     }
 }
 
-void rotatestack(Arg const &arg) {
+void rotatestack(int arg) {
     Client *c = nullptr;
     Client *f;
 
@@ -1651,7 +1646,7 @@ void rotatestack(Arg const &arg) {
         return;
     }
     f = selmon->sel;
-    if (arg.i > 0) {
+    if (arg > 0) {
         for (c = nexttiled(selmon->clients); c && nexttiled(c->next); c = nexttiled(c->next)) {
             ;
         }
@@ -1814,11 +1809,10 @@ void Client::setfullscreen(FullScreen fullscreen) {
     }
 }
 
-void setlayout(Arg const &arg) {
-    if (!arg.l || arg.l != selmon->lt[selmon->sellt])
-        selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1u;
+void setlayout(Layout const *arg) {
+    if (!arg || arg != selmon->lt[selmon->sellt]) selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1u;
 
-    if (arg.l) selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = arg.l;
+    if (arg) selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = arg;
 
     strncpy(selmon->layoutSymbol, selmon->lt[selmon->sellt]->symbol, sizeof(selmon->layoutSymbol) - 1);
     if (selmon->sel)
@@ -1827,13 +1821,13 @@ void setlayout(Arg const &arg) {
         drawbar(selmon);
 }
 
-void setcfact(Arg const &arg) {
+void setcfact(float arg) {
     Client *c = selmon->sel;
 
     if (!c || !selmon->lt[selmon->sellt]->arrange) return;
 
-    float f = arg.f + c->cfact;
-    if (arg.f == 0.0f)
+    float f = arg + c->cfact;
+    if (arg == 0.0f)
         f = 1.0;
     else if (f < cfact_min || f > cfact_max)
         return;
@@ -1843,11 +1837,11 @@ void setcfact(Arg const &arg) {
 }
 
 /* arg > 1.0 will set mfact absolutely */
-void setmfact(Arg const &arg) {
+void setmfact(float arg) {
 
     if (!selmon->lt[selmon->sellt]->arrange) return;
 
-    float f = arg.f < 1.0f ? arg.f + selmon->mfact : arg.f - 1.0f;
+    float f = arg < 1.0f ? arg + selmon->mfact : arg - 1.0f;
     if (f < mfact_min || f > mfact_max) return;
     if (f == 0.0f)  // TODO(dk949): This is never executed?
         f = 1.0f;
@@ -1856,7 +1850,7 @@ void setmfact(Arg const &arg) {
     arrange(selmon);
 }
 
-void resetmcfact(Arg const &) {
+void resetmcfact() {
     if (!selmon->lt[selmon->sellt]->arrange) return;
 
     selmon->sel->cfact = 1.0;
@@ -1999,14 +1993,14 @@ void showhide(Client *c) {
     }
 }
 
-void spawn(Arg const &arg) {
-    if (arg.cpp == dmenucmd) dmenumon[0] = static_cast<char>('0' + selmon->num);
-    Proc::spawnDetached(dpy, arg.cpp);
+void spawn(char const *const *arg) {
+    if (arg == dmenucmd) dmenumon[0] = static_cast<char>('0' + selmon->num);
+    Proc::spawnDetached(dpy, arg);
 }
 
-void tag(Arg const &arg) {
-    if (selmon->sel && arg.ui & TAGMASK) {
-        selmon->sel->tags = arg.ui & TAGMASK;
+void tag(unsigned arg) {
+    if (selmon->sel && arg & TAGMASK) {
+        selmon->sel->tags = arg & TAGMASK;
         if (selmon->sel->switchtotag) {
             selmon->sel->switchtotag = 0;
         }
@@ -2015,11 +2009,11 @@ void tag(Arg const &arg) {
     }
 }
 
-void tagmon(Arg const &arg) {
+void tagmon(int arg) {
     if (!selmon->sel || mons.size() == 1) {
         return;
     }
-    sendmon(selmon->sel, dirtomon(arg.i));
+    sendmon(selmon->sel, dirtomon(arg));
 }
 
 void tile(MonitorRef const &m) {
@@ -2089,7 +2083,7 @@ double timespecdiff(const struct timespec *a, const struct timespec *b) {
     return (diff >= 0) ? diff : -diff;
 }
 
-void togglebar(Arg const &) {
+void togglebar() {
     selmon->showbar = selmon->pertag->showbars[selmon->pertag->curtag] = !selmon->showbar;
     updatebarpos(selmon);
     XMoveResizeWindow(dpy,
@@ -2101,7 +2095,7 @@ void togglebar(Arg const &) {
     arrange(selmon);
 }
 
-void togglefloating(Arg const &) {
+void togglefloating() {
     if (!selmon->sel) return;
 
     if (selmon->sel->props.isfullscreen == FullScreen::on) /* no support for fullscreen windows */
@@ -2114,18 +2108,18 @@ void togglefloating(Arg const &) {
     arrange(selmon);
 }
 
-void togglefs(Arg const &) {
+void togglefs() {
     if (!selmon->sel) return;
     selmon->sel->setfullscreen(!selmon->sel->props.isfullscreen);
 }
 
-void toggletag(Arg const &arg) {
+void toggletag(unsigned arg) {
     unsigned int newtags;
 
     if (!selmon->sel) {
         return;
     }
-    newtags = selmon->sel->tags ^ (arg.ui & TAGMASK);
+    newtags = selmon->sel->tags ^ (arg & TAGMASK);
     if (newtags) {
         selmon->sel->tags = newtags;
         focus(nullptr);
@@ -2133,8 +2127,8 @@ void toggletag(Arg const &arg) {
     }
 }
 
-void toggleview(Arg const &arg) {
-    unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg.ui & TAGMASK);
+void toggleview(unsigned arg) {
+    unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg & TAGMASK);
     int i;
 
     if (newtagset) {
@@ -2162,7 +2156,7 @@ void toggleview(Arg const &arg) {
         selmon->lt[selmon->sellt ^ 1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1];
 
         if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag]) {
-            togglebar({});
+            togglebar();
         }
 
         focus(nullptr);
@@ -2231,7 +2225,7 @@ void unmanage(Client *c, IsDestroyed destroyed) {
         focus(nullptr);
         updateclientlist();
         if (switchtotag) {
-            view(Arg {.ui = switchtotag});
+            view(switchtotag);
         }
     }
 
@@ -2508,7 +2502,7 @@ void Client::updatewmhints() {
     }
 }
 
-void winpicker(Arg const &) {
+void winpicker() {
     lg::debug("winpicker start");
     auto total_client_count =
         rng::fold_left(mons, 0uz, [](auto count, auto const &mon) noexcept { return count + mon->clients->count(); });
@@ -2527,8 +2521,8 @@ void winpicker(Arg const &) {
             }
             if (auto matched = winpickerMatchClient(dpy, mons, *out); matched && mons.size() > matched->second) {
                 auto [client, mon_idx] = *matched;
-                focusmonabs({.ui = static_cast<unsigned>(mon_idx)});
-                view({.ui = client->tags});
+                focusmonabs(static_cast<unsigned>(mon_idx));
+                view(client->tags);
                 focus(client);
                 restack(selmon);
             } else {
@@ -2538,22 +2532,22 @@ void winpicker(Arg const &) {
         });
 }
 
-void view(Arg const &arg) {
+void view(unsigned arg) {
     int i;
     unsigned int tmptag;
 
-    if ((arg.ui & TAGMASK) == selmon->tagset[selmon->seltags]) {
+    if ((arg & TAGMASK) == selmon->tagset[selmon->seltags]) {
         return;
     }
     selmon->seltags ^= 1; /* toggle sel tagset */
-    if (arg.ui & TAGMASK) {
-        selmon->tagset[selmon->seltags] = arg.ui & TAGMASK;
+    if (arg & TAGMASK) {
+        selmon->tagset[selmon->seltags] = arg & TAGMASK;
         selmon->pertag->prevtag = selmon->pertag->curtag;
 
-        if (arg.ui == ~0u) {
+        if (arg == ~0u) {
             selmon->pertag->curtag = 0;
         } else {
-            for (i = 0; !(arg.ui & 1 << i); i++) {
+            for (i = 0; !(arg & 1 << i); i++) {
                 ;
             }
             selmon->pertag->curtag = (unsigned)(i + 1);
@@ -2571,7 +2565,7 @@ void view(Arg const &arg) {
     selmon->lt[selmon->sellt ^ 1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1];
 
     if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag]) {
-        togglebar({});
+        togglebar();
     }
 
     focus(nullptr);
@@ -2579,12 +2573,12 @@ void view(Arg const &arg) {
 }
 
 #ifdef ASOUND
-void volumechange(Arg const &arg) {
+void volumechange(int arg) {
     volc_volume_state_t state;
-    if (arg.i == VOL_MT) {
+    if (arg == VOL_MT) {
         state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE);
     } else {
-        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC((float)arg.i), VOLC_CHAN_ON);
+        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC((float)arg), VOLC_CHAN_ON);
     }
 
     if (state.err < 0) return;
@@ -2883,7 +2877,7 @@ int xerrorstart(Display *, XErrorEvent *) {
     return -1;
 }
 
-void zoom(Arg const &) {
+void zoom() {
     Client *c = selmon->sel;
 
     if (!selmon->lt[selmon->sellt]->arrange || !c || c->props.isfloating) return;
