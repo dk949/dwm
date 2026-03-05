@@ -378,7 +378,7 @@ void arrange(MonitorRef const &m) {
 }
 
 void arrangemon(MonitorRef const &m) {
-    strncpy(m->layoutSymbol, m->lt[m->sellt]->symbol, sizeof(m->layoutSymbol) - 1);
+    strncpy(m->layoutSymbol.data(), m->lt[m->sellt]->symbol, m->layoutSymbol.max_size() - 1);
     if (m->lt[m->sellt]->arrange) {
         m->lt[m->sellt]->arrange(m);
     }
@@ -502,7 +502,7 @@ void buttonpress(XEvent *e) {
         if (i < tag_symbols.size()) {
             click = ClkTagBar;
             arg = 1u << i;
-        } else if ((unsigned)ev->x < x + TEXTW(selmon->layoutSymbol)) {
+        } else if ((unsigned)ev->x < x + TEXTW(selmon->layoutSymbol.data())) {
             click = ClkLtSymbol;
         } else if (ev->x > selmon->window_size.w - (int)TEXTW(stext)) {
             click = ClkStatusText;
@@ -707,7 +707,7 @@ MonitorRef createmon() {
     m->topbar = topbar;
     m->lt[0] = &layouts[0];
     m->lt[1] = &layouts[1 % layouts.size()];
-    strncpy(m->layoutSymbol, layouts[0].symbol, sizeof m->layoutSymbol);
+    strncpy(m->layoutSymbol.data(), layouts[0].symbol, m->layoutSymbol.max_size());
     m->pertag = new Pertag {};
     m->pertag->curtag = m->pertag->prevtag = 1;
 
@@ -819,9 +819,9 @@ void drawbar(MonitorRef const &m) {
         }
         x += w;
     }
-    w = (int)TEXTW(m->layoutSymbol);
+    w = (int)TEXTW(m->layoutSymbol.data());
     drw->setColor(&drw->scheme().tags_norm);
-    x = drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol, false);
+    x = drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol.data(), false);
 
     if ((w = m->window_size.w - text_width - x) > bar_height) {
         if (m->sel) {
@@ -1318,7 +1318,7 @@ void monocle(MonitorRef const &m) {
         }
     }
     if (n > 0) { /* override layout symbol */
-        snprintf(m->layoutSymbol, sizeof m->layoutSymbol, "[%d]", n);
+        snprintf(m->layoutSymbol.data(), m->layoutSymbol.max_size(), "[%d]", n);
     }
     for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
         c->resize(
@@ -1814,7 +1814,7 @@ void setlayout(Layout const *arg) {
 
     if (arg) selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = arg;
 
-    strncpy(selmon->layoutSymbol, selmon->lt[selmon->sellt]->symbol, sizeof(selmon->layoutSymbol) - 1);
+    strncpy(selmon->layoutSymbol.data(), selmon->lt[selmon->sellt]->symbol, selmon->layoutSymbol.max_size() - 1);
     if (selmon->sel)
         arrange(selmon);
     else

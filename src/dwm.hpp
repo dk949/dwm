@@ -55,7 +55,7 @@ using WeakMonitorRef = std::weak_ptr<Monitor>;
 using Monitors = std::vector<MonitorRef>;
 
 struct Monitor {
-    char layoutSymbol[16];
+    ut::StaticString<16> layoutSymbol;  // NOLINT readability-magic-numbers
     float mfact;
     int nmaster;
     int num;
@@ -64,14 +64,14 @@ struct Monitor {
     Rect<int> window_size;
     unsigned int seltags;
     unsigned int sellt;
-    unsigned int tagset[2];
+    std::array<unsigned int, 2> tagset;
     bool showbar;
     int topbar;
     Client *clients;
     Client *sel;
     Client *stack;
     Window barwin;
-    Layout const *lt[2];
+    std::array<Layout const *, 2> lt;
     Pertag *pertag;
 };
 
