@@ -53,6 +53,7 @@
 #include <algorithm>
 #include <array>
 #include <cerrno>
+#include <charconv>
 #include <clocale>
 #include <cmath>
 #include <cstdio>
@@ -477,6 +478,31 @@ void bright_set(double arg) {
     if (bright_set_(arg)) return;
 
     drawprogress(100, static_cast<unsigned long long>(arg), &drw->scheme().bright_progress);
+}
+
+void dmenu_run() {
+    static std::array<char, 8> mon {};  // NOLINT(readability-magic-numbers)
+    // clang-format off
+    static std::array cmd = {
+        "dmenu_run",
+        "-m", std::as_const(mon).data(),
+        "-fn", dmenufont,
+        "-l", dmenulines,
+        "-c",
+        "-bw", dmenuborder,
+        "-x",
+        "-o", dmenuopacity,
+        cmd_end,
+    };
+    // clang-format on
+    auto [ptr, ec] = std::to_chars(mon.begin(), mon.end() - 1, selmon->num);
+    if (ec != std::errc {}) {
+        lg::error("Could not assign dmenu monitor: {}, defaulting to 0", std::make_error_code(ec).message());
+        mon[0] = '0';
+        mon[1] = 0;
+    } else
+        *ptr = 0;
+    spawn(cmd.data());
 }
 
 void buttonpress(XEvent *e) {
@@ -2004,7 +2030,6 @@ void showhide(Client *c) {
 }
 
 void spawn(char const *const *arg) {
-    if (arg == dmenucmd) dmenumon[0] = static_cast<char>('0' + selmon->num);
     Proc::spawnDetached(dpy, arg);
 }
 

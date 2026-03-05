@@ -25,6 +25,10 @@ inline constexpr auto fonts = std::array {
     "Noto Emoji:size=" FONT_SIZE ":antialias=true:autohint=true",
 };
 static constexpr char const *dmenufont = "JetBrains Mono:size=" FONT_SIZE ":antialias=true:autohint=true";
+static constexpr char const *dmenulines = "20";
+static constexpr char const *dmenuborder = "3";
+static constexpr char const *dmenuopacity = "0.8";
+
 
 static int const bright_time = 60;             /* time in useconds to go from one screen brightness value to the next*/
 static int const bright_steps = 20;            /* number of steps it takes to move between brightness values */
@@ -170,9 +174,6 @@ static constexpr Layout const *null_layout = nullptr;
 
 /* commands */
 static constexpr char const *cmd_end = nullptr;
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */  // FIXME
-static constexpr char const *dmenucmd[] = {
-    "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-l", "20", "-c", "-bw", "3", "-x", "-o", "0.8", cmd_end};
 static constexpr auto termcmd = std::array {"kitty", "-1", cmd_end};
 static constexpr auto lockcmd = std::array {"slock", cmd_end};       // Lock the screen with slock
 static constexpr auto powrcmd = std::array {"turnoff", cmd_end};     // Lock the screen with slock
@@ -191,7 +192,7 @@ static constexpr auto keys = std::array {
     // clang-format off
     /*    modifier                         key         function       argument */
     // Utility spawners
-    Key{MODKEY                           , XK_r      , spawn          , dmenucmd       } ,
+    Key{MODKEY                           , XK_r      , dmenu_run      , {}             } ,
 #ifdef ASOUND
     Key{MODKEY                           , XK_F1     , volumechange   , VOL_MT         } ,
     Key{MODKEY                           , XK_F2     , volumechange   , VOL_DN*5       } ,

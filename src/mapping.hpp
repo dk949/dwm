@@ -70,6 +70,7 @@ void bright_dec(double arg);
 void bright_inc(double arg);
 [[maybe_unused]]
 void bright_set(double arg);
+void dmenu_run();
 void focusmon(int arg);
 void focusmonabs(unsigned arg);
 void focusstack(int arg);
