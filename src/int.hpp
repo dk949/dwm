@@ -13,12 +13,22 @@
 #include <type_traits>
 #include <utility>
 
+enum struct IntErrorKind : uint8_t { DivByZero, Underflow, Overflow };
+
+template<std::integral BackingInt>
+struct BasicIntError {
+    IntErrorKind kind;
+};
+
 template<std::integral BackingInt>
 struct BasicInt {
 private:
     static constexpr auto int_max = std::numeric_limits<BackingInt>::max();
     static constexpr auto int_min = std::numeric_limits<BackingInt>::min();
+    static constexpr auto is_unsigned = std::is_unsigned_v<BackingInt>;
+    static constexpr auto is_signed = !is_unsigned;
 public:
+    using value_type = BackingInt;
     BackingInt m_data;
 
     template<std::integral I>
@@ -32,9 +42,14 @@ public:
         return m_data;
     }
 
-    template<std::integral I>
-    static constexpr BasicInt from(I i) noexcept {
+    static constexpr BasicInt from(std::integral auto i) noexcept {
         return BasicInt(cast<BackingInt>(i));
+    }
+
+    template<typename OtherBackingInt>
+    requires(!std::is_same_v<BackingInt, OtherBackingInt>)
+    static constexpr BasicInt from(BasicInt<OtherBackingInt> i) noexcept {
+        return BasicInt(cast<BackingInt>(i.get()));
     }
 
     [[nodiscard]]
@@ -65,7 +80,8 @@ public:
     constexpr BasicInt &operator%=(BasicInt const &rhs) noexcept { m_data = BasicInt(safeMod(rhs.m_data)); return *this; }
 
     constexpr BasicInt operator+() const noexcept { return *this; }
-    constexpr BasicInt operator-() const noexcept { return BasicInt(safeNeg()); }
+    constexpr BasicInt operator-() const noexcept requires(is_signed) { return BasicInt(safeNeg()); }
+    constexpr BasicInt operator-() const noexcept requires(is_unsigned) = delete;
     constexpr bool operator!() const noexcept { return m_data == 0; }
     constexpr operator bool() const noexcept { return m_data != 0;} // NOLINT(google-explicit-constructor)
     template<std::integral  I>
@@ -123,7 +139,7 @@ public:
             return i;
         } else {
             if (std::in_range<T>(i)) [[likely]]
-                return i;
+                return static_cast<T>(i);
             else [[unlikely]] {
                 std::string_view err;
                 T out = 0;
@@ -162,13 +178,14 @@ private:
 
     [[nodiscard]]
     constexpr BackingInt safeMul(BackingInt i) const {
-        if constexpr (std::is_unsigned_v<BackingInt>) {
+        if constexpr (is_unsigned) {
             if (i == 0) return 0;
             if (m_data > int_max / i) [[unlikely]] {
                 if (!std::is_constant_evaluated())
                     lg::error("Multiplying {} by {} would overflow, saturating", m_data, i);
                 return int_max;
             }
+            return m_data * i;
         } else {
             if (m_data == 0 || i == 0) return 0;
 
@@ -211,12 +228,15 @@ private:
             if (!std::is_constant_evaluated()) lg::error("Trying to divide {} by 0, using {}", m_data, int_max);
             return int_max;
         }
-        if constexpr (std::is_unsigned_v<BackingInt>) return m_data / i;
-        if (m_data == int_min && i == -1) [[unlikely]] {
-            if (!std::is_constant_evaluated()) lg::error("Dividing {} by {} would overflow, saturating", m_data, i);
-            return int_max;
+        if constexpr (is_unsigned)
+            return m_data / i;
+        else {
+            if (m_data == int_min && i == -1) [[unlikely]] {
+                if (!std::is_constant_evaluated()) lg::error("Dividing {} by {} would overflow, saturating", m_data, i);
+                return int_max;
+            }
+            return m_data / i;
         }
-        return m_data / i;
     }
 
     [[nodiscard]]
@@ -225,12 +245,15 @@ private:
             if (!std::is_constant_evaluated()) lg::error("Trying to perform {} modulo 0, using {}", m_data, int_max);
             return int_max;
         }
-        if constexpr (std::is_unsigned_v<BackingInt>) return m_data % i;
-        if (m_data == int_min && i == -1) [[unlikely]] {
-            if (!std::is_constant_evaluated()) lg::error("{} modulo {} would overflow, saturating", m_data, i);
-            return int_max;
+        if constexpr (is_unsigned)
+            return m_data % i;
+        else {
+            if (m_data == int_min && i == -1) [[unlikely]] {
+                if (!std::is_constant_evaluated()) lg::error("{} modulo {} would overflow, saturating", m_data, i);
+                return int_max;
+            }
+            return m_data % i;
         }
-        return m_data % i;
     }
 
     [[nodiscard]]
@@ -244,71 +267,90 @@ private:
 };
 
 using Int = BasicInt<std::int64_t>;
+using UInt = BasicInt<std::uint64_t>;
 // NOLINTBEGIN(readability-magic-numbers)
-static_assert(Int(3) == Int(3));
-static_assert(Int(3) != Int(4));
-static_assert(Int(3) < Int(4));
-static_assert(Int(3) <= Int(3));
-static_assert(Int(3) <= Int(4));
-static_assert(Int(4) > Int(3));
-static_assert(Int(4) >= Int(3));
-static_assert(Int(4) >= Int(4));
+static_assert([]<typename... I>() {
+    (
+        [] {
+            static_assert(I(3) == I(3));
+            static_assert(I(3) != I(4));
+            static_assert(I(3) < I(4));
+            static_assert(I(3) <= I(3));
+            static_assert(I(3) <= I(4));
+            static_assert(I(4) > I(3));
+            static_assert(I(4) >= I(3));
+            static_assert(I(4) >= I(4));
 
-static_assert(Int(3) == 3);
-static_assert(Int(3) != 4);
-static_assert(Int(3) < 4);
-static_assert(Int(3) <= 3);
-static_assert(Int(3) <= 4);
-static_assert(Int(4) > 3);
-static_assert(Int(4) >= 3);
-static_assert(Int(4) >= 4);
+            static_assert(I(3) == 3);
+            static_assert(I(3) != 4);
+            static_assert(I(3) < 4);
+            static_assert(I(3) <= 3);
+            static_assert(I(3) <= 4);
+            static_assert(I(4) > 3);
+            static_assert(I(4) >= 3);
+            static_assert(I(4) >= 4);
 
-static_assert(3 == Int(3));
-static_assert(3 != Int(4));
-static_assert(3 < Int(4));
-static_assert(3 <= Int(3));
-static_assert(3 <= Int(4));
-static_assert(4 > Int(3));
-static_assert(4 >= Int(3));
-static_assert(4 >= Int(4));
+            static_assert(3 == I(3));
+            static_assert(3 != I(4));
+            static_assert(3 < I(4));
+            static_assert(3 <= I(3));
+            static_assert(3 <= I(4));
+            static_assert(4 > I(3));
+            static_assert(4 >= I(3));
+            static_assert(4 >= I(4));
 
-static_assert(Int(3) == 3ull);
-static_assert(Int(3) != 4ull);
-static_assert(Int(3) < 4ull);
-static_assert(Int(3) <= 3ull);
-static_assert(Int(3) <= 4ull);
-static_assert(Int(4) > 3ull);
-static_assert(Int(4) >= 3ull);
-static_assert(Int(4) >= 4ull);
+            static_assert(I(3) == 3ull);
+            static_assert(I(3) != 4ull);
+            static_assert(I(3) < 4ull);
+            static_assert(I(3) <= 3ull);
+            static_assert(I(3) <= 4ull);
+            static_assert(I(4) > 3ull);
+            static_assert(I(4) >= 3ull);
+            static_assert(I(4) >= 4ull);
 
-static_assert(+Int(1) == +1);
+            static_assert(+I(1) == +1);
+            static_assert(I(1));
+            static_assert(!I(0));
+
+            static_assert(I(10) + 1 == 11);
+            static_assert(I(10) - 1 == 9);
+            static_assert(I(10) * 2 == 20);
+            static_assert(I(10) / 2 == 5);
+            static_assert(I(10) % 2 == 0);
+
+            static_assert(I(std::numeric_limits<typename I::value_type>::max()) + 1
+                          == std::numeric_limits<typename I::value_type>::max());
+            static_assert(I(std::numeric_limits<typename I::value_type>::min()) - 1
+                          == std::numeric_limits<typename I::value_type>::min());
+            static_assert(I(std::numeric_limits<typename I::value_type>::max()) * 2
+                          == std::numeric_limits<typename I::value_type>::max());
+            static_assert(I(std::numeric_limits<typename I::value_type>::min()) / -1
+                          == std::numeric_limits<typename I::value_type>::max());
+            static_assert(I(std::numeric_limits<typename I::value_type>::min()) % -1
+                          == std::numeric_limits<typename I::value_type>::max());
+
+            static_assert(10 + I(1) == 11);
+            static_assert(10 - I(1) == 9);
+            static_assert(10 * I(2) == 20);
+            static_assert(10 / I(2) == 5);
+            static_assert(10 % I(2) == 0);
+
+            static_assert(std::numeric_limits<typename I::value_type>::max() + I(1)
+                          == std::numeric_limits<typename I::value_type>::max());
+            static_assert(std::numeric_limits<typename I::value_type>::min() - I(1)
+                          == std::numeric_limits<typename I::value_type>::min());
+            static_assert(std::numeric_limits<typename I::value_type>::max() * I(2)
+                          == std::numeric_limits<typename I::value_type>::max());
+        }(),
+        ...);
+    return true;
+}.operator()<Int, UInt>());
+
+
 static_assert(-Int(1) == -1);
-static_assert(Int(1));
-static_assert(!Int(0));
-
-static_assert(Int(10) + 1 == 11);
-static_assert(Int(10) - 1 == 9);
-static_assert(Int(10) * 2 == 20);
-static_assert(Int(10) / 2 == 5);
-static_assert(Int(10) % 2 == 0);
-
-static_assert(Int(std::numeric_limits<int64_t>::max()) + 1 == std::numeric_limits<int64_t>::max());
-static_assert(Int(std::numeric_limits<int64_t>::min()) - 1 == std::numeric_limits<int64_t>::min());
-static_assert(Int(std::numeric_limits<int64_t>::max()) * 2 == std::numeric_limits<int64_t>::max());
-static_assert(Int(std::numeric_limits<int64_t>::min()) / -1 == std::numeric_limits<int64_t>::max());
-static_assert(Int(std::numeric_limits<int64_t>::min()) % -1 == std::numeric_limits<int64_t>::max());
-
-static_assert(10 + Int(1) == 11);
-static_assert(10 - Int(1) == 9);
-static_assert(10 * Int(2) == 20);
-static_assert(10 / Int(2) == 5);
-static_assert(10 % Int(2) == 0);
-
-static_assert(std::numeric_limits<int64_t>::max() + Int(1) == std::numeric_limits<int64_t>::max());
-static_assert(std::numeric_limits<int64_t>::min() - Int(1) == std::numeric_limits<int64_t>::min());
-static_assert(std::numeric_limits<int64_t>::max() * Int(2) == std::numeric_limits<int64_t>::max());
-static_assert(std::numeric_limits<int64_t>::min() / Int(-1) == std::numeric_limits<int64_t>::max());
-static_assert(std::numeric_limits<int64_t>::min() % Int(-1) == std::numeric_limits<int64_t>::max());
+static_assert(std::numeric_limits<Int::value_type>::min() / Int(-1) == std::numeric_limits<Int::value_type>::max());
+static_assert(std::numeric_limits<Int::value_type>::min() % Int(-1) == std::numeric_limits<Int::value_type>::max());
+static_assert(Int::from(UInt(0xffffffffffffffff)) == 0x7fffffffffffffff);
 
 // NOLINTEND(readability-magic-numbers)
 #endif  // DWM_INT_HPP
