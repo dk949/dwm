@@ -2790,8 +2790,6 @@ static void iconifyclient(Client *c) {
     } else {
         lg::debug("No icon for client {}", c->name);
     }
-
-    delay(1'000'000 * 5, (void (*)(void *))uniconifyclient, c);
 }
 
 void installEventHandlers() {

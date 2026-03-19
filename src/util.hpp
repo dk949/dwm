@@ -25,8 +25,6 @@ constexpr auto between(auto x, auto a, auto b) {
     return a <= x && x <= b;
 }
 
-void delay(int delay_for, void (*fn)(void *), void *arg);
-
 template<typename R, typename E, typename Cmp>
 bool contains(R const &r, E &&_match, Cmp const &cmp = std::equal_to<E> {}) {
     return std::ranges::find_if(r, [&, match = std::forward<E>(_match)](E const &e) { return cmp(match, e); })
