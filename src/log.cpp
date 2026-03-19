@@ -9,12 +9,9 @@
 #include <format>
 #include <optional>
 
-std::optional<nb::Notice> null_notice;
-std::optional<nb::Notice> info_notice;
-std::optional<nb::Notice> warn_notice;
-std::optional<nb::Notice> error_notice;
+static constexpr auto info_expiry = nb::ExpireTime {900};
 
-std::string_view getIcon(lg::Level l) {
+static std::string_view getIcon(lg::Level l) {
     switch (l) {
         case lg::Level::Breakpoint:
         case lg::Level::Debug:
@@ -26,7 +23,11 @@ std::string_view getIcon(lg::Level l) {
     }
 }
 
-nb::Notice &getNotice(lg::Level l) {
+static nb::Notice &getNotice(lg::Level l) {
+    static std::optional<nb::Notice> null_notice {};
+    static std::optional<nb::Notice> info_notice {};
+    static std::optional<nb::Notice> warn_notice {};
+    static std::optional<nb::Notice> error_notice {};
     switch (l) {
         case lg::Level::Breakpoint:
         case lg::Level::Debug:
@@ -36,7 +37,7 @@ nb::Notice &getNotice(lg::Level l) {
             if (!info_notice) {
                 info_notice = nb::Notice {"dwm"};
                 info_notice->icon = getIcon(l);
-                info_notice->expire_time = 900;
+                info_notice->expire_time = info_expiry;
             }
             return *info_notice;
         case lg::Level::Warn:
@@ -68,8 +69,8 @@ void sendNotice(Level l, std::string_view header, std::string_view body) {
     } catch (...) { }
 }
 
-std::optional<std::filesystem::path> getLogDir(void) {
-    auto logsubdir = "dwm/log/";
+std::optional<std::filesystem::path> getLogDir() {
+    constexpr auto const *logsubdir = "dwm/log/";
 
     char const *xdg_cache_home = getenv("XDG_CACHE_HOME");
     if (xdg_cache_home) {
