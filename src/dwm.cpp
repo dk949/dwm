@@ -645,7 +645,7 @@ void configurenotify(XEvent *e) {
     sw = ev->width;
     sh = ev->height;
     if (updategeom() || dirty) {
-        drw->resize((unsigned)sw, (unsigned)bar_height);
+        drw->resize(sw, bar_height);
         updatebars();
         for (auto const &m : mons) {
             for (Client *c = m->clients; c; c = c->next) {
@@ -1895,7 +1895,7 @@ void setup() {
     sw = DisplayWidth(dpy, screen);
     sh = DisplayHeight(dpy, screen);
     root = RootWindow(dpy, screen);
-    drw = new Drw(dpy, screen, root, (unsigned)sw, (unsigned)sh);
+    drw = new Drw(dpy, screen, root, sw, sh);
     if (!drw->fontset_create(fonts)) {
         lg::fatal("no fonts could be loaded.");
     }

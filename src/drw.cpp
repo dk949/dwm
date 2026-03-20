@@ -68,14 +68,18 @@ static size_t utf8decode(char const *c, long *u, size_t clen) {
     return len;
 }
 
-Drw::Drw(Display *dpy, int screen, Window root, unsigned int width, unsigned int height)
+Drw::Drw(Display *dpy, int screen, Window win, int width, int height)
         : m_screen_width(width)
         , m_screen_height(height)
         , m_dpy(dpy)
         , m_screen(screen)
-        , m_root(root)
-        , m_drawable(XCreatePixmap(dpy, root, width, height, (unsigned)DefaultDepth(dpy, screen)))
-        , m_gc(XCreateGC(dpy, root, 0, nullptr))
+        , m_root(win)
+        , m_drawable(XCreatePixmap(dpy,
+              win,
+              static_cast<unsigned>(width),
+              static_cast<unsigned>(height),
+              static_cast<unsigned>(DefaultDepth(dpy, screen))))
+        , m_gc(XCreateGC(dpy, win, 0, nullptr))
         , m_cursors(dpy) {
     XSetLineAttributes(m_dpy, m_gc, 1, LineSolid, CapButt, JoinMiter);
 }
@@ -86,11 +90,15 @@ Drw::~Drw() {
     drw_fontset_free(m_fonts);
 }
 
-void Drw::resize(unsigned int w, unsigned int h) {
+void Drw::resize(int w, int h) {
     m_screen_width = w;
     m_screen_height = h;
     if (m_drawable) XFreePixmap(m_dpy, m_drawable);
-    m_drawable = XCreatePixmap(m_dpy, m_root, w, h, (unsigned)DefaultDepth(m_dpy, m_screen));
+    m_drawable = XCreatePixmap(m_dpy,
+        m_root,
+        static_cast<unsigned>(w),
+        static_cast<unsigned>(h),
+        static_cast<unsigned>(DefaultDepth(m_dpy, m_screen)));
 }
 
 /* This function is an implementation detail. Library users should use

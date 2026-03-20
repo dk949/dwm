@@ -64,8 +64,8 @@ struct Drw {
 private:
     ColorScheme m_scheme;
     Color const *m_current_color = nullptr;
-    unsigned int m_screen_width;
-    unsigned int m_screen_height;
+    int m_screen_width;
+    int m_screen_height;
     Display *m_dpy;
     int m_screen;
     Window m_root;
@@ -75,14 +75,14 @@ private:
     Cursors m_cursors;
 
 public:
-    Drw(Display *dpy, int screen, Window win, unsigned int width, unsigned int height);
+    Drw(Display *dpy, int screen, Window win, int width, int height);
     Drw(Drw const &) = delete;
     Drw &operator=(Drw const &) = delete;
     Drw(Drw &&) = delete;
     Drw &operator=(Drw &&) = delete;
     ~Drw();
 
-    void resize(unsigned int w, unsigned int h);
+    void resize(int w, int h);
     [[nodiscard]]
     bool fontset_create(std::span<char const *const> fonts);
 
