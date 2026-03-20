@@ -803,12 +803,9 @@ MonitorRef dirtomon(int dir) {
 // TODO(dk949): handle the case where the tags overlap with status
 //              (common if monitor is vertical)
 void drawbar(MonitorRef const &m) {
-    int x;
-    int w;
     int text_width = 0;
-    auto boxs = (int)(drw->fonts().h / 9u);
-    auto boxw = (int)((drw->fonts().h / 6u) + 2u);
-    unsigned int i;
+    auto const boxs = (int)(drw->fonts().h / 9u);
+    auto const boxw = (int)((drw->fonts().h / 6u) + 2u);
     unsigned int occ = 0;
     unsigned int urg = 0;
 
@@ -827,9 +824,9 @@ void drawbar(MonitorRef const &m) {
             urg |= c->tags;
         }
     }
-    x = 0;
-    for (i = 0; i < tag_symbols.size(); i++) {
-        w = (int)TEXTW(tag_symbols[i]);
+    int x = 0;
+    for (unsigned i = 0; i < tag_symbols.size(); i++) {
+        int w = (int)TEXTW(tag_symbols[i]);
         if (m->tagset[m->seltags] & 1 << i)
             drw->setColor(&drw->scheme().tags_sel);
         else
@@ -846,11 +843,17 @@ void drawbar(MonitorRef const &m) {
         }
         x += w;
     }
-    w = (int)TEXTW(m->layoutSymbol.data());
     drw->setColor(&drw->scheme().tags_norm);
-    x = drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->layoutSymbol.data(), false);
+    x = drw->draw_text(x,
+        0,
+        TEXTW(m->layoutSymbol.data()),
+        (unsigned)bar_height,
+        (unsigned)(lrpad / 2),
+        m->layoutSymbol.data(),
+        false);
 
-    if ((w = m->window_size.w - text_width - x) > bar_height) {
+    int w = m->window_size.w - text_width - x;
+    if (w > bar_height) {
         if (m->sel) {
             drw->setColor(m == selmon ? &drw->scheme().info_sel : &drw->scheme().info_norm);
             drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name.data(), false);
