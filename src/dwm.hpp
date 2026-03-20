@@ -161,4 +161,51 @@ struct Client {
     }
 };
 
+struct RootPointer {
+    int x;
+    int y;
+    bool success;
+
+    constexpr operator bool() const noexcept {  // NOLINT(google-explicit-constructor)
+        return success;
+    }
+};
+
+template<>
+struct std::tuple_size<RootPointer> : std::integral_constant<std::size_t, 2> { };
+
+template<>
+struct std::tuple_element<0, RootPointer> {
+    using type = int;
+};
+
+template<>
+struct std::tuple_element<1, RootPointer> {
+    using type = int;
+};
+
+template<std::size_t I>
+constexpr int &get(RootPointer &s) {
+    static_assert(I < 2);
+    if constexpr (I == 0)
+        return s.x;
+    else
+        return s.y;
+}
+
+template<std::size_t I>
+constexpr int get(RootPointer s) {
+    static_assert(I < 2);
+    if constexpr (I == 0)
+        return s.x;
+    else
+        return s.y;
+}
+
+static_assert([] {
+    constexpr RootPointer rp {.x = 1, .y = 2, .success = true};
+    if ([[maybe_unused]] auto [x, y] = rp) { }
+    return true;
+}());
+
 #endif  // DWM_HPP

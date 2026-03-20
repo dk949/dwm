@@ -149,7 +149,7 @@ static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
 static pid_t getparentprocess(pid_t p);
-static int getrootptr(int *x, int *y);
+static RootPointer getrootptr();
 static long getstate(Window w);
 static bool gettextprop(Window w, Atom atom, char *text, std::size_t size);
 static void grabkeys();
@@ -1082,12 +1082,14 @@ Atom Client::getatomprop(Atom prop) const {
     return atom;
 }
 
-int getrootptr(int *x, int *y) {
-    int di;
-    unsigned int dui;
-    Window dummy;
-
-    return XQueryPointer(dpy, root, &dummy, &dummy, x, y, &di, &di, &dui);
+RootPointer getrootptr() {
+    int di {};
+    unsigned int dui {};
+    Window dummy {};
+    int x = 0;
+    int y = 0;
+    auto succ = XQueryPointer(dpy, root, &dummy, &dummy, &x, &y, &di, &di, &dui) == True;
+    return {.x = x, .y = y, .success = succ};
 }
 
 long getstate(Window w) {
@@ -1385,8 +1387,6 @@ void motionnotify(XEvent *e) {
 }
 
 void movemouse() {
-    int x;
-    int y;
     int ocx;
     int ocy;
     int nx;
@@ -1408,52 +1408,51 @@ void movemouse() {
         != GrabSuccess) {
         return;
     }
-    if (!getrootptr(&x, &y)) {
-        return;
-    }
-    do {
-        XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
-        switch (ev.type) {
-            // TODO(dk949): make sure these don't actually need special treatment
-            case ButtonRelease:
-            case NoExpose: break;
-            case ConfigureRequest: loop->exec<ConfigureRequest>(&ev); break;
-            case Expose: loop->exec<Expose>(&ev); break;
-            case MapRequest: loop->exec<MapRequest>(&ev); break;
-            case MotionNotify:
-                if ((ev.xmotion.time - lasttime) <= (1000 / 60)) {
-                    continue;
-                }
-                lasttime = ev.xmotion.time;
+    if (auto [x, y] = getrootptr()) {
+        do {
+            XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
+            switch (ev.type) {
+                // TODO(dk949): make sure these don't actually need special treatment
+                case ButtonRelease:
+                case NoExpose: break;
+                case ConfigureRequest: loop->exec<ConfigureRequest>(&ev); break;
+                case Expose: loop->exec<Expose>(&ev); break;
+                case MapRequest: loop->exec<MapRequest>(&ev); break;
+                case MotionNotify:
+                    if ((ev.xmotion.time - lasttime) <= (1000 / 60)) {
+                        continue;
+                    }
+                    lasttime = ev.xmotion.time;
 
-                nx = ocx + (ev.xmotion.x - x);
-                ny = ocy + (ev.xmotion.y - y);
-                if (std::cmp_less(abs(selmon->window_size.x - nx), snap)) {
-                    nx = selmon->window_size.x;
-                } else if (((selmon->window_size.x + selmon->window_size.w) - (nx + c->getWidth())) < snap) {
-                    nx = selmon->window_size.x + selmon->window_size.w - c->getWidth();
-                }
-                if (std::cmp_less(abs(selmon->window_size.y - ny), snap)) {
-                    ny = selmon->window_size.y;
-                } else if (selmon->window_size.y + selmon->window_size.h - (ny + c->getHeight()) < snap) {
-                    ny = selmon->window_size.y + selmon->window_size.h - c->getHeight();
-                }
-                if (!c->props.isfloating && selmon->lt[selmon->sellt]->arrange
-                    && (std::cmp_greater(abs(nx - c->size.x), snap) || std::cmp_greater(abs(ny - c->size.y), snap))) {
-                    togglefloating();
-                }
-                if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
-                    c->resize({nx, ny, c->size.w, c->size.h}, true);
-                }
-                break;
-            default: lg::warn("Unexpected event type {} in movemouse", ev.type); break;
+                    nx = ocx + (ev.xmotion.x - x);
+                    ny = ocy + (ev.xmotion.y - y);
+                    if (std::cmp_less(abs(selmon->window_size.x - nx), snap)) {
+                        nx = selmon->window_size.x;
+                    } else if (((selmon->window_size.x + selmon->window_size.w) - (nx + c->getWidth())) < snap) {
+                        nx = selmon->window_size.x + selmon->window_size.w - c->getWidth();
+                    }
+                    if (std::cmp_less(abs(selmon->window_size.y - ny), snap)) {
+                        ny = selmon->window_size.y;
+                    } else if (selmon->window_size.y + selmon->window_size.h - (ny + c->getHeight()) < snap) {
+                        ny = selmon->window_size.y + selmon->window_size.h - c->getHeight();
+                    }
+                    if (!c->props.isfloating && selmon->lt[selmon->sellt]->arrange
+                        && (std::cmp_greater(abs(nx - c->size.x), snap) || std::cmp_greater(abs(ny - c->size.y), snap))) {
+                        togglefloating();
+                    }
+                    if (!selmon->lt[selmon->sellt]->arrange || c->props.isfloating) {
+                        c->resize({nx, ny, c->size.w, c->size.h}, true);
+                    }
+                    break;
+                default: lg::warn("Unexpected event type {} in movemouse", ev.type); break;
+            }
+        } while (ev.type != ButtonRelease);
+        XUngrabPointer(dpy, CurrentTime);
+        if (auto m = recttomon(c->size); m != selmon) {
+            sendmon(c, m);
+            selmon = m;
+            focus(nullptr);
         }
-    } while (ev.type != ButtonRelease);
-    XUngrabPointer(dpy, CurrentTime);
-    if (auto m = recttomon(c->size); m != selmon) {
-        sendmon(c, m);
-        selmon = m;
-        focus(nullptr);
     }
 }
 
@@ -2863,10 +2862,9 @@ Client *wintoclient(Window w) {
 }
 
 MonitorRef wintomon(Window w) {
-    int x;
-    int y;
 
-    if (w == root && getrootptr(&x, &y)) return recttomon({x, y, 1, 1});
+    if (w == root)
+        if (auto [x, y] = getrootptr()) return recttomon({x, y, 1, 1});
 
     if (auto mon_it = rng::find_if(mons, [&](auto const &m) noexcept { return w == m->barwin; }); mon_it != mons.end())
         return *mon_it;
