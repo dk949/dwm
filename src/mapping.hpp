@@ -44,23 +44,24 @@ struct Key {
     Arg arg;
 };
 
+enum struct Click {
+    TagBar,
+    LtSymbol,
+    StatusText,
+    WinTitle,
+    ClientWin,
+    RootWin,
+    Last,
+};
+
 struct Button {
-    unsigned int click;
+    Click click;
     unsigned int mask;
     unsigned int button;
     MappingCallback func;
     Arg arg;
 };
 
-enum {
-    ClkTagBar,
-    ClkLtSymbol,
-    ClkStatusText,
-    ClkWinTitle,
-    ClkClientWin,
-    ClkRootWin,
-    ClkLast,
-}; /* clicks */
 
 #ifdef ASOUND
 enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };

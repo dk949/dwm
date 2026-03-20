@@ -510,7 +510,7 @@ void buttonpress(XEvent *e) {
     Arg arg = {0};
     XButtonPressedEvent *ev = &e->xbutton;
 
-    unsigned int click = ClkRootWin;
+    auto click = Click::RootWin;
     /* focus monitor if necessary */
     if (MonitorRef m = wintomon(ev->window); m && m != selmon) {
         if (selmon->sel) selmon->sel->unfocus(true);
@@ -524,24 +524,24 @@ void buttonpress(XEvent *e) {
             x += TEXTW(tag_symbols[i]);
         } while (std::cmp_greater_equal(ev->x, x) && ++i < tag_symbols.size());
         if (i < tag_symbols.size()) {
-            click = ClkTagBar;
+            click = Click::TagBar;
             arg = 1u << i;
         } else if (ev->x < x + TEXTW(selmon->layoutSymbol.data())) {
-            click = ClkLtSymbol;
+            click = Click::LtSymbol;
         } else if (ev->x > selmon->window_size.w - TEXTW(stext)) {
-            click = ClkStatusText;
+            click = Click::StatusText;
         } else {
-            click = ClkWinTitle;
+            click = Click::WinTitle;
         }
     } else if (auto *c = wintoclient(ev->window)) {
         focus(c);
         restack(selmon);
         XAllowEvents(dpy, ReplayPointer, CurrentTime);
-        click = ClkClientWin;
+        click = Click::ClientWin;
     }
     for (auto const &button : buttons)
         if (click == button.click && button.button == ev->button && CLEANMASK(button.mask) == CLEANMASK(ev->state)) {
-            auto fn_arg = click == ClkTagBar && button.arg.index() == 0 ? arg : button.arg;
+            auto fn_arg = click == Click::TagBar && button.arg.index() == 0 ? arg : button.arg;
             if (!variantInvoke(button.func, fn_arg))
                 lg::error("Could not run button mapping: function index is {}, but arg is {}",
                     button.func.index(),
@@ -1139,7 +1139,7 @@ void Client::grabbuttons(bool focused) const {
             XGrabButton(dpy, AnyButton, AnyModifier, win, False, BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
         }
         for (auto const &button : buttons) {
-            if (button.click == ClkClientWin) {
+            if (button.click == Click::ClientWin) {
                 for (unsigned int modifier : modifiers) {
                     XGrabButton(dpy,
                         button.button,

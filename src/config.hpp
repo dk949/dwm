@@ -267,16 +267,16 @@ static constexpr auto buttons = std::array {
     /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
     // clang-format off
     /*       click       , event mask , button  , function       , argument      , */
-    Button{ClkLtSymbol   , 0          , Button1 , setlayout      , null_layout } ,
-    Button{ClkLtSymbol   , 0          , Button3 , setlayout      , &layouts[2] } ,
-    Button{ClkWinTitle   , 0          , Button2 , zoom           , {}          } ,
-    Button{ClkClientWin  , MODKEY     , Button1 , movemouse      , {}          } ,
-    Button{ClkClientWin  , MODKEY     , Button2 , togglefloating , {}          } ,
-    Button{ClkClientWin  , MODKEY     , Button3 , resizemouse    , {}          } ,
-    Button{ClkTagBar     , 0          , Button1 , view           , {}          } ,
-    Button{ClkTagBar     , 0          , Button3 , toggleview     , {}          } ,
-    Button{ClkTagBar     , MODKEY     , Button1 , tag            , {}          } ,
-    Button{ClkTagBar     , MODKEY     , Button3 , toggletag      , {}          } ,
+    Button{Click::LtSymbol   , 0          , Button1 , setlayout      , null_layout } ,
+    Button{Click::LtSymbol   , 0          , Button3 , setlayout      , &layouts[2] } ,
+    Button{Click::WinTitle   , 0          , Button2 , zoom           , {}          } ,
+    Button{Click::ClientWin  , MODKEY     , Button1 , movemouse      , {}          } ,
+    Button{Click::ClientWin  , MODKEY     , Button2 , togglefloating , {}          } ,
+    Button{Click::ClientWin  , MODKEY     , Button3 , resizemouse    , {}          } ,
+    Button{Click::TagBar     , 0          , Button1 , view           , {}          } ,
+    Button{Click::TagBar     , 0          , Button3 , toggleview     , {}          } ,
+    Button{Click::TagBar     , MODKEY     , Button1 , tag            , {}          } ,
+    Button{Click::TagBar     , MODKEY     , Button3 , toggletag      , {}          } ,
     // clang-format on
 };
 
