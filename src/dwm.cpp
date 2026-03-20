@@ -504,22 +504,19 @@ void dmenu_run() {
 }
 
 void buttonpress(XEvent *e) {
-    unsigned int i;
-    unsigned int x;
-    unsigned int click;
     Arg arg = {0};
-    MonitorRef m;
     XButtonPressedEvent *ev = &e->xbutton;
 
-    click = ClkRootWin;
+    unsigned int click = ClkRootWin;
     /* focus monitor if necessary */
-    if ((m = wintomon(ev->window)) && m != selmon) {
+    if (MonitorRef m = wintomon(ev->window); m && m != selmon) {
         if (selmon->sel) selmon->sel->unfocus(true);
         selmon = m;
         focus(nullptr);
     }
     if (ev->window == selmon->barwin) {
-        i = x = 0;
+        unsigned int i = 0;
+        unsigned int x = 0;
         do {
             x += TEXTW(tag_symbols[i]);
         } while (std::cmp_greater_equal(ev->x, x) && ++i < tag_symbols.size());
@@ -1533,23 +1530,22 @@ void Client::resize(Rect<int> new_size, bool interact) {
 
 void Client::resizeclient(Rect<int> new_size) {
     XWindowChanges wc;
-    unsigned int n;
-    int gapoffset;
-    int gapincr;
-    Client *nbc;
+    int gapoffset = 0;
+    int gapincr = 0;
 
     wc.border_width = bw;
 
     /* Get number of clients for the selected monitor */
-    for (n = 0, nbc = nexttiled(getMon()->clients); nbc; nbc = nexttiled(nbc->next), n++) { }
+    auto n = [&] {
+        unsigned int out = 0;
+        for (auto *nbc = nexttiled(getMon()->clients); nbc; nbc = nexttiled(nbc->next), out++) { }
+        return out;
+    }();
 
     /* Do nothing if layout is floating */
-    if (props.isfloating || getMon()->lt[getMon()->sellt]->arrange == nullptr) {
-        gapincr = gapoffset = 0;
-    } else {
+    if (!props.isfloating && getMon()->lt[getMon()->sellt]->arrange != nullptr) {
         /* Remove border and gap if layout is monocle or only one client */
         if (getMon()->lt[getMon()->sellt]->arrange == monocle || n == 1) {
-            gapoffset = 0;
             gapincr = -2 * borderpx;
             wc.border_width = 0;
         } else {

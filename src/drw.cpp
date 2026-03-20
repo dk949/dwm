@@ -43,13 +43,12 @@ static size_t utf8decode(char const *c, long *u, size_t clen) {
     size_t j;
     size_t len;
     size_t type;
-    long udecoded;
 
     *u = UTF_INVALID;
     if (!clen) {
         return 0;
     }
-    udecoded = utf8decodebyte(c[0], &len);
+    long udecoded = utf8decodebyte(c[0], &len);
     if (!between(len, 1uz, UTF_SIZ)) {
         return 1;
     }

@@ -49,8 +49,8 @@ public:
 };
 
 struct Fnt {
-    Display *dpy;
-    unsigned int h;
+    Display *dpy = nullptr;
+    unsigned int h = 0;
     XftFont *xfont = nullptr;
     FcPattern *pattern = nullptr;
     bool operator==(Fnt const &) const = default;
