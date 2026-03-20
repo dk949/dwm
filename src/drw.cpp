@@ -201,14 +201,14 @@ void Drw::setColorScheme(ColorSchemeName clrnames) {
 }
 
 // TODO(dk949): make the bools strongly typed
-void Drw::draw_rect(int x, int y, unsigned int w, unsigned int h, bool filled, bool invert) {
+void Drw::draw_rect(int x, int y, int w, int h, bool filled, bool invert) {
     if (!m_current_color) return;
 
     XSetForeground(m_dpy, m_gc, invert ? currentColor().bg.pixel : currentColor().fg.pixel);
     if (filled)
-        XFillRectangle(m_dpy, m_drawable, m_gc, x, y, w, h);
+        XFillRectangle(m_dpy, m_drawable, m_gc, x, y, static_cast<unsigned>(w), static_cast<unsigned>(h));
     else
-        XDrawRectangle(m_dpy, m_drawable, m_gc, x, y, w - 1, h - 1);
+        XDrawRectangle(m_dpy, m_drawable, m_gc, x, y, static_cast<unsigned>(w - 1), static_cast<unsigned>(h - 1));
 }
 
 // TODO(dk949): make the bools strongly typed

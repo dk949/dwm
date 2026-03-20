@@ -837,8 +837,8 @@ void drawbar(MonitorRef const &m) {
         if (occ & 1 << i) {
             drw->draw_rect(x + boxs,
                 boxs,
-                (unsigned)boxw,
-                (unsigned)boxw,
+                boxw,
+                boxw,
                 m == selmon && (selmon->sel != nullptr) && ((selmon->sel->tags & 1 << i) != 0u),
                 ((int)(urg & 1 << i)) != 0);
         }
@@ -853,11 +853,11 @@ void drawbar(MonitorRef const &m) {
             drw->setColor(m == selmon ? &drw->scheme().info_sel : &drw->scheme().info_norm);
             drw->draw_text(x, 0, w, bar_height, lrpad / 2, m->sel->name.data(), false);
             if (m->sel->props.isfloating) {
-                drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->props.isfixed, false);
+                drw->draw_rect(x + boxs, boxs, boxw, boxw, m->sel->props.isfixed, false);
             }
         } else {
             drw->setColor(&drw->scheme().info_norm);
-            drw->draw_rect(x, 0, (unsigned)w, (unsigned)bar_height, /*filled*/ true, /*invert*/ true);
+            drw->draw_rect(x, 0, w, bar_height, /*filled*/ true, /*invert*/ true);
         }
     }
     if (m == selmon) {
@@ -903,11 +903,11 @@ void drawprogress(unsigned long long t, unsigned long long c, Color const *color
         int bg = 1;
         drw->setColor(cscheme);
 
-        drw->draw_rect(x, y, (unsigned)w, (unsigned)h, true, bg != 0);
+        drw->draw_rect(x, y, w, h, true, bg != 0);
         drw->draw_rect(x,
             y,
-            (unsigned)((static_cast<double>(w) * static_cast<double>(current)) / static_cast<double>(total)),
-            (unsigned)h,
+            static_cast<int>((static_cast<double>(w) * static_cast<double>(current)) / static_cast<double>(total)),
+            h,
             true,
             fg != 0);
 

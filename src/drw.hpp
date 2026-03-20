@@ -92,7 +92,7 @@ public:
     int fontset_getwidth(char const *text);
 
     int draw_text(int x, int y, int w, int h, int lpad, char const *text, bool invert);
-    void draw_rect(int x, int y, unsigned int w, unsigned int h, bool filled, bool invert);
+    void draw_rect(int x, int y, int w, int h, bool filled, bool invert);
     void map(Window win, int x, int y, unsigned int w, unsigned int h);
 
     inline void setColor(Color const *col) {
