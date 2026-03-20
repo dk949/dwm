@@ -141,6 +141,10 @@ struct Client {
     bool sendevent(Atom proto) const;
     [[nodiscard]]
     Atom getatomprop(Atom prop) const;
+    [[nodiscard]]
+    int getWidth() const;
+    [[nodiscard]]
+    int getHeight() const;
 
     [[nodiscard]]
     bool isVisibleOnTag(unsigned tag) const {

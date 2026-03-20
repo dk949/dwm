@@ -93,9 +93,7 @@ static constexpr auto INTERSECT(Rect<I> rect, MonitorRef const &m) {
     return INTERSECT(rect.x, rect.y, rect.w, rect.h, m);
 }
 
-#define WIDTH(X)  ((unsigned)(X)->size.w + 2 * (unsigned)(X)->bw + gappx)
-#define HEIGHT(X) ((unsigned)(X)->size.h + 2 * (unsigned)(X)->bw + gappx)
-#define TEXTW(X)  (drw->fontset_getwidth((X)) + (unsigned)lrpad)
+#define TEXTW(X) (drw->fontset_getwidth((X)) + (unsigned)lrpad)
 
 enum {
     NetSupported,
@@ -230,9 +228,9 @@ static volc_t *volc;
 static xcb_connection_t *xcon;
 static std::filesystem::path log_dir;
 static std::unique_ptr<EventLoop> loop = nullptr;
-static unsigned int borderpx; /* border pixel of windows */
-static unsigned int gappx;    /* gaps between windows */
-static unsigned int snap;     /* snap pixel */
+static int borderpx; /* border pixel of windows */
+static int gappx;    /* gaps between windows */
+static int snap;     /* snap pixel */
 
 struct Pertag {
     unsigned int curtag, prevtag;                                             /* current and previous tag */
@@ -295,10 +293,10 @@ bool Client::applysizehints(Rect<int> *new_size, bool interact) {
     new_size->h = std::max(1, new_size->h);
     if (interact) {
         if (new_size->x > sw) {
-            new_size->x = (int)((unsigned)sw - WIDTH(this));
+            new_size->x = sw - getWidth();
         }
         if (new_size->y > sh) {
-            new_size->y = (int)((unsigned)sh - HEIGHT(this));
+            new_size->y = sh - getHeight();
         }
         if (new_size->x + new_size->w + (2 * bw) < 0) {
             new_size->x = 0;
@@ -308,10 +306,10 @@ bool Client::applysizehints(Rect<int> *new_size, bool interact) {
         }
     } else {
         if (new_size->x >= getMon()->window_size.x + getMon()->window_size.w) {
-            new_size->x = (int)((unsigned)(getMon()->window_size.x + getMon()->window_size.w) - WIDTH(this));
+            new_size->x = getMon()->window_size.x + getMon()->window_size.w - getWidth();
         }
         if (new_size->y >= getMon()->window_size.y + getMon()->window_size.h) {
-            new_size->y = (int)((unsigned)(getMon()->window_size.y + getMon()->window_size.h) - HEIGHT(this));
+            new_size->y = getMon()->window_size.y + getMon()->window_size.h - getHeight();
         }
         if (new_size->x + new_size->w + (2 * bw) <= getMon()->window_size.x) {
             new_size->x = getMon()->window_size.x;
@@ -693,12 +691,11 @@ void configurerequest(XEvent *e) {
                 c->size.h = ev->height;
             }
             if ((c->size.x + c->size.w) > m->monitor_size.x + m->monitor_size.w && c->props.isfloating) {
-                c->size.x = (int)((unsigned)m->monitor_size.x
-                                  + ((unsigned)(m->monitor_size.w / 2) - WIDTH(c) / 2)); /* center in x direction */
+                c->size.x = m->monitor_size.x + ((m->monitor_size.w / 2) - c->getWidth() / 2); /* center in x direction */
             }
             if ((c->size.y + c->size.h) > m->monitor_size.y + m->monitor_size.h && c->props.isfloating) {
-                c->size.y = (int)((unsigned)m->monitor_size.y
-                                  + ((unsigned)(m->monitor_size.h / 2) - HEIGHT(c) / 2)); /* center in y direction */
+                c->size.y = m->monitor_size.y
+                          + ((m->monitor_size.h / 2) - c->getHeight() / 2); /* center in y direction */
             }
             if ((ev->value_mask & (CWX | CWY)) && !(ev->value_mask & (CWWidth | CWHeight))) {
                 c->configure();
@@ -1269,16 +1266,16 @@ void manage(Window w, XWindowAttributes *wa) {
         term = termforwin(c);
     }
 
-    if ((unsigned)c->size.x + WIDTH(c) > (unsigned)(c->getMon()->window_size.x + c->getMon()->window_size.w))
-        c->size.x = (int)((unsigned)(c->getMon()->window_size.x + c->getMon()->window_size.w) - WIDTH(c));
-    if ((unsigned)c->size.y + HEIGHT(c) > (unsigned)(c->getMon()->window_size.y + c->getMon()->window_size.h))
-        c->size.y = (int)((unsigned)(c->getMon()->window_size.y + c->getMon()->window_size.h) - HEIGHT(c));
+    if (c->size.x + c->getWidth() > c->getMon()->window_size.x + c->getMon()->window_size.w)
+        c->size.x = c->getMon()->window_size.x + c->getMon()->window_size.w - c->getWidth();
+    if (c->size.y + c->getHeight() > c->getMon()->window_size.y + c->getMon()->window_size.h)
+        c->size.y = c->getMon()->window_size.y + c->getMon()->window_size.h - c->getHeight();
     c->size.x = std::max(c->size.x, c->getMon()->window_size.x);
     c->size.y = std::max(c->size.y, c->getMon()->window_size.y);
 
 
 
-    c->bw = (int)borderpx;
+    c->bw = borderpx;
 
     wc.border_width = c->bw;
     XConfigureWindow(dpy, w, CWBorderWidth, &wc);
@@ -1434,15 +1431,13 @@ void movemouse() {
                 ny = ocy + (ev.xmotion.y - y);
                 if (std::cmp_less(abs(selmon->window_size.x - nx), snap)) {
                     nx = selmon->window_size.x;
-                } else if (((unsigned)(selmon->window_size.x + selmon->window_size.w) - ((unsigned)nx + WIDTH(c)))
-                           < snap) {
-                    nx = (int)((unsigned)(selmon->window_size.x + selmon->window_size.w) - WIDTH(c));
+                } else if (((selmon->window_size.x + selmon->window_size.w) - (nx + c->getWidth())) < snap) {
+                    nx = selmon->window_size.x + selmon->window_size.w - c->getWidth();
                 }
                 if (std::cmp_less(abs(selmon->window_size.y - ny), snap)) {
                     ny = selmon->window_size.y;
-                } else if (((unsigned)(selmon->window_size.y + selmon->window_size.h) - ((unsigned)ny + HEIGHT(c)))
-                           < snap) {
-                    ny = (int)((unsigned)(selmon->window_size.y + selmon->window_size.h) - HEIGHT(c));
+                } else if (selmon->window_size.y + selmon->window_size.h - (ny + c->getHeight()) < snap) {
+                    ny = selmon->window_size.y + selmon->window_size.h - c->getHeight();
                 }
                 if (!c->props.isfloating && selmon->lt[selmon->sellt]->arrange
                     && (std::cmp_greater(abs(nx - c->size.x), snap) || std::cmp_greater(abs(ny - c->size.y), snap))) {
@@ -1539,8 +1534,8 @@ void Client::resize(Rect<int> new_size, bool interact) {
 void Client::resizeclient(Rect<int> new_size) {
     XWindowChanges wc;
     unsigned int n;
-    unsigned int gapoffset;
-    unsigned int gapincr;
+    int gapoffset;
+    int gapincr;
     Client *nbc;
 
     wc.border_width = bw;
@@ -1555,7 +1550,7 @@ void Client::resizeclient(Rect<int> new_size) {
         /* Remove border and gap if layout is monocle or only one client */
         if (getMon()->lt[getMon()->sellt]->arrange == monocle || n == 1) {
             gapoffset = 0;
-            gapincr = -2u * borderpx;
+            gapincr = -2 * borderpx;
             wc.border_width = 0;
         } else {
             gapoffset = gappx;
@@ -1564,13 +1559,13 @@ void Client::resizeclient(Rect<int> new_size) {
     }
 
     old_size.x = size.x;
-    size.x = wc.x = (int)((unsigned)new_size.x + gapoffset);
+    size.x = wc.x = new_size.x + gapoffset;
     old_size.y = size.y;
-    size.y = wc.y = (int)((unsigned)new_size.y + gapoffset);
+    size.y = wc.y = new_size.y + gapoffset;
     old_size.w = size.w;
-    size.w = wc.width = (int)((unsigned)new_size.w - gapincr);
+    size.w = wc.width = new_size.w - gapincr;
     old_size.h = size.h;
-    size.h = wc.height = (int)((unsigned)new_size.h - gapincr);
+    size.h = wc.height = new_size.h - gapincr;
 
     XConfigureWindow(dpy, win, CWX | CWY | CWWidth | CWHeight | CWBorderWidth, &wc);
     configure();
@@ -1949,9 +1944,9 @@ void setup() {
         // In multimonitor setups with Xinerama, the value of `sh` becomes very
         // big as all monitors are treated as a single screen
         int avg = avgheight();
-        borderpx = (unsigned)avg / 540;
-        gappx = (unsigned)avg / 180;
-        snap = (unsigned)avg / 67;
+        borderpx = avg / 540;
+        gappx = avg / 180;
+        snap = avg / 67;
     }
 
     /* init bars */
@@ -2025,7 +2020,7 @@ void showhide(Client *c) {
     } else {
         /* hide clients bottom up */
         showhide(c->snext);
-        XMoveWindow(dpy, c->win, static_cast<int>(WIDTH(c) * -2u), c->size.y);
+        XMoveWindow(dpy, c->win, c->getWidth() * -2, c->size.y);
     }
 }
 
@@ -2052,12 +2047,12 @@ void tagmon(int arg) {
 }
 
 void tile(MonitorRef const &m) {
-    unsigned int i;
+    int i;
     unsigned int n;
     unsigned int h;
     unsigned int mw;
-    unsigned int my;
-    unsigned int ty;
+    int my;
+    int ty;
     float mfacts = 0;
     float sfacts = 0;
     Client *c;
@@ -2078,33 +2073,33 @@ void tile(MonitorRef const &m) {
 
     for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
         if (std::cmp_less(i, m->nmaster)) {
-            h = (unsigned)((float)((unsigned)m->window_size.h - my) * (c->cfact / mfacts));
+            h = (unsigned)((float)(m->window_size.h - my) * (c->cfact / mfacts));
             c->resize(
                 {
                     m->window_size.x,
-                    (int)((unsigned)m->window_size.y + my),
+                    m->window_size.y + my,
                     (int)(mw - (unsigned)(2 * c->bw)),
                     (int)(h - (2 * (unsigned)c->bw)),
                 },
                 false);
             // TODO(dk949): This is a guard against creating too many clients.
             //              Do something if there's too many clients!
-            if (my + HEIGHT(c) < (unsigned)m->window_size.h) {
-                my += HEIGHT(c);
+            if (my + c->getHeight() < m->window_size.h) {
+                my += c->getHeight();
                 mfacts -= c->cfact;
             }
         } else {
-            h = (unsigned)((float)((unsigned)m->window_size.h - ty) * (c->cfact / sfacts));
+            h = (unsigned)((float)(m->window_size.h - ty) * (c->cfact / sfacts));
             c->resize(
                 {
                     (int)((unsigned)m->window_size.x + mw),
-                    (int)((unsigned)m->window_size.y + ty),
+                    m->window_size.y + ty,
                     (int)((unsigned)m->window_size.w - mw - (2 * (unsigned)c->bw)),
                     (int)(h - (2 * (unsigned)c->bw)),
                 },
                 false);
-            if (ty + HEIGHT(c) < (unsigned)m->window_size.h) {
-                ty += HEIGHT(c);
+            if (ty + c->getHeight() < m->window_size.h) {
+                ty += c->getHeight();
                 sfacts -= c->cfact;
             }
         }
@@ -2667,6 +2662,16 @@ MonitorRef Client::getMon() {
         return m;
 }
 
+[[nodiscard]]
+int Client::getWidth() const {
+    return size.w + (2 * bw) + gappx;
+}
+
+[[nodiscard]]
+int Client::getHeight() const {
+    return size.h + (2 * bw) + gappx;
+}
+
 pid_t getparentprocess(pid_t p) {
     unsigned int v = 0;
 
@@ -2962,14 +2967,14 @@ int main(int argc, char *argv[]) {
 }
 
 void centeredmaster(MonitorRef const &m) {
-    unsigned int i;
-    unsigned int n;
-    unsigned int h;
+    int i;
+    int n;
+    int h;
     unsigned int mw;
     unsigned int mx;
-    unsigned int my;
-    unsigned int oty;
-    unsigned int ety;
+    int my;
+    int oty;
+    int ety;
     unsigned int tw;
     Client *c;
 
@@ -2992,7 +2997,7 @@ void centeredmaster(MonitorRef const &m) {
         mw = m->nmaster ? (unsigned)((float)m->window_size.w * m->mfact) : 0;
         tw = (unsigned)m->window_size.w - mw;
 
-        if (n - (unsigned)m->nmaster > 1) {
+        if (n - m->nmaster > 1) {
             /* only one client */
             mx = ((unsigned)m->window_size.w - mw) / 2;
             tw = ((unsigned)m->window_size.w - mw) / 2;
@@ -3005,62 +3010,62 @@ void centeredmaster(MonitorRef const &m) {
         if (std::cmp_less(i, m->nmaster)) {
             /* nmaster clients are stacked vertically, in the center
              * of the screen */
-            h = ((unsigned)m->window_size.h - my) / (std::min(n, (unsigned)m->nmaster) - i);
+            h = (m->window_size.h - my) / (std::min(n, m->nmaster) - i);
             c->resize(
                 {
                     (int)((unsigned)m->window_size.x + mx),
-                    (int)((unsigned)m->window_size.y + my),
+                    m->window_size.y + my,
                     (int)(mw - (unsigned)(2 * c->bw)),
-                    (int)(h - (unsigned)(2 * c->bw)),
+                    h - (2 * c->bw),
                 },
                 false);
             // TODO(dk949): This is a guard against creating too many clients.
             //              Do something if there's too many clients!
             // TODO(dk949): make this cfact aware
-            if (my + HEIGHT(c) < (unsigned)m->window_size.h) my += HEIGHT(c);
+            if (my + c->getHeight() < m->window_size.h) my += c->getHeight();
         } else {
             /* stack clients are stacked vertically */
-            if ((i - (unsigned)m->nmaster) % 2) {
-                h = ((unsigned)m->window_size.h - ety) / ((1 + n - i) / 2);
+            if ((i - m->nmaster) % 2) {
+                h = (m->window_size.h - ety) / ((1 + n - i) / 2);
                 c->resize(
                     {
                         m->window_size.x,
-                        (int)((unsigned)m->window_size.y + ety),
+                        m->window_size.y + ety,
                         (int)(tw - (unsigned)(2 * c->bw)),
-                        (int)(h - (unsigned)(2 * c->bw)),
+                        h - (2 * c->bw),
                     },
                     false);
                 // TODO(dk949): This is a guard against creating too many clients.
                 //              Do something if there's too many clients!
                 // TODO(dk949): make this cfact aware
-                if (ety + HEIGHT(c) < (unsigned)m->window_size.h) ety += HEIGHT(c);
+                if (ety + c->getHeight() < m->window_size.h) ety += c->getHeight();
             } else {
-                h = ((unsigned)m->window_size.h - oty) / ((1 + n - i) / 2);
+                h = (m->window_size.h - oty) / ((1 + n - i) / 2);
                 c->resize(
                     {
                         (int)((unsigned)m->window_size.x + mx + mw),
-                        (int)((unsigned)m->window_size.y + oty),
+                        m->window_size.y + oty,
                         (int)(tw - (unsigned)(2 * c->bw)),
-                        (int)(h - (unsigned)(2 * c->bw)),
+                        h - (2 * c->bw),
                     },
                     false);
-                if (oty + HEIGHT(c) < (unsigned)m->window_size.h) oty += HEIGHT(c);
+                if (oty + c->getHeight() < m->window_size.h) oty += c->getHeight();
             }
         }
     }
 }
 
 void centeredfloatingmaster(MonitorRef const &m) {
-    unsigned int i;
-    unsigned int n;
-    unsigned int w;
-    unsigned int mh;
-    unsigned int mw;
-    unsigned int mx;
-    unsigned int mxo;
-    unsigned int my;
-    unsigned int myo;
-    unsigned int tx;
+    int i;
+    int n;
+    int w;
+    int mh;
+    int mw;
+    int mx;
+    int mxo;
+    int my;
+    int myo;
+    int tx;
     Client *c;
 
     /* count number of clients in the selected monitor */
@@ -3075,18 +3080,18 @@ void centeredfloatingmaster(MonitorRef const &m) {
     if (std::cmp_greater(n, m->nmaster)) {
         /* go mfact box in the center if more than nmaster clients */
         if (m->window_size.w > m->window_size.h) {
-            mw = m->nmaster ? (unsigned)((float)m->window_size.w * m->mfact) : 0;
-            mh = m->nmaster ? (unsigned)(m->window_size.h * 0.9) : 0;
+            mw = m->nmaster ? static_cast<int>((float)m->window_size.w * m->mfact) : 0;
+            mh = m->nmaster ? static_cast<int>(m->window_size.h * 0.9) : 0;
         } else {
-            mh = m->nmaster ? (unsigned)((float)m->window_size.h * m->mfact) : 0;
-            mw = m->nmaster ? (unsigned)(m->window_size.w * 0.9) : 0;
+            mh = m->nmaster ? static_cast<int>((float)m->window_size.h * m->mfact) : 0;
+            mw = m->nmaster ? static_cast<int>(m->window_size.w * 0.9) : 0;
         }
-        mx = mxo = ((unsigned)m->window_size.w - mw) / 2;
-        my = myo = ((unsigned)m->window_size.h - mh) / 2;
+        mx = mxo = (m->window_size.w - mw) / 2;
+        my = myo = (m->window_size.h - mh) / 2;
     } else {
         /* go fullscreen if all clients are in the master area */
-        mh = (unsigned)m->window_size.h;
-        mw = (unsigned)m->window_size.w;
+        mh = m->window_size.h;
+        mw = m->window_size.w;
         mx = mxo = 0;
         my = myo = 0;
     }
@@ -3095,28 +3100,28 @@ void centeredfloatingmaster(MonitorRef const &m) {
         if (std::cmp_less(i, m->nmaster)) {
             /* nmaster clients are stacked horizontally, in the center
              * of the screen */
-            w = (mw + mxo - mx) / (std::min(n, (unsigned)m->nmaster) - i);
+            w = (mw + mxo - mx) / (std::min(n, m->nmaster) - i);
             c->resize(
                 {
-                    (int)((unsigned)m->window_size.x + mx),
-                    (int)((unsigned)m->window_size.y + my),
-                    (int)(w - (unsigned)(2 * c->bw)),
-                    (int)(mh - (unsigned)(2 * c->bw)),
+                    m->window_size.x + mx,
+                    m->window_size.y + my,
+                    w - (2 * c->bw),
+                    mh - (2 * c->bw),
                 },
                 false);
-            mx += WIDTH(c);
+            mx += c->getWidth();
         } else {
             /* stack clients are stacked horizontally */
-            w = ((unsigned)m->window_size.w - tx) / (n - i);
+            w = (m->window_size.w - tx) / (n - i);
             c->resize(
                 {
-                    (int)((unsigned)m->window_size.x + tx),
+                    m->window_size.x + tx,
                     m->window_size.y,
-                    (int)(w - (unsigned)(2 * c->bw)),
+                    w - (2 * c->bw),
                     m->window_size.h - (2 * c->bw),
                 },
                 false);
-            tx += WIDTH(c);
+            tx += c->getWidth();
         }
     }
 }
