@@ -93,7 +93,7 @@ static constexpr auto INTERSECT(Rect<I> rect, MonitorRef const &m) {
     return INTERSECT(rect.x, rect.y, rect.w, rect.h, m);
 }
 
-#define TEXTW(X) (drw->fontset_getwidth((X)) + (unsigned)lrpad)
+#define TEXTW(X) (drw->fontset_getwidth((X)) + lrpad)
 
 enum {
     NetSupported,
@@ -518,16 +518,16 @@ void buttonpress(XEvent *e) {
     }
     if (ev->window == selmon->barwin) {
         unsigned int i = 0;
-        unsigned int x = 0;
+        int x = 0;
         do {
             x += TEXTW(tag_symbols[i]);
         } while (std::cmp_greater_equal(ev->x, x) && ++i < tag_symbols.size());
         if (i < tag_symbols.size()) {
             click = ClkTagBar;
             arg = 1u << i;
-        } else if ((unsigned)ev->x < x + TEXTW(selmon->layoutSymbol.data())) {
+        } else if (ev->x < x + TEXTW(selmon->layoutSymbol.data())) {
             click = ClkLtSymbol;
-        } else if (ev->x > selmon->window_size.w - (int)TEXTW(stext)) {
+        } else if (ev->x > selmon->window_size.w - TEXTW(stext)) {
             click = ClkStatusText;
         } else {
             click = ClkWinTitle;
@@ -804,18 +804,18 @@ MonitorRef dirtomon(int dir) {
 //              (common if monitor is vertical)
 void drawbar(MonitorRef const &m) {
     int text_width = 0;
-    auto const boxs = (int)(drw->fonts().h / 9u);
-    auto const boxw = (int)((drw->fonts().h / 6u) + 2u);
+    auto const boxs = drw->fonts().h / 9;
+    auto const boxw = (drw->fonts().h / 6) + 2;
     unsigned int occ = 0;
     unsigned int urg = 0;
 
     if (!m->showbar) return;
 
     /* draw status first so it can be overdrawn by tags later */
-    if (m == selmon) {                                          /* status is only drawn on selected monitor */
+    if (m == selmon) {                         /* status is only drawn on selected monitor */
         drw->setColor(&drw->scheme().status);
-        text_width = (int)(TEXTW(stext) - (unsigned)lrpad + 2); /* 2px right padding */
-        drw->draw_text(m->window_size.w - text_width, 0, (unsigned)text_width, (unsigned)bar_height, 0, stext, false);
+        text_width = TEXTW(stext) - lrpad + 2; /* 2px right padding */
+        drw->draw_text(m->window_size.w - text_width, 0, text_width, bar_height, 0, stext, false);
     }
 
     for (Client *c = m->clients; c; c = c->next) {
@@ -826,13 +826,13 @@ void drawbar(MonitorRef const &m) {
     }
     int x = 0;
     for (unsigned i = 0; i < tag_symbols.size(); i++) {
-        int w = (int)TEXTW(tag_symbols[i]);
+        int w = TEXTW(tag_symbols[i]);
         if (m->tagset[m->seltags] & 1 << i)
             drw->setColor(&drw->scheme().tags_sel);
         else
             drw->setColor(&drw->scheme().tags_norm);
 
-        drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), tag_symbols[i], (urg & 1 << i) != 0u);
+        drw->draw_text(x, 0, w, bar_height, lrpad / 2, tag_symbols[i], (urg & 1 << i) != 0u);
         if (occ & 1 << i) {
             drw->draw_rect(x + boxs,
                 boxs,
@@ -844,19 +844,13 @@ void drawbar(MonitorRef const &m) {
         x += w;
     }
     drw->setColor(&drw->scheme().tags_norm);
-    x = drw->draw_text(x,
-        0,
-        TEXTW(m->layoutSymbol.data()),
-        (unsigned)bar_height,
-        (unsigned)(lrpad / 2),
-        m->layoutSymbol.data(),
-        false);
+    x = drw->draw_text(x, 0, TEXTW(m->layoutSymbol.data()), bar_height, lrpad / 2, m->layoutSymbol.data(), false);
 
     int w = m->window_size.w - text_width - x;
     if (w > bar_height) {
         if (m->sel) {
             drw->setColor(m == selmon ? &drw->scheme().info_sel : &drw->scheme().info_norm);
-            drw->draw_text(x, 0, (unsigned)w, (unsigned)bar_height, (unsigned)(lrpad / 2), m->sel->name.data(), false);
+            drw->draw_text(x, 0, w, bar_height, lrpad / 2, m->sel->name.data(), false);
             if (m->sel->props.isfloating) {
                 drw->draw_rect(x + boxs, boxs, (unsigned)boxw, (unsigned)boxw, m->sel->props.isfixed, false);
             }

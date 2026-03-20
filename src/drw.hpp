@@ -50,7 +50,7 @@ public:
 
 struct Fnt {
     Display *dpy = nullptr;
-    unsigned int h = 0;
+    int h = 0;
     XftFont *xfont = nullptr;
     FcPattern *pattern = nullptr;
     bool operator==(Fnt const &) const = default;
@@ -89,9 +89,9 @@ public:
 
     void setColorScheme(ColorSchemeName clrnames);
 
-    unsigned int fontset_getwidth(char const *text);
+    int fontset_getwidth(char const *text);
 
-    int draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, bool invert);
+    int draw_text(int x, int y, int w, int h, int lpad, char const *text, bool invert);
     void draw_rect(int x, int y, unsigned int w, unsigned int h, bool filled, bool invert);
     void map(Window win, int x, int y, unsigned int w, unsigned int h);
 
@@ -128,6 +128,6 @@ private:
 
 /* Fnt abstraction */
 void drw_fontset_free(std::vector<Fnt> &set);
-void drw_font_getexts(Fnt *font, char const *text, std::size_t len, unsigned int *w, unsigned int *h);
+void drw_font_getexts(Fnt *font, char const *text, std::size_t len, int *w, int *h);
 
 #endif  // DWM_DRW_HPP

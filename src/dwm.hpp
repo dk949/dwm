@@ -202,10 +202,4 @@ constexpr int get(RootPointer s) {
         return s.y;
 }
 
-static_assert([] {
-    constexpr RootPointer rp {.x = 1, .y = 2, .success = true};
-    if ([[maybe_unused]] auto [x, y] = rp) { }
-    return true;
-}());
-
 #endif  // DWM_HPP

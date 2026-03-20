@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <limits>
 #include <span>
 
 #define UTF_INVALID 0xFFFD
@@ -117,7 +118,7 @@ std::optional<Fnt> Drw::xfont_create(char const *fontname) {
         XftFontClose(m_dpy, font.xfont);
         return std::nullopt;
     }
-    font.h = (unsigned)(font.xfont->ascent + font.xfont->descent);
+    font.h = font.xfont->ascent + font.xfont->descent;
     font.dpy = m_dpy;
 
     return font;
@@ -137,7 +138,7 @@ std::optional<Fnt> Drw::xfont_create(FcPattern *fontpattern) {
         return std::nullopt;
     }
 
-    font.h = (unsigned)(font.xfont->ascent + font.xfont->descent);
+    font.h = font.xfont->ascent + font.xfont->descent;
     font.dpy = m_dpy;
 
     return font;
@@ -203,10 +204,10 @@ void Drw::draw_rect(int x, int y, unsigned int w, unsigned int h, bool filled, b
 }
 
 // TODO(dk949): make the bools strongly typed
-int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lpad, char const *text, bool invert) {
+int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool invert) {
     int ellipsis_x = 0;
-    unsigned int tmpw = 0;
-    unsigned int ellipsis_w = 0;
+    int tmpw = 0;
+    int ellipsis_w = 0;
     XftDraw *d = nullptr;
     int render = x || y || w || h;
     long utf8codepoint = 0;
@@ -223,15 +224,15 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
         unsigned int idx;
     } nomatches;
 
-    static unsigned int ellipsis_width = 0;
+    static int ellipsis_width = 0;
 
     if ((render && (!m_current_color || !w)) || !text) return 0;
 
     if (!render) {
-        w = invert ? 1u : ~0u;
+        w = invert ? 1u : std::numeric_limits<int>::max();
     } else {
         XSetForeground(m_dpy, m_gc, currentColor().invert(invert).bg.pixel);
-        XFillRectangle(m_dpy, m_drawable, m_gc, x, y, w, h);
+        XFillRectangle(m_dpy, m_drawable, m_gc, x, y, static_cast<unsigned>(w), static_cast<unsigned>(h));
         d = XftDrawCreate(m_dpy, m_drawable, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen));
         x += (int)lpad;
         w -= lpad;
@@ -240,7 +241,7 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
     Fnt usedfont = m_fonts.front();
     if (!ellipsis_width && render) ellipsis_width = fontset_getwidth("...");
     while (true) {
-        unsigned ew = 0;
+        int ew = 0;
         std::size_t ellipsis_len = 0;
         std::size_t utf8strlen = 0;
         char const *utf8str = text;
@@ -253,7 +254,7 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
                     drw_font_getexts(&curfont, text, utf8charlen, &tmpw, nullptr);
                     if (ew + ellipsis_width <= w) {
                         /* keep track where the ellipsis still fits */
-                        ellipsis_x = (int)((unsigned)x + ew);
+                        ellipsis_x = x + ew;
                         ellipsis_w = w - ew;
                         ellipsis_len = utf8strlen;
                     }
@@ -286,7 +287,7 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
 
         if (utf8strlen) {
             if (render) {
-                auto ty = (unsigned)y + (h - usedfont.h) / 2 + (unsigned)usedfont.xfont->ascent;
+                auto ty = y + ((h - usedfont.h) / 2) + usedfont.xfont->ascent;
                 XftDrawStringUtf8(d,
                     &currentColor().invert(invert).fg,
                     usedfont.xfont,
@@ -361,7 +362,7 @@ int Drw::draw_text(int x, int y, unsigned int w, unsigned int h, unsigned int lp
         XftDrawDestroy(d);
     }
 
-    return (int)((unsigned)x + (render ? w : 0));
+    return x + (render ? w : 0);
 }
 
 void Drw::map(Window win, int x, int y, unsigned int w, unsigned int h) {
@@ -369,13 +370,13 @@ void Drw::map(Window win, int x, int y, unsigned int w, unsigned int h) {
     XSync(m_dpy, False);
 }
 
-unsigned int Drw::fontset_getwidth(char const *text) {
+int Drw::fontset_getwidth(char const *text) {
     if (!text) return 0;
 
-    return (unsigned)draw_text(0, 0, 0, 0, 0, text, 0);
+    return draw_text(0, 0, 0, 0, 0, text, false);
 }
 
-void drw_font_getexts(Fnt *font, char const *text, std::size_t len, unsigned int *w, unsigned int *h) {
+void drw_font_getexts(Fnt *font, char const *text, std::size_t len, int *w, int *h) {
     XGlyphInfo ext;
 
     if (!font || !text) {
@@ -384,9 +385,9 @@ void drw_font_getexts(Fnt *font, char const *text, std::size_t len, unsigned int
 
     XftTextExtentsUtf8(font->dpy, font->xfont, (XftChar8 *)text, (int)len, &ext);
     if (w) {
-        *w = (unsigned)ext.xOff;
+        *w = ext.xOff;
     }
     if (h) {
-        *h = font->h;
+        *h = (int)font->h;
     }
 }
