@@ -45,7 +45,7 @@ option(ENABLE_MACRO_PREFIX "Enable __FILE__ macro replacement" ${IS_NOT_DEBUG})
 set(MACRO_PREFIX "./" CACHE STRING "Make __FILE__ macro relative to particular directory")
 
 # Language standard and extensions
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # event logging

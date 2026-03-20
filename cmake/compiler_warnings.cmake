@@ -61,6 +61,7 @@ function (set_target_warnings project_name #[[access]])
         -Wimplicit-fallthrough # implicit fallthrough for cases
         -Wmisleading-indentation # warn if indentation implies blocks where blocks do not exist
         -Wsuggest-override # suggest virtual function is marked override if it overrides something
+        -Wno-c++26-extensions
     )
     # Warnings which are not errors even when -Werror is on
     gnu_add_no_error(COMMON_WARNINGS unused-but-set-parameter)

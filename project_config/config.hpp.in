@@ -70,8 +70,19 @@
 #    define ${PROJECT_NAME_CAPS}_CXX_STD __cplusplus
 #endif
 
-#if ${PROJECT_NAME_CAPS}_CXX_STD >= 202302L
+#if ${PROJECT_NAME_CAPS}_CXX_STD >= 202400L
+#   define ${PROJECT_NAME_CAPS}_STD_CXX26
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX26 1
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX23 1
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX20 1
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX17 1
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX14 1
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX11 1
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX03 1
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX98 1
+#elif ${PROJECT_NAME_CAPS}_CXX_STD >= 202302L
 #   define ${PROJECT_NAME_CAPS}_STD_CXX23
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX26 0
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX23 1
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX20 1
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX17 1
@@ -81,6 +92,7 @@
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX98 1
 #elif ${PROJECT_NAME_CAPS}_CXX_STD >= 202002L
 #   define ${PROJECT_NAME_CAPS}_STD_CXX20
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX26 0
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX23 0
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX20 1
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX17 1
@@ -90,6 +102,7 @@
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX98 1
 #elif ${PROJECT_NAME_CAPS}_CXX_STD >= 201703L
 #   define ${PROJECT_NAME_CAPS}_STD_CXX17
+#   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX26 0
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX23 0
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX20 0
 #   define ${PROJECT_NAME_CAPS}_HAS_STD_CXX17 1
@@ -148,10 +161,12 @@ namespace version {
 } // namespace compiler
 
 namespace lang {
-    enum struct Std : unsigned char { Cxx98, Cxx03, Cxx11, Cxx14, Cxx17, Cxx20, Cxx23 };
+    enum struct Std : unsigned char { Cxx98, Cxx03, Cxx11, Cxx14, Cxx17, Cxx20, Cxx23, Cxx26 };
 
     inline constexpr auto std =
-#if ${PROJECT_NAME_CAPS}_HAS_STD_CXX23
+#if ${PROJECT_NAME_CAPS}_HAS_STD_CXX26
+        Std::Cxx26
+#elif ${PROJECT_NAME_CAPS}_HAS_STD_CXX23
         Std::Cxx23
 #elif ${PROJECT_NAME_CAPS}_HAS_STD_CXX20
         Std::Cxx20
@@ -161,7 +176,9 @@ namespace lang {
     ;
 
     inline constexpr auto std_num =
-#if ${PROJECT_NAME_CAPS}_HAS_STD_CXX23
+#if ${PROJECT_NAME_CAPS}_HAS_STD_CXX26
+        26
+#elif ${PROJECT_NAME_CAPS}_HAS_STD_CXX23
         23
 #elif ${PROJECT_NAME_CAPS}_HAS_STD_CXX20
         20
@@ -171,7 +188,9 @@ namespace lang {
     ;
 
     inline constexpr std::string_view std_str =
-#if ${PROJECT_NAME_CAPS}_HAS_STD_CXX23
+#if ${PROJECT_NAME_CAPS}_HAS_STD_CXX26
+        "C++ 26"
+#elif ${PROJECT_NAME_CAPS}_HAS_STD_CXX23
         "C++ 23"
 #elif ${PROJECT_NAME_CAPS}_HAS_STD_CXX20
         "C++ 20"
