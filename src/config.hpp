@@ -229,7 +229,7 @@ static constexpr auto keys = std::array {
     Key{MODKEY | ShiftMask               , XK_l      , setcfact       , -0.25f         } ,
     Key{MODKEY | ShiftMask               , XK_o      , resetmcfact    , {}             } ,
     Key{MODKEY | ShiftMask               , XK_Return , zoom           , {}             } ,
-    Key{MODKEY                           , XK_Tab    , view           , {}             } ,
+    Key{MODKEY                           , XK_Tab    , view           , 0u             } ,
     Key{MODKEY                           , XK_w      , killclient     , {}             } ,
     Key{MODKEY                           , XK_F5     , bright_dec     , 5.0            } ,
     Key{MODKEY                           , XK_F6     , bright_inc     , 5.0            } ,
