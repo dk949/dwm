@@ -458,25 +458,25 @@ void unswallow(Client *c) {
 }
 
 void bright_dec(double arg) {
-    if (bright_dec_(arg)) return;
+    if (brightDec_(arg) != BacklightError::Ok) return;
 
     auto newval = std::nan("");
-    if (bright_get_(&newval)) return;
+    if (brightGet_(&newval) != BacklightError::Ok) return;
 
     drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_inc(double arg) {
-    if (bright_inc_(arg)) return;
+    if (brightInc_(arg) != BacklightError::Ok) return;
 
     auto newval = std::nan("");
-    if (bright_get_(&newval)) return;
+    if (brightGet_(&newval) != BacklightError::Ok) return;
 
     drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_set(double arg) {
-    if (bright_set_(arg)) return;
+    if (brightSet_(arg) != BacklightError::Ok) return;
 
     drawprogress(100, static_cast<unsigned long long>(arg), &drw->scheme().bright_progress);
 }
@@ -1900,7 +1900,7 @@ void setup() {
         lg::fatal("no fonts could be loaded.");
     }
 
-    if (bright_setup(get_bright_set_file(), get_bright_get_file(), get_bright_max_file())) {
+    if (brightSetup(get_bright_set_file(), get_bright_get_file(), get_bright_max_file()) != BacklightError::Ok) {
         lg::fatal("backlight setup failed");
     }
 
