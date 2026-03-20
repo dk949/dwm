@@ -459,7 +459,7 @@ void unswallow(Client *c) {
 void bright_dec(double arg) {
     if (bright_dec_(arg)) return;
 
-    double newval = NAN;
+    auto newval = std::nan("");
     if (bright_get_(&newval)) return;
 
     drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
@@ -468,7 +468,7 @@ void bright_dec(double arg) {
 void bright_inc(double arg) {
     if (bright_inc_(arg)) return;
 
-    double newval = NAN;
+    auto newval = std::nan("");
     if (bright_get_(&newval)) return;
 
     drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
