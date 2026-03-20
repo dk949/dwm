@@ -62,7 +62,7 @@ using Clr = XftColor;
 
 struct Drw {
 private:
-    ColorScheme m_scheme;
+    ColorScheme m_scheme{};
     Color const *m_current_color = nullptr;
     int m_screen_width;
     int m_screen_height;
@@ -95,22 +95,22 @@ public:
     void draw_rect(int x, int y, int w, int h, bool filled, bool invert);
     void map(Window win, int x, int y, unsigned int w, unsigned int h);
 
-    inline void setColor(Color const *col) {
+    void setColor(Color const *col) {
         m_current_color = col;
     }
 
     [[nodiscard]]
-    inline ColorScheme const &scheme() const {
+    ColorScheme const &scheme() const {
         return m_scheme;
     }
 
     [[nodiscard]]
-    inline Color const &currentColor() const {
+    Color const &currentColor() const {
         return *m_current_color;
     }
 
     [[nodiscard]]
-    inline Fnt const &fonts() const {
+    Fnt const &fonts() const {
         return m_fonts.front();
     }
 

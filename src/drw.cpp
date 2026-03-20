@@ -5,32 +5,33 @@
 #include "log.hpp"
 #include "util.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include <array>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <limits>
 #include <span>
 
-#define UTF_INVALID 0xFFFD
-#define UTF_SIZ     4uz
+static constexpr auto UTF_INVALID = 0xFFFD;
+static constexpr auto UTF_SIZ = 4uz;
 
-static unsigned char const utfbyte[UTF_SIZ + 1] = {0x80, 0, 0xC0, 0xE0, 0xF0};
-static unsigned char const utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
-static long const utfmin[UTF_SIZ + 1] = {0, 0, 0x80, 0x800, 0x10000};
-static long const utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
+enum UtfInvalidRange { begin = 0xD800, end = 0xDFFF };
 
-static long utf8decodebyte(char const c, size_t *i) {
-    for (*i = 0; *i < (UTF_SIZ + 1); ++(*i)) {
-        if (((unsigned char)c & utfmask[*i]) == utfbyte[*i]) {
-            return (unsigned char)c & ~utfmask[*i];
-        }
-    }
+static constexpr std::array<unsigned char, UTF_SIZ + 1> utfbyte {0x80, 0, 0xC0, 0xE0, 0xF0};
+static constexpr std::array<unsigned char, UTF_SIZ + 1> utfmask {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
+static constexpr std::array<long, UTF_SIZ + 1> utfmin {0, 0, 0x80, 0x800, 0x10000};
+static constexpr std::array<long, UTF_SIZ + 1> utfmax {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
+
+static long utf8decodebyte(char c, size_t *i) {
+    for (*i = 0; *i < (UTF_SIZ + 1); ++(*i))
+        if ((static_cast<unsigned char>(c) & utfmask[*i]) == utfbyte[*i])
+            return static_cast<unsigned char>(c) & static_cast<unsigned char>(~utfmask[*i]);
+
     return 0;
 }
 
 static size_t utf8validate(long *u, size_t i) {
-    if (!between(*u, utfmin[i], utfmax[i]) || between(*u, 0xD800, 0xDFFF)) {
+    if (!between(*u, utfmin[i], utfmax[i]) || between(*u, UtfInvalidRange::begin, UtfInvalidRange::end)) {
         *u = UTF_INVALID;
     }
     for (i = 1; *u > utfmax[i]; ++i) {
@@ -42,8 +43,8 @@ static size_t utf8validate(long *u, size_t i) {
 static size_t utf8decode(char const *c, long *u, size_t clen) {
     size_t i;
     size_t j;
-    size_t len;
-    size_t type;
+    size_t len = 0;
+    size_t type = 0;
 
     *u = UTF_INVALID;
     if (!clen) {
@@ -54,7 +55,7 @@ static size_t utf8decode(char const *c, long *u, size_t clen) {
         return 1;
     }
     for (i = 1, j = 1; i < clen && j < len; ++i, ++j) {
-        udecoded = (udecoded << 6) | utf8decodebyte(c[i], &type);
+        udecoded = (udecoded << 6u) | utf8decodebyte(c[i], &type);
         if (type) {
             return j;
         }
@@ -192,8 +193,6 @@ Color Drw::nameToColor(ColorName const &name) const {
     return out;
 };
 
-/* Wrapper to create color schemes. The caller has to call free(3) on the
- * returned color scheme when done using it. */
 void Drw::setColorScheme(ColorSchemeName clrnames) {
 #undef DRW_COLOR_SCHEME_FIELDS_DO
 #define DRW_COLOR_SCHEME_FIELDS_DO(f) m_scheme.f = nameToColor(clrnames.f);
@@ -225,10 +224,11 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
     // TODO(dk949): use an actual UTF-8 library
 
     /* keep track of a couple codepoints for which we have no match. */
+
     static constexpr auto nomatches_len = 64;
 
     static struct {
-        long codepoint[nomatches_len];
+        std::array<long, nomatches_len> codepoint;
         unsigned int idx;
     } nomatches;
 
@@ -320,9 +320,9 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
             charexists = 1;
 
             bool no_match = false;
-            for (int i = 0; i < nomatches_len; ++i) {
+            for (long codepoint : nomatches.codepoint) {
                 /* avoid calling XftFontMatch if we know we won't find a match */
-                if (utf8codepoint == nomatches.codepoint[i]) {
+                if (utf8codepoint == codepoint) {
                     no_match = true;
                     usedfont = m_fonts.front();
                     break;
