@@ -332,10 +332,11 @@ bool Client::applysizehints(Rect<int> *new_size, bool interact) {
         }
         /* adjust for aspect limits */
         if (mina > 0 && maxa > 0) {
-            if (maxa < (float)new_size->w / (float)new_size->h) {
-                new_size->w = (int)(((float)new_size->h * maxa) + 0.5f);
-            } else if (mina < (float)new_size->h / (float)new_size->w) {
-                new_size->h = (int)(((float)new_size->w * mina) + 0.5f);
+
+            if (maxa < static_cast<float>(new_size->w) / static_cast<float>(new_size->h)) {
+                new_size->w = static_cast<int>(std::lround(static_cast<float>(new_size->h) * maxa));
+            } else if (mina < static_cast<float>(new_size->h) / static_cast<float>(new_size->w)) {
+                new_size->h = static_cast<int>(std::lround(static_cast<float>(new_size->w) * mina));
             }
         }
         if (baseismin) { /* increment calculation requires this */
