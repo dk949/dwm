@@ -373,8 +373,17 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
     return x + (render ? w : 0);
 }
 
-void Drw::map(Window win, int x, int y, unsigned int w, unsigned int h) {
-    XCopyArea(m_dpy, m_drawable, win, m_gc, x, y, w, h, x, y);
+void Drw::map(Window win, Rect<int> dims) {
+    XCopyArea(m_dpy,
+        m_drawable,
+        win,
+        m_gc,
+        dims.x,
+        dims.y,
+        static_cast<unsigned>(dims.w),
+        static_cast<unsigned>(dims.h),
+        dims.x,
+        dims.y);
     XSync(m_dpy, False);
 }
 

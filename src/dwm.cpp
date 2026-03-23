@@ -865,7 +865,7 @@ void drawbar(MonitorRef const &m) {
         sel_bar_name_x = x;
         sel_bar_name_width = w;
     }
-    drw->map(m->barwin, 0, 0, (unsigned)m->window_size.w, (unsigned)bar_height);
+    drw->map(m->barwin, {.x = 0, .y = 0, .w = m->window_size.w, .h = bar_height});
     drawprogress(PROGRESS_FADE);
 }
 
@@ -912,7 +912,7 @@ void drawprogress(unsigned long long t, unsigned long long c, Color const *color
             true,
             fg != 0);
 
-        drw->map(selmon->barwin, x, y, (unsigned)w, (unsigned)h);
+        drw->map(selmon->barwin, {.x = x, .y = y, .w = w, .h = h});
         loop->push(FadeBarEvent());
     }
 }

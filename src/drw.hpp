@@ -3,6 +3,7 @@
 #define DWM_DRW_HPP
 
 #include "colors.hpp"
+#include "dwm.hpp"
 #include "xidptr.hpp"
 
 #include <X11/cursorfont.h>
@@ -93,7 +94,7 @@ public:
 
     int draw_text(int x, int y, int w, int h, int lpad, char const *text, bool invert);
     void draw_rect(int x, int y, int w, int h, bool filled, bool invert);
-    void map(Window win, int x, int y, unsigned int w, unsigned int h);
+    void map(Window win, Rect<int> dims);
 
     void setColor(Color const *col) {
         m_current_color = col;
