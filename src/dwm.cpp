@@ -2872,7 +2872,8 @@ MonitorRef wintomon(Window w) {
     return selmon;
 }
 
-static __attribute_used__ void wmchange(Client *c, XClientMessageEvent *cme) {
+[[maybe_unused]]
+static void wmchange(Client *c, XClientMessageEvent *cme) {
     if (cme->format != 32 || cme->data.l[0] != IconicState)
         // Only handling iconification
         return;
