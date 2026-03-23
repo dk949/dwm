@@ -195,8 +195,8 @@ static constexpr auto keys = std::array {
     Key{MODKEY                           , XK_r      , dmenu_run      , {}             } ,
 #ifdef ASOUND
     Key{MODKEY                           , XK_F1     , volumechange   , VOL_MT         } ,
-    Key{MODKEY                           , XK_F2     , volumechange   , VOL_DN*5       } ,
-    Key{MODKEY                           , XK_F3     , volumechange   , VOL_UP*5       } ,
+    Key{MODKEY                           , XK_F2     , volumechange   , VOL_DN*5.f     } ,
+    Key{MODKEY                           , XK_F3     , volumechange   , VOL_UP*5.f     } ,
 #endif // ASOUND
     Key{MODKEY                           , XK_Return , spawn          , termcmd.data() } ,
     Key{MODKEY                           , XK_Next   , spawn          , lockcmd.data() } ,

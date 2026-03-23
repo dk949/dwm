@@ -2602,18 +2602,14 @@ void shiftview(int dir) {
 }
 
 #ifdef ASOUND
-void volumechange(int arg) {
-    volc_volume_state_t state;
-    if (arg == VOL_MT) {
-        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE);
-    } else {
-        state = volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC((float)arg), VOLC_CHAN_ON);
-    }
+void volumechange(float arg) {
+    auto const state = arg == VOL_MT ? volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE)
+                                     : volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC(arg), VOLC_CHAN_ON);
 
     if (state.err < 0) return;
 
     drawprogress(full_bar,
-        (unsigned long long)state.state.volume,
+        static_cast<unsigned long long>(state.state.volume),
         state.state.switch_pos ? &drw->scheme().info_progress : &drw->scheme().off_progress);
 }
 #endif

@@ -64,7 +64,9 @@ struct Button {
 
 
 #ifdef ASOUND
-enum { VOL_DN = -1, VOL_MT = 0, VOL_UP = 1 };
+static constexpr float VOL_DN = -1;
+static constexpr float VOL_MT = 0;
+static constexpr float VOL_UP = 1;
 #endif  // ASOUND
 
 void bright_dec(double arg);
@@ -102,9 +104,7 @@ void winpicker();
 void zoom();
 
 #ifdef ASOUND
-// .i
-void volumechange(int arg);
-
+void volumechange(float arg);
 #endif  // ASOUND
 
 #endif  // DWM_MAPPING_HPP
