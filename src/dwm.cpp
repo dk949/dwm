@@ -42,6 +42,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <ut/resource/resource.hpp>
 #include <ut/static_string/static_string.hpp>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
@@ -2616,34 +2617,29 @@ void volumechange(float arg) {
 
 
 pid_t winpid(Window w) {
-    pid_t result = 0;
-
     xcb_res_client_id_spec_t spec {};
-    spec.client = (uint32_t)w;
+    spec.client = static_cast<uint32_t>(w);
     spec.mask = XCB_RES_CLIENT_ID_MASK_LOCAL_CLIENT_PID;
 
     xcb_generic_error_t *e = nullptr;
     xcb_res_query_client_ids_cookie_t c = xcb_res_query_client_ids(xcon, 1, &spec);
-    xcb_res_query_client_ids_reply_t *r = xcb_res_query_client_ids_reply(xcon, c, &e);
+
+    auto r = ut::malloced(xcb_res_query_client_ids_reply(xcon, c, &e));
 
     if (!r) return 0;
 
-
-    xcb_res_client_id_value_iterator_t i = xcb_res_query_client_ids_ids_iterator(r);
-    for (; i.rem; xcb_res_client_id_value_next(&i)) {
+    for (xcb_res_client_id_value_iterator_t i = xcb_res_query_client_ids_ids_iterator(r.get());  //
+        i.rem;
+        xcb_res_client_id_value_next(&i)) {
         spec = i.data->spec;
         if (spec.mask & XCB_RES_CLIENT_ID_MASK_LOCAL_CLIENT_PID) {
             uint32_t *t = xcb_res_client_id_value_value(i.data);
-            result = (pid_t)*t;
-            break;
+            auto result = static_cast<pid_t>(*t);
+            return result == -1 ? pid_t {} : result;
         }
     }
 
-    free(r);
-
-    if (result == -1) result = 0;
-
-    return result;
+    return pid_t {};
 }
 
 MonitorRef Client::getMon() {
