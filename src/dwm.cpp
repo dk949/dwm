@@ -2966,55 +2966,43 @@ int main(int argc, char *argv[]) {
 }
 
 void centeredmaster(MonitorRef const &m) {
-    int i;
-    int n;
-    int h;
-    unsigned int mw;
-    unsigned int mx;
-    int my;
-    int oty;
-    int ety;
-    unsigned int tw;
-    Client *c;
-
     /* count number of clients in the selected monitor */
-    for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
-        ;
-    }
-    if (n == 0) {
-        return;
-    }
+    int n = 0;
+    for (auto const *c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) { }
+    if (n == 0) return;
+
 
     /* initialize areas */
-    mw = (unsigned)m->window_size.w;
-    mx = 0;
-    my = 0;
-    tw = mw;
+    int mw = m->window_size.w;
+    int mx = 0;
+    int my = 0;
+    int tw = mw;
 
     if (std::cmp_greater(n, m->nmaster)) {
         /* go mfact box in the center if more than nmaster clients */
-        mw = m->nmaster ? (unsigned)((float)m->window_size.w * m->mfact) : 0;
-        tw = (unsigned)m->window_size.w - mw;
+        mw = m->nmaster ? static_cast<int>(static_cast<float>(m->window_size.w) * m->mfact) : 0;
+        tw = m->window_size.w - mw;
 
         if (n - m->nmaster > 1) {
             /* only one client */
-            mx = ((unsigned)m->window_size.w - mw) / 2;
-            tw = ((unsigned)m->window_size.w - mw) / 2;
+            mx = (m->window_size.w - mw) / 2;
+            tw = (m->window_size.w - mw) / 2;
         }
     }
 
-    oty = 0;
-    ety = 0;
-    for (i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+    int oty = 0;
+    int ety = 0;
+    int i = 0;
+    for (auto *c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
         if (std::cmp_less(i, m->nmaster)) {
             /* nmaster clients are stacked vertically, in the center
              * of the screen */
-            h = (m->window_size.h - my) / (std::min(n, m->nmaster) - i);
+            auto const h = (m->window_size.h - my) / (std::min(n, m->nmaster) - i);
             c->resize(
                 {
-                    (int)((unsigned)m->window_size.x + mx),
+                    m->window_size.x + mx,
                     m->window_size.y + my,
-                    (int)(mw - (unsigned)(2 * c->bw)),
+                    mw - (2 * c->bw),
                     h - (2 * c->bw),
                 },
                 false);
@@ -3025,12 +3013,12 @@ void centeredmaster(MonitorRef const &m) {
         } else {
             /* stack clients are stacked vertically */
             if ((i - m->nmaster) % 2) {
-                h = (m->window_size.h - ety) / ((1 + n - i) / 2);
+                auto const h = (m->window_size.h - ety) / ((1 + n - i) / 2);
                 c->resize(
                     {
                         m->window_size.x,
                         m->window_size.y + ety,
-                        (int)(tw - (unsigned)(2 * c->bw)),
+                        tw - (2 * c->bw),
                         h - (2 * c->bw),
                     },
                     false);
@@ -3039,12 +3027,12 @@ void centeredmaster(MonitorRef const &m) {
                 // TODO(dk949): make this cfact aware
                 if (ety + c->getHeight() < m->window_size.h) ety += c->getHeight();
             } else {
-                h = (m->window_size.h - oty) / ((1 + n - i) / 2);
+                auto const h = (m->window_size.h - oty) / ((1 + n - i) / 2);
                 c->resize(
                     {
-                        (int)((unsigned)m->window_size.x + mx + mw),
+                        m->window_size.x + mx + mw,
                         m->window_size.y + oty,
-                        (int)(tw - (unsigned)(2 * c->bw)),
+                        tw - (2 * c->bw),
                         h - (2 * c->bw),
                     },
                     false);
