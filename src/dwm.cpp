@@ -2351,24 +2351,22 @@ bool updategeom() {
 
     if (xineramaIsActive(dpy)) {
         std::size_t j = 0;
-        Client *c;
         auto info = ScreenInfoPtr::query(dpy);
         std::size_t num_screen_infos = info.count();
         /* only consider unique geometries as separate screens */
         // auto *unique = new ScreenInfo[num_screen_infos];
         std::vector<ScreenInfo> unique;
         unique.resize(num_screen_infos);
-        for (size_t i = 0; i < num_screen_infos; i++) {
-            if (isuniquegeom(unique, j, info[i])) {
-                unique[j++] = info[i];
-            }
-        }
+        for (size_t i = 0; i < num_screen_infos; i++)
+            if (isuniquegeom(unique, j, info[i])) unique[j++] = info[i];
+
+
         num_screen_infos = j;
         /* new monitors available */
-        for (auto i = mons.size(); i < num_screen_infos; i++) {
+        for (auto i = mons.size(); i < num_screen_infos; i++)
             mons.push_back(createmon());
-        }
-        for (auto const &[mon, u, i] : vws::zip(mons | vws::take(num_screen_infos), unique, vws::iota(0))) {
+
+        for (auto const &[mon, u, i] : vws::zip(mons | vws::take(num_screen_infos), unique, vws::iota(0)))
             if (u.x_org != mon->monitor_size.x     //
                 || u.y_org != mon->monitor_size.y  //
                 || u.width != mon->monitor_size.w  //
@@ -2381,9 +2379,10 @@ bool updategeom() {
                 mon->monitor_size.h = mon->window_size.h = u.height;
                 updatebarpos(mon);
             }
-        }
+
         /* less monitors available nn < n */
         for (auto const &mon : mons | vws::drop(num_screen_infos) | vws::reverse) {
+            Client *c = nullptr;
             while ((c = mon->clients)) {
                 dirty = true;
                 mon->clients = c->next;
@@ -2396,12 +2395,11 @@ bool updategeom() {
             if (mon == selmon) selmon = mons.front();
             cleanupmon(mon);
         }
-        if (auto erase_start = mons.begin() + (long)num_screen_infos; erase_start <= mons.end())
+        if (auto erase_start = mons.begin() + static_cast<long>(num_screen_infos); erase_start <= mons.end())
             mons.erase(erase_start, mons.end());
     } else { /* default monitor setup */
-        if (mons.empty()) {
-            mons.push_back(createmon());
-        }
+        if (mons.empty()) mons.push_back(createmon());
+
         if (mons.front()->monitor_size.w != sw || mons.front()->monitor_size.h != sh) {
             dirty = true;
             mons.front()->monitor_size.w = mons.front()->window_size.w = sw;
