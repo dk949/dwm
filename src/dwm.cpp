@@ -2156,7 +2156,6 @@ void toggletag(unsigned arg) {
 
 void toggleview(unsigned arg) {
     unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg & TAGMASK);
-    int i;
 
     if (newtagset) {
         selmon->tagset[selmon->seltags] = newtagset;
@@ -2167,12 +2166,9 @@ void toggleview(unsigned arg) {
         }
 
         /* test if the user did not select the same tag */
-        if (!(newtagset & 1 << (selmon->pertag->curtag - 1))) {
+        if (!(newtagset & 1u << (selmon->pertag->curtag - 1u))) {
             selmon->pertag->prevtag = selmon->pertag->curtag;
-            for (i = 0; !(newtagset & 1 << i); i++) {
-                ;
-            }
-            selmon->pertag->curtag = (unsigned)(i + 1);
+            selmon->pertag->curtag = static_cast<unsigned>(std::countr_zero(newtagset) + 1);
         }
 
         /* apply settings for this view */
@@ -2180,7 +2176,7 @@ void toggleview(unsigned arg) {
         selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag];
         selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag];
         selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt];
-        selmon->lt[selmon->sellt ^ 1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1];
+        selmon->lt[selmon->sellt ^ 1u] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1u];
 
         if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag]) {
             togglebar();
