@@ -2043,17 +2043,11 @@ void tagmon(int arg) {
 }
 
 void tile(MonitorRef const &m) {
-    int i;
-    unsigned int n;
-    unsigned int h;
-    unsigned int mw;
-    int my;
-    int ty;
     float mfacts = 0;
     float sfacts = 0;
-    Client *c;
 
-    for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++)
+    int n = 0;
+    for (auto const *c = nexttiled(m->clients); c; c = nexttiled(c->next), n++)
         if (std::cmp_less(n, m->nmaster))
             mfacts += c->cfact;
         else
@@ -2062,20 +2056,24 @@ void tile(MonitorRef const &m) {
     if (n == 0) return;
 
 
+    int mw = 0;
     if (std::cmp_greater(n, m->nmaster))
-        mw = m->nmaster ? (unsigned)((float)m->window_size.w * m->mfact) : 0;
+        mw = m->nmaster ? static_cast<int>(static_cast<float>(m->window_size.w) * m->mfact) : 0;
     else
-        mw = (unsigned)m->window_size.w;
+        mw = m->window_size.w;
 
-    for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+    int my = 0;
+    int ty = 0;
+    int i = 0;
+    for (auto *c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
         if (std::cmp_less(i, m->nmaster)) {
-            h = (unsigned)((float)(m->window_size.h - my) * (c->cfact / mfacts));
+            auto const h = static_cast<int>(static_cast<float>(m->window_size.h - my) * (c->cfact / mfacts));
             c->resize(
                 {
                     m->window_size.x,
                     m->window_size.y + my,
-                    (int)(mw - (unsigned)(2 * c->bw)),
-                    (int)(h - (2 * (unsigned)c->bw)),
+                    mw - (2 * c->bw),
+                    h - (2 * c->bw),
                 },
                 false);
             // TODO(dk949): This is a guard against creating too many clients.
@@ -2085,13 +2083,13 @@ void tile(MonitorRef const &m) {
                 mfacts -= c->cfact;
             }
         } else {
-            h = (unsigned)((float)(m->window_size.h - ty) * (c->cfact / sfacts));
+            auto const h = static_cast<int>(static_cast<float>(m->window_size.h - ty) * (c->cfact / sfacts));
             c->resize(
                 {
-                    (int)((unsigned)m->window_size.x + mw),
+                    m->window_size.x + mw,
                     m->window_size.y + ty,
-                    (int)((unsigned)m->window_size.w - mw - (2 * (unsigned)c->bw)),
-                    (int)(h - (2 * (unsigned)c->bw)),
+                    m->window_size.w - mw - (2 * c->bw),
+                    h - (2 * c->bw),
                 },
                 false);
             if (ty + c->getHeight() < m->window_size.h) {
