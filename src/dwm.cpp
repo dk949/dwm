@@ -210,6 +210,7 @@ constexpr auto cfact_min = 0.25f;
 constexpr auto cfact_max = 4.0f;
 constexpr auto mfact_min = 0.05f;
 constexpr auto mfact_max = 0.95f;
+constexpr auto full_bar = 100;
 static constexpr ut::StaticString broken = "broken";
 static char stext[256];
 static int screen;
@@ -465,7 +466,7 @@ void bright_dec(double arg) {
     auto newval = std::nan("");
     if (brightGet_(&newval) != BacklightError::Ok) return;
 
-    drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
+    drawprogress(full_bar, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_inc(double arg) {
@@ -474,13 +475,13 @@ void bright_inc(double arg) {
     auto newval = std::nan("");
     if (brightGet_(&newval) != BacklightError::Ok) return;
 
-    drawprogress(100, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
+    drawprogress(full_bar, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_set(double arg) {
     if (brightSet_(arg) != BacklightError::Ok) return;
 
-    drawprogress(100, static_cast<unsigned long long>(arg), &drw->scheme().bright_progress);
+    drawprogress(full_bar, static_cast<unsigned long long>(arg), &drw->scheme().bright_progress);
 }
 
 void dmenu_run() {
@@ -2611,7 +2612,7 @@ void volumechange(int arg) {
 
     if (state.err < 0) return;
 
-    drawprogress(100,
+    drawprogress(full_bar,
         (unsigned long long)state.state.volume,
         state.state.switch_pos ? &drw->scheme().info_progress : &drw->scheme().off_progress);
 }
