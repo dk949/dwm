@@ -2556,40 +2556,30 @@ void winpicker() {
 }
 
 void view(unsigned arg) {
-    int i;
-    unsigned int tmptag;
 
-    if ((arg & TAGMASK) == selmon->tagset[selmon->seltags]) {
-        return;
-    }
-    selmon->seltags ^= 1; /* toggle sel tagset */
+    if ((arg & TAGMASK) == selmon->tagset[selmon->seltags]) return;
+
+    selmon->seltags ^= 1u; /* toggle sel tagset */
     if (arg & TAGMASK) {
         selmon->tagset[selmon->seltags] = arg & TAGMASK;
         selmon->pertag->prevtag = selmon->pertag->curtag;
 
-        if (arg == ~0u) {
+        if (arg == ~0u)
             selmon->pertag->curtag = 0;
-        } else {
-            for (i = 0; !(arg & 1 << i); i++) {
-                ;
-            }
-            selmon->pertag->curtag = (unsigned)(i + 1);
-        }
-    } else {
-        tmptag = selmon->pertag->prevtag;
-        selmon->pertag->prevtag = selmon->pertag->curtag;
-        selmon->pertag->curtag = tmptag;
-    }
+        else
+            selmon->pertag->curtag = static_cast<unsigned>(std::countr_zero(arg) + 1);
+    } else
+        std::swap(selmon->pertag->prevtag, selmon->pertag->prevtag);
+
 
     selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag];
     selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag];
     selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag];
     selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt];
-    selmon->lt[selmon->sellt ^ 1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1];
+    selmon->lt[selmon->sellt ^ 1u] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt ^ 1u];
 
-    if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag]) {
-        togglebar();
-    }
+    if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag]) togglebar();
+
 
     focus(nullptr);
     arrange(selmon);
