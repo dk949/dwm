@@ -55,6 +55,7 @@
 #include <bit>
 #include <cerrno>
 #include <charconv>
+#include <chrono>
 #include <clocale>
 #include <cmath>
 #include <cstdio>
@@ -2101,8 +2102,10 @@ void tile(MonitorRef const &m) {
 }
 
 double timespecdiff(const struct timespec *a, const struct timespec *b) {
-    double a_sec = (double)a->tv_sec + ((double)a->tv_nsec * 1e-9);
-    double b_sec = (double)b->tv_sec + ((double)b->tv_nsec * 1e-9);
+    static constexpr double nano = static_cast<double>(std::chrono::nanoseconds::period::num)
+                                 / std::chrono::nanoseconds::period::den;
+    double a_sec = static_cast<double>(a->tv_sec) + (static_cast<double>(a->tv_nsec) * nano);
+    double b_sec = static_cast<double>(b->tv_sec) + (static_cast<double>(b->tv_nsec) * nano);
     double diff = a_sec - b_sec;
     return (diff >= 0) ? diff : -diff;
 }
