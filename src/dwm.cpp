@@ -52,6 +52,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cerrno>
 #include <charconv>
 #include <clocale>
@@ -2595,6 +2596,23 @@ void view(unsigned arg) {
 
     focus(nullptr);
     arrange(selmon);
+}
+
+void shiftview(int dir) {
+    if (dir == 0) return;
+    unsigned arg = selmon->tagset[selmon->seltags] & TAGMASK;
+    auto const last_set = static_cast<unsigned>(std::countl_zero(arg));
+    auto const first_set = static_cast<unsigned>(std::countr_zero(arg));
+
+    if (dir < 0) {
+        if (first_set == 0) return;
+        arg >>= 1u;
+    } else {
+        if (last_set <= std::numeric_limits<unsigned>::digits - tag_symbols.size()) return;
+        arg <<= 1u;
+    }
+
+    view(arg);
 }
 
 #ifdef ASOUND

@@ -97,6 +97,7 @@ void togglefs();
 void toggletag(unsigned arg);
 void toggleview(unsigned arg);
 void view(unsigned arg);
+void shiftview(int dir);
 void winpicker();
 void zoom();
 

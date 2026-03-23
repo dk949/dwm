@@ -243,6 +243,8 @@ static constexpr auto keys = std::array {
     Key{MODKEY | ShiftMask               , XK_space  , togglefloating , {}             } ,
     Key{MODKEY                           , XK_0      , view           , ~0u            } ,
     Key{MODKEY | ShiftMask               , XK_0      , tag            , ~0u            } ,
+    Key{MODKEY                           , XK_Right  , shiftview      , +1             } ,
+    Key{MODKEY                           , XK_Left   , shiftview      , -1             } ,
     Key{MODKEY                           , XK_comma  , focusmon       , -1             } ,
     Key{MODKEY                           , XK_period , focusmon       , +1             } ,
     Key{MODKEY | ShiftMask               , XK_comma  , tagmon         , -1             } ,
