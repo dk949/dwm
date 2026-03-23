@@ -841,7 +841,7 @@ void drawbar(MonitorRef const &m) {
                 boxw,
                 boxw,
                 m == selmon && (selmon->sel != nullptr) && ((selmon->sel->tags & 1 << i) != 0u),
-                ((int)(urg & 1 << i)) != 0);
+                (urg & 1u << i) != 0);
         }
         x += w;
     }
@@ -1910,8 +1910,8 @@ void setup() {
 
 #endif /* ASOUND */
 
-    lrpad = (int)drw->fonts().h;
-    bar_height = (int)drw->fonts().h + 2;
+    lrpad = drw->fonts().h;
+    bar_height = drw->fonts().h + 2;
     updategeom();
     /* init atoms */
     utf8string = XInternAtom(dpy, "UTF8_STRING", False);
