@@ -158,7 +158,6 @@ static auto const layouts = std::array {
     Layout {"><>",                nullptr}, /* no layout function means floating behavior */
     Layout {"[M]",                monocle},
     Layout {"|M|",         centeredmaster},
-    Layout {">M>", centeredfloatingmaster},
 };
 static constexpr Layout const *null_layout = nullptr;
 
@@ -238,7 +237,6 @@ static constexpr auto keys = std::array {
     Key{MODKEY                           , XK_f      , setlayout      , &layouts[1]    } ,
     Key{MODKEY                           , XK_m      , setlayout      , &layouts[2]    } ,
     Key{MODKEY                           , XK_u      , setlayout      , &layouts[3]    } ,
-    Key{MODKEY                           , XK_o      , setlayout      , &layouts[4]    } ,
     Key{MODKEY                           , XK_space  , setlayout      , null_layout    } ,
     Key{MODKEY | ShiftMask               , XK_space  , togglefloating , {}             } ,
     Key{MODKEY                           , XK_0      , view           , ~0u            } ,
