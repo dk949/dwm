@@ -2417,20 +2417,15 @@ bool updategeom() {
 }
 
 void updatenumlockmask() {
-    unsigned int i;
-    unsigned int j;
-    XModifierKeymap *modmap;
+    static constexpr auto modmap_count = 8;
 
     numlockmask = 0;
-    modmap = XGetModifierMapping(dpy);
-    for (i = 0; i < 8; i++) {
-        for (j = 0; std::cmp_less(j, modmap->max_keypermod); j++) {
-            if (modmap->modifiermap[(i * (unsigned)modmap->max_keypermod) + j] == XKeysymToKeycode(dpy, XK_Num_Lock)) {
-                numlockmask = (1 << i);
-            }
-        }
-    }
-    XFreeModifiermap(modmap);
+    auto modmap = ut::Resource {XGetModifierMapping(dpy), [](XModifierKeymap *map) { XFreeModifiermap(map); }};
+    for (unsigned i = 0; i < modmap_count; ++i)
+        for (unsigned j = 0; std::cmp_less(j, modmap->max_keypermod); ++j)
+            if (modmap->modifiermap[(i * static_cast<unsigned>(modmap->max_keypermod)) + j]
+                == XKeysymToKeycode(dpy, XK_Num_Lock))
+                numlockmask = 1u << i;
 }
 
 void Client::updatesizehints() {
