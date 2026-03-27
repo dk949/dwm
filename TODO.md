@@ -59,3 +59,5 @@ List of things I'd like to implement but don't have time for
     * This might be a bug in kitty.
 * [ ] Clean up process reaping
 * [ ] Abstract away XChangeProperty
+* [ ] xor in `seltags`
+* [ ] fix UB in `volc_volume_state_t`
