@@ -29,7 +29,7 @@
 #include "log.hpp"
 #include "mapping.hpp"
 #include "proc.hpp"
-#include "strerror.hpp"
+#include "procstat.hpp"
 #include "util.hpp"
 #include "variant_utils.hpp"
 #include "winpicker.hpp"
@@ -151,7 +151,6 @@ static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
-static pid_t getparentprocess(pid_t p);
 static RootPointer getrootptr();
 static long getstate(Window w);
 static bool gettextprop(Window w, Atom atom, char *text, std::size_t size);
@@ -2658,31 +2657,6 @@ int Client::getHeight() const {
     return size.h + (2 * bw) + gappx;
 }
 
-pid_t getparentprocess(pid_t p) {
-    unsigned int v = 0;
-
-#ifdef __linux__
-    char buf[256];
-    snprintf(buf, sizeof(buf) - 1, "/proc/%u/stat", (unsigned)p);
-
-
-    auto f = FilePtr {fopen(buf, "r")};
-
-    if (!f) {
-        lg::warn("failed to open stat file {} for process {}: {}", buf, p, strError(errno));
-        return 0;
-    }
-
-    int res = fscanf(f.get(), "%*u %*s %*c %u", &v);
-    if (res != 1) {
-        lg::warn("failed to get child process of {}: {}", p, strError(errno));
-        return 0;
-    }
-#endif /* __linux__ */
-
-    return (pid_t)v;
-}
-
 static uint32_t *geticon(Client *c, unsigned long *size) {
     /*
     It also  returns a value to bytes_after_return and nitems_return, by defining the following values:
@@ -2803,7 +2777,7 @@ void installEventHandlers() {
 
 bool isdescprocess(pid_t p, pid_t c) {
     while (p != c && c != 0)
-        c = getparentprocess(c);
+        c = getPpid(c);
 
     return c != 0;
 }
