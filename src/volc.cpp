@@ -11,7 +11,7 @@
 #define CHECK_RANGE(val, min, max) (((val) < (min)) ? (min) : ((val) > (max)) ? (max) : (val))
 
 // Avoiding c math lib
-long vceil(double d) {
+static long vceil(double d) {
     /*
       if ((n - 0.0000000000000008) == floor(n))
           this will break :(
@@ -21,11 +21,11 @@ long vceil(double d) {
     return (long)(d + eps);
 }
 
-long convert_prange(float val, float min, float max) {
+static long convert_prange(float val, float min, float max) {
     return vceil((double)(val * (max - min) * 0.01f + min));
 }
 
-float convert_prange_back(long val, float min, float max) {
+static float convert_prange_back(long val, float min, float max) {
     return ((100.f * (float)val) - min) / (max - min);
 }
 
