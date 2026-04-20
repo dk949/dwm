@@ -54,7 +54,6 @@
 #include <algorithm>
 #include <array>
 #include <bit>
-#include <cerrno>
 #include <charconv>
 #include <chrono>
 #include <clocale>
