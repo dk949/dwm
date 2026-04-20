@@ -2888,6 +2888,7 @@ int main(int argc, char *argv[]) {
         (void)fputs("usage: dwm [-v]", stderr);
         return 1;
     }
+    // NOLINTNEXTLINE(concurrency-mt-unsafe) // This is not in MT context
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale()) {
         lg::warn("no locale support");
     }
