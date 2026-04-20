@@ -708,7 +708,8 @@ void configurerequest(XEvent *e) {
                 c->size.y = m->monitor_size.y
                           + ((m->monitor_size.h / 2) - (c->getHeight() / 2)); /* center in y direction */
             }
-            if ((ev->value_mask & (CWX | CWY)) && !(ev->value_mask & (CWWidth | CWHeight))) {
+            if ((ev->value_mask & (toUnsigned(CWX) | toUnsigned(CWY)))
+                && !(ev->value_mask & (toUnsigned(CWWidth) | toUnsigned(CWHeight)))) {
                 c->configure();
             }
             if (c->isVisible()) {
@@ -839,18 +840,18 @@ void drawbar(MonitorRef const &m) {
     int x = 0;
     for (unsigned i = 0; i < tag_symbols.size(); i++) {
         int w = TEXTW(tag_symbols[i]);
-        if (m->tagset[m->seltags] & 1 << i)
+        if (m->tagset[m->seltags] & 1u << i)
             drw->setColor(&drw->scheme().tags_sel);
         else
             drw->setColor(&drw->scheme().tags_norm);
 
-        drw->draw_text(x, 0, w, bar_height, lrpad / 2, tag_symbols[i], (urg & 1 << i) != 0u);
-        if (occ & 1 << i) {
+        drw->draw_text(x, 0, w, bar_height, lrpad / 2, tag_symbols[i], (urg & 1u << i) != 0u);
+        if (occ & 1u << i) {
             drw->draw_rect(x + boxs,
                 boxs,
                 boxw,
                 boxw,
-                m == selmon && (selmon->sel != nullptr) && ((selmon->sel->tags & 1 << i) != 0u),
+                m == selmon && (selmon->sel != nullptr) && ((selmon->sel->tags & 1u << i) != 0u),
                 (urg & 1u << i) != 0);
         }
         x += w;
