@@ -106,8 +106,7 @@ extern volc_volume_state_t volc_volume_ctl(
     int firstchn = 1;
     int any_set = 0;
     for (unsigned chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++) {
-        int init_value;
-        int new_value;
+        int init_value = 0;
 
         if (!(channels & (1u << chn))) continue;
 
@@ -148,6 +147,7 @@ extern volc_volume_state_t volc_volume_ctl(
             continue;
         }
 
+        int new_value = 0;
         snd_mixer_selem_get_playback_switch(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), &new_value);
         state.state.switch_pos = static_cast<channel_switch_t>(new_value);
 
