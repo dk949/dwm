@@ -17,11 +17,12 @@ static long vceil(double d) {
           this will break :(
       */
 
-    static double eps = 0.999999999999999;
+    static constexpr double eps = 0.999999999999999;
     return static_cast<long>(d + eps);
 }
 
 static long convert_prange(float val, float min, float max) {
+    // NOLINTNEXTLINE(readability-magic-numbers)
     return vceil(static_cast<double>((val * (max - min) * 0.01f) + min));
 }
 
