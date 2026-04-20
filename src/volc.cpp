@@ -18,15 +18,15 @@ static long vceil(double d) {
       */
 
     static double eps = 0.999999999999999;
-    return (long)(d + eps);
+    return static_cast<long>(d + eps);
 }
 
 static long convert_prange(float val, float min, float max) {
-    return vceil((double)(val * (max - min) * 0.01f + min));
+    return vceil(static_cast<double>(val * (max - min) * 0.01f + min));
 }
 
 static float convert_prange_back(long val, float min, float max) {
-    return ((100.f * (float)val) - min) / (max - min);
+    return ((100.f * static_cast<float>(val)) - min) / (max - min);
 }
 
 // volume as percentage: 100% is 100.0
@@ -48,11 +48,11 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
     }
 
     if (volume.action == volc_volume_t::VOLC_VOL_SAME) {
-        return convert_prange_back(orig, (float)pmin, (float)pmax);
+        return convert_prange_back(orig, static_cast<float>(pmin), static_cast<float>(pmax));
     }
 
 
-    long val = convert_prange(volume.volume, (float)pmin, (float)pmax);
+    long val = convert_prange(volume.volume, static_cast<float>(pmin), static_cast<float>(pmax));
     if (volume.action == volc_volume_t::VOLC_VOL_INC) {
         val += orig;
     }
@@ -60,7 +60,7 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
     if (snd_mixer_selem_set_playback_volume(elem, chn, val)) {
         return -1;
     }
-    return convert_prange_back(val, (float)pmin, (float)pmax);
+    return convert_prange_back(val, static_cast<float>(pmin), static_cast<float>(pmax));
 }
 
 static snd_mixer_t *get_handle(int *err, char const *card) {
@@ -110,24 +110,30 @@ extern volc_volume_state_t volc_volume_ctl(
         if (!(channels & (1 << chn))) {
             continue;
         }
-        if (!snd_mixer_selem_has_playback_channel(volc->elem, (snd_mixer_selem_channel_id_t)chn)) {
+        if (!snd_mixer_selem_has_playback_channel(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn))) {
             continue;
         }
 
         switch (channel_switch) {
             case VOLC_CHAN_OFF:
             case VOLC_CHAN_ON:
-                snd_mixer_selem_get_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, &init_value);
-                if (snd_mixer_selem_set_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, (int)channel_switch)
+                snd_mixer_selem_get_playback_switch(volc->elem,
+                    static_cast<snd_mixer_selem_channel_id_t>(chn),
+                    &init_value);
+                if (snd_mixer_selem_set_playback_switch(volc->elem,
+                        static_cast<snd_mixer_selem_channel_id_t>(chn),
+                        static_cast<int>(channel_switch))
                     < 0) {
                     continue;
                 }
                 break;
             case VOLC_CHAN_TOGGLE:
                 if (firstchn || !snd_mixer_selem_has_playback_switch_joined(volc->elem)) {
-                    snd_mixer_selem_get_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, &init_value);
+                    snd_mixer_selem_get_playback_switch(volc->elem,
+                        static_cast<snd_mixer_selem_channel_id_t>(chn),
+                        &init_value);
                     if (snd_mixer_selem_set_playback_switch(volc->elem,
-                            (snd_mixer_selem_channel_id_t)chn,
+                            static_cast<snd_mixer_selem_channel_id_t>(chn),
                             init_value ? 0 : 1)
                         < 0) {
                         continue;
@@ -138,12 +144,13 @@ extern volc_volume_state_t volc_volume_ctl(
             default:;
         }
 
-        if ((state.state.volume = get_set_volume(volc->elem, (snd_mixer_selem_channel_id_t)chn, new_volume)) <= 0) {
+        if ((state.state.volume = get_set_volume(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), new_volume))
+            <= 0) {
             continue;
         }
 
-        snd_mixer_selem_get_playback_switch(volc->elem, (snd_mixer_selem_channel_id_t)chn, &new_value);
-        state.state.switch_pos = (channel_switch_t)new_value;
+        snd_mixer_selem_get_playback_switch(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), &new_value);
+        state.state.switch_pos = static_cast<channel_switch_t>(new_value);
 
         firstchn = 0;
         any_set = 1;
