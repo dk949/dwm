@@ -331,7 +331,7 @@ bool Client::applysizehints(Rect<int> *new_size, bool interact) {
     }
     new_size->h = std::max(new_size->h, bar_height);
     new_size->w = std::max(new_size->w, bar_height);
-    if (resizehints || props.isfloating || !getMon()->lt[getMon()->sellt]->arrange) {
+    if (resizehints || props.isfloating || (getMon()->lt[getMon()->sellt]->arrange == nullptr)) {
         if (!hintsvalid) updatesizehints();
         /* see last two sentences in ICCCM 4.1.2.3 */
         bool baseismin = basew == minw && baseh == minh;
