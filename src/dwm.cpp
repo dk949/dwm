@@ -2699,7 +2699,8 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
     if (format != 32) lg::debug("wrong format: {}", format);
     if (req_type != actual_type) lg::debug("wrong type:  expected {} got {}", req_type, actual_type);
     lg::debug("nitems = {}, bytes_left = {}", nitems, bytes_left);
-    *size = (unsigned long)(length = (long)bytes_left);
+    length = static_cast<long>(bytes_left);
+    *size = bytes_left;
     XGetWindowProperty(dpy,
         c->win,
         netatom[NetWMIcon],
@@ -2713,15 +2714,15 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
         &bytes_left,
         &data);
     {
-        auto *begin = (uint32_t *)(void *)data;
-        auto *end = (uint32_t *)(void *)((uint8_t *)data + *size);
+        auto *begin = reinterpret_cast<uint32_t *>(data);
+        auto *end = reinterpret_cast<uint32_t *>(data + *size);
         int pos = 0;
         for (uint32_t *it = begin; it != end; ++it, pos++) {
             if (pos % 2) continue;
             begin[pos / 2] = *it;
         }
     }
-    return (uint32_t *)(void *)data;
+    return reinterpret_cast<uint32_t *>(data);
 }
 
 static void iconifyclient(Client *c) {
