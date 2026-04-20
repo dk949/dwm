@@ -100,22 +100,19 @@ extern volc_volume_state_t volc_volume_ctl(
     // snd_mixer_selem_channel_id_t chn;
     volc_volume_state_t state {};
 
-    if (channels != VOLC_ALL_CHANNELS) {
-        channels = 1 << channels;
-    }
+    if (channels != VOLC_ALL_CHANNELS) channels = 1u << channels;
+
 
     int firstchn = 1;
     int any_set = 0;
-    for (int chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++) {
+    for (unsigned chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++) {
         int init_value;
         int new_value;
 
-        if (!(channels & (1 << chn))) {
-            continue;
-        }
-        if (!snd_mixer_selem_has_playback_channel(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn))) {
-            continue;
-        }
+        if (!(channels & (1u << chn))) continue;
+
+        if (!snd_mixer_selem_has_playback_channel(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn))) continue;
+
 
         switch (channel_switch) {
             case VOLC_CHAN_OFF:
