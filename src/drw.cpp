@@ -242,7 +242,7 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
         XSetForeground(m_dpy, m_gc, currentColor().invert(invert).bg.pixel);
         XFillRectangle(m_dpy, m_drawable, m_gc, x, y, static_cast<unsigned>(w), static_cast<unsigned>(h));
         d = XftDrawCreate(m_dpy, m_drawable, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen));
-        x += (int)lpad;
+        x += lpad;
         w -= lpad;
     }
 
@@ -273,7 +273,7 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
                          * it wants the width AFTER the overflow
                          */
                         if (!render)
-                            x += (int)tmpw;
+                            x += tmpw;
                         else
                             utf8strlen = ellipsis_len;
                     } else if (curfont == usedfont) {
@@ -300,11 +300,11 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
                     &currentColor().invert(invert).fg,
                     usedfont.xfont,
                     x,
-                    (int)ty,
+                    ty,
                     (XftChar8 *)utf8str,
                     (int)utf8strlen);
             }
-            x += (int)ew;
+            x += ew;
             w -= ew;
         }
         if (render && overflow) draw_text(ellipsis_x, y, ellipsis_w, h, 0, "...", invert);
@@ -405,6 +405,6 @@ void drw_font_getexts(Fnt *font, char const *text, std::size_t len, int *w, int 
         *w = ext.xOff;
     }
     if (h) {
-        *h = (int)font->h;
+        *h = font->h;
     }
 }
