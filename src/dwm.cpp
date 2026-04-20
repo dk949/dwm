@@ -1361,7 +1361,8 @@ void monocle(MonitorRef const &m) {
         }
     }
     if (n > 0) { /* override layout symbol */
-        snprintf(m->layoutSymbol.data(), m->layoutSymbol.max_size(), "[%d]", n);
+                 // TODO(dk949): Replace with std::format_to ?
+        (void)snprintf(m->layoutSymbol.data(), m->layoutSymbol.max_size(), "[%d]", n);
     }
     for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
         c->resize(
@@ -2728,18 +2729,6 @@ static uint32_t *geticon(Client *c, unsigned long *size) {
     return (uint32_t *)(void *)data;
 }
 
-static __attribute_maybe_unused__ void dump_raw(uint8_t *data, size_t size, char const *path) {
-    FILE *fp = fopen(path, "w");
-    if (!fp) {
-        lg::debug("Could not open file {} for writing", path);
-        return;
-    }
-
-    fwrite(data, sizeof(data[0]), size, fp);
-
-    fclose(fp);
-}
-
 static void iconifyclient(Client *c) {
     // TODO(dk949): Make this actually work?
     char *icon_name;
@@ -2901,7 +2890,7 @@ int main(int argc, char *argv[]) {
         std::println("dwm-{}", dwm::version::full);
         return 0;
     } else if (argc != 1) {
-        fputs("usage: dwm [-v]", stderr);
+        (void)fputs("usage: dwm [-v]", stderr);
         return 1;
     }
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale()) {
@@ -2925,12 +2914,12 @@ int main(int argc, char *argv[]) {
     XCloseDisplay(dpy);
     if (need_restart) {
         lg::info("Restarting dwm\n---------------------------");
-        fclose(lg::log_file);
+        (void)fclose(lg::log_file);
         if (execvp(argv[0], argv)) lg::fatal("could not restart dwm:");
     }
 
     lg::info("Shutdown complete\n---------------------------");
-    fclose(lg::log_file);
+    (void)fclose(lg::log_file);
     return EXIT_SUCCESS;
 }
 
