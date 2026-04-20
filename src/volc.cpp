@@ -35,9 +35,9 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
         return -1;
     }
 
-    long orig;
-    long pmin;
-    long pmax;
+    long orig = 0;
+    long pmin = 0;
+    long pmax = 0;
 
     if (snd_mixer_selem_get_playback_volume(elem, chn, &orig) < 0) {
         return -1;
@@ -64,7 +64,7 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
 }
 
 static snd_mixer_t *get_handle(int *err, char const *card) {
-    snd_mixer_t *handle;
+    snd_mixer_t *handle = nullptr;
     {
         *err = snd_mixer_open(&handle, 0);
         if (*err < 0) {
@@ -98,7 +98,7 @@ extern volc_volume_state_t volc_volume_ctl(
     volc_t *volc, unsigned int channels, volc_volume_t new_volume, channel_switch_t channel_switch) {
 
     // snd_mixer_selem_channel_id_t chn;
-    volc_volume_state_t state;
+    volc_volume_state_t state {};
 
     if (channels != VOLC_ALL_CHANNELS) {
         channels = 1 << channels;
