@@ -58,6 +58,7 @@
 #include <chrono>
 #include <clocale>
 #include <cmath>
+#include <concepts>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -79,10 +80,16 @@
 namespace rng = std::ranges;
 namespace vws = std::views;
 
-/* macros */
-#define CLEANMASK(mask)                 \
-    ((mask) & ~(numlockmask | LockMask) \
-        & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
+static constexpr auto CLEANMASK(std::unsigned_integral auto mask, std::unsigned_integral auto nlmask) {
+    return ((mask) & ~(nlmask | toUnsigned(LockMask))
+            & (toUnsigned(ShiftMask)       //
+                | toUnsigned(ControlMask)  //
+                | toUnsigned(Mod1Mask)     //
+                | toUnsigned(Mod2Mask)     //
+                | toUnsigned(Mod3Mask)     //
+                | toUnsigned(Mod4Mask)     //
+                | toUnsigned(Mod5Mask)));
+}
 
 static constexpr auto INTERSECT(
     std::integral auto x, std::integral auto y, std::integral auto w, std::integral auto h, MonitorRef const &m) {
@@ -542,7 +549,8 @@ void buttonpress(XEvent *e) {
         click = Click::ClientWin;
     }
     for (auto const &button : buttons)
-        if (click == button.click && button.button == ev->button && CLEANMASK(button.mask) == CLEANMASK(ev->state)) {
+        if (click == button.click && button.button == ev->button
+            && CLEANMASK(button.mask, numlockmask) == CLEANMASK(ev->state, numlockmask)) {
             auto fn_arg = click == Click::TagBar && button.arg.index() == 0 ? arg : button.arg;
             if (!variantInvoke(button.func, fn_arg))
                 lg::error("Could not run button mapping: function index is {}, but arg is {}",
@@ -1217,7 +1225,7 @@ void keypress(XEvent *e) {
 
     KeySym keysym = XLookupKeysym(ev, 0);
     for (auto const &key : keys)
-        if (keysym == key.keysym && CLEANMASK(key.mod) == CLEANMASK(ev->state))
+        if (keysym == key.keysym && CLEANMASK(key.mod, numlockmask) == CLEANMASK(ev->state, numlockmask))
             if (!variantInvoke(key.func, key.arg)) {
                 lg::error("Could not run key mapping: function index is {}, but arg is {}",
                     key.func.index(),
