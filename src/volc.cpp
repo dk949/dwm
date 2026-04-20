@@ -164,7 +164,7 @@ extern volc_volume_state_t volc_volume_ctl(
 
 extern volc_t *volc_init(char const *selector, unsigned int selector_index, char const *card) {
     int err = 0;
-    volc_t *volc = new volc_t {};
+    auto *volc = new volc_t {};
     snd_mixer_selem_id_alloca(&volc->sid);
     volc->card = card;
 
