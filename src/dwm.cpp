@@ -2204,6 +2204,7 @@ void Client::unfocus(bool setfocus) {
     }
 }
 
+[[maybe_unused]]
 static void uniconifyclient(Client *c) {
     lg::debug("restoring iconified cliend {}", c->name);
     c->updatetitle();
