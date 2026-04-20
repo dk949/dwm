@@ -3,12 +3,10 @@
 #include "log.hpp"
 
 #include <alsa/asoundlib.h>
-#include <assert.h>
-#include <float.h>
 #include <getopt.h>
-#include <stdarg.h>
-#include <stdlib.h>
 #include <sys/poll.h>
+
+#include <cassert>
 
 #define CHECK_RANGE(val, min, max) (((val) < (min)) ? (min) : ((val) > (max)) ? (max) : (val))
 
