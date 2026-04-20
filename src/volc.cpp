@@ -66,16 +66,19 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
 static snd_mixer_t *get_handle(int *err, char const *card) {
     snd_mixer_t *handle;
     {
-        if ((*err = snd_mixer_open(&handle, 0)) < 0) {
+        *err = snd_mixer_open(&handle, 0);
+        if (*err < 0) {
             lg::error(" Mixer {} open error: {}", card, snd_strerror(*err));
             return nullptr;
         }
-        if ((*err = snd_mixer_attach(handle, card)) < 0) {
+        *err = snd_mixer_attach(handle, card);
+        if (*err < 0) {
             lg::error(" Mixer attach {} error: {}", card, snd_strerror(*err));
             snd_mixer_close(handle);
             return nullptr;
         }
-        if ((*err = snd_mixer_selem_register(handle, nullptr, nullptr)) < 0) {
+        *err = snd_mixer_selem_register(handle, nullptr, nullptr);
+        if (*err < 0) {
             lg::error(" Mixer register error: {}", snd_strerror(*err));
             snd_mixer_close(handle);
             return nullptr;
@@ -143,9 +146,8 @@ extern volc_volume_state_t volc_volume_ctl(
             case VOLC_CHAN_SAME:
             default:;
         }
-
-        if ((state.state.volume = get_set_volume(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), new_volume))
-            <= 0) {
+        state.state.volume = get_set_volume(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), new_volume);
+        if (state.state.volume <= 0) {
             continue;
         }
 
