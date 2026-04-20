@@ -122,7 +122,7 @@ std::optional<Fnt> Drw::xfont_create(char const *fontname) {
         lg::warn("cannot load font from name: '{}'", fontname);
         return std::nullopt;
     }
-    if (auto pattern = FcNameParse((FcChar8 *)fontname)) {
+    if (auto *pattern = FcNameParse(reinterpret_cast<FcChar8 const *>(fontname))) {
         font.pattern = pattern;
     } else {
         lg::warn("cannot parse font name to pattern: '{}'", fontname);
@@ -259,7 +259,7 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
         while (*text) {
             auto utf8charlen = utf8decode(text, &utf8codepoint, UTF_SIZ);
             for (auto &curfont : m_fonts) {
-                charexists = charexists || XftCharExists(m_dpy, curfont.xfont, (FcChar32)utf8codepoint);
+                charexists = charexists || XftCharExists(m_dpy, curfont.xfont, static_cast<FcChar32>(utf8codepoint));
                 if (charexists) {
                     drw_font_getexts(&curfont, text, utf8charlen, &tmpw, nullptr);
                     if (ew + ellipsis_width <= w) {
@@ -303,8 +303,8 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
                     usedfont.xfont,
                     x,
                     ty,
-                    (XftChar8 *)utf8str,
-                    (int)utf8strlen);
+                    reinterpret_cast<XftChar8 const *>(utf8str),
+                    static_cast<int>(utf8strlen));
             }
             x += ew;
             w -= ew;
@@ -335,7 +335,7 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
             if (!no_match) {
 
                 FcCharSet *fccharset = FcCharSetCreate();
-                FcCharSetAddChar(fccharset, (FcChar32)utf8codepoint);
+                FcCharSetAddChar(fccharset, static_cast<FcChar32>(utf8codepoint));
 
                 if (!m_fonts.front().pattern) {
                     /* Refer to the comment in xfont_create for more information. */
@@ -356,7 +356,7 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
                 // TODO(dk949): the `match` is never deleted???
                 if (match) {
                     auto new_font = xfont_create(match);
-                    if (new_font && XftCharExists(m_dpy, new_font->xfont, (FcChar32)utf8codepoint)) {
+                    if (new_font && XftCharExists(m_dpy, new_font->xfont, static_cast<FcChar32>(utf8codepoint))) {
                         usedfont = *new_font;
                         m_fonts.push_back(usedfont);
                     } else {
@@ -396,13 +396,14 @@ int Drw::fontset_getwidth(char const *text) {
 }
 
 void drw_font_getexts(Fnt *font, char const *text, std::size_t len, int *w, int *h) {
+    // TODO(dk949): Use std::stroing_view?
     XGlyphInfo ext;
 
     if (!font || !text) {
         return;
     }
 
-    XftTextExtentsUtf8(font->dpy, font->xfont, (XftChar8 *)text, (int)len, &ext);
+    XftTextExtentsUtf8(font->dpy, font->xfont, reinterpret_cast<XftChar8 const *>(text), static_cast<int>(len), &ext);
     if (w) {
         *w = ext.xOff;
     }
