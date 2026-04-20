@@ -15,7 +15,9 @@
 static constexpr auto UTF_INVALID = 0xFFFD;
 static constexpr auto UTF_SIZ = 4uz;
 
+namespace {
 enum UtfInvalidRange { begin = 0xD800, end = 0xDFFF };
+}  // namespace
 
 static constexpr std::array<unsigned char, UTF_SIZ + 1> utfbyte {0x80, 0, 0xC0, 0xE0, 0xF0};
 static constexpr std::array<unsigned char, UTF_SIZ + 1> utfmask {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
