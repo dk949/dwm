@@ -701,11 +701,12 @@ void configurerequest(XEvent *e) {
                 c->size.h = ev->height;
             }
             if ((c->size.x + c->size.w) > m->monitor_size.x + m->monitor_size.w && c->props.isfloating) {
-                c->size.x = m->monitor_size.x + ((m->monitor_size.w / 2) - c->getWidth() / 2); /* center in x direction */
+                c->size.x = m->monitor_size.x
+                          + ((m->monitor_size.w / 2) - (c->getWidth() / 2)); /* center in x direction */
             }
             if ((c->size.y + c->size.h) > m->monitor_size.y + m->monitor_size.h && c->props.isfloating) {
                 c->size.y = m->monitor_size.y
-                          + ((m->monitor_size.h / 2) - c->getHeight() / 2); /* center in y direction */
+                          + ((m->monitor_size.h / 2) - (c->getHeight() / 2)); /* center in y direction */
             }
             if ((ev->value_mask & (CWX | CWY)) && !(ev->value_mask & (CWWidth | CWHeight))) {
                 c->configure();
