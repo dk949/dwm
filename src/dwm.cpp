@@ -971,12 +971,10 @@ void enternotify(XEvent *e) {
 }
 
 void expose(XEvent *e) {
-    MonitorRef m;
     XExposeEvent *ev = &e->xexpose;
 
-    if (ev->count == 0 && (m = wintomon(ev->window))) {
-        drawbar(m);
-    }
+    if (ev->count == 0)
+        if (auto m = wintomon(ev->window)) drawbar(m);
 }
 
 void focus(Client *c) {
@@ -1267,7 +1265,7 @@ void manage(Window w, XWindowAttributes *wa) {
     c->cfact = 1.0;
 
     c->updatetitle();
-    if (XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {
+    if (XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {  // NOLINT(bugprone-assignment-in-if-condition)
         c->mon = t->mon;
         c->tags = t->tags;
     } else {
@@ -1401,13 +1399,11 @@ void movemouse() {
     int ocy;
     int nx;
     int ny;
-    Client *c;
     XEvent ev;
     Time lasttime = 0;
+    Client *c = selmon->sel;
+    if (!c) return;
 
-    if (!(c = selmon->sel)) {
-        return;
-    }
     if (c->props.isfullscreen == FullScreen::on) { /* no support moving fullscreen windows by mouse */
         return;
     }
@@ -1487,7 +1483,6 @@ void pop(Client *c) {
 }
 
 void propertynotify(XEvent *e) {
-    Client *c;
     Window trans;
     XPropertyEvent *ev = &e->xproperty;
 
@@ -1495,13 +1490,13 @@ void propertynotify(XEvent *e) {
         updatestatus();
     } else if (ev->state == PropertyDelete) {
         return; /* ignore */
-    } else if ((c = wintoclient(ev->window))) {
+    } else if (auto *c = wintoclient(ev->window)) {
         switch (ev->atom) {
             default: break;
             case XA_WM_TRANSIENT_FOR:
-                if (!c->props.isfloating && (XGetTransientForHint(dpy, c->win, &trans))
-                    && (c->props.isfloating = (wintoclient(trans)) != nullptr)) {
-                    arrange(c->getMon());
+                if (!c->props.isfloating && (XGetTransientForHint(dpy, c->win, &trans))) {
+                    c->props.isfloating = wintoclient(trans) != nullptr;
+                    if (c->props.isfloating) arrange(c->getMon());
                 }
                 break;
             case XA_WM_NORMAL_HINTS: c->hintsvalid = false; break;
@@ -1588,9 +1583,9 @@ void resizemouse() {
     XEvent ev;
     Time lasttime = 0;
 
-    if (!(c = selmon->sel)) {
-        return;
-    }
+    c = selmon->sel;
+    if (!c) return;
+
     if (c->props.isfullscreen == FullScreen::on) { /* no support resizing fullscreen windows by mouse */
         return;
     }
@@ -1695,7 +1690,8 @@ void rotatestack(int arg) {
             attachstack(c);
         }
     } else {
-        if ((c = nexttiled(selmon->clients))) {
+        c = nexttiled(selmon->clients);
+        if (c) {
             detach(c);
             enqueue(c);
             detachstack(c);
@@ -1917,7 +1913,8 @@ void setup() {
     }
 
 #ifdef ASOUND
-    if (!(volc = volc_init(VOLC_ALL_DEFULTS))) lg::fatal("volc setup failed");
+    volc = volc_init(VOLC_ALL_DEFULTS);
+    if (!volc) lg::fatal("volc setup failed");
 
 #endif /* ASOUND */
 
@@ -2269,16 +2266,13 @@ void unmanage(Client *c, IsDestroyed destroyed) {
 }
 
 void unmapnotify(XEvent *e) {
-    Client *c;
     XUnmapEvent *ev = &e->xunmap;
-
-    if ((c = wintoclient(ev->window))) {
-        if (ev->send_event) {
-            c->setclientstate(WithdrawnState);
-        } else {
-            unmanage(c, IsDestroyed::no);
-        }
-    }
+    Client *c = wintoclient(ev->window);
+    if (!c) return;
+    if (ev->send_event)
+        c->setclientstate(WithdrawnState);
+    else
+        unmanage(c, IsDestroyed::no);
 }
 
 void updatebars() {
@@ -2745,9 +2739,8 @@ static void iconifyclient(Client *c) {
     arrange(c->getMon());
     updateclientlist();
     unsigned long size;
-    uint32_t *icon;
-    if ((icon = geticon(c, &size))) {
-        lg::debug("icon is {}x{}, {} bytes", (int)icon[0], (int)icon[1], size);
+    if (uint32_t *icon = geticon(c, &size)) {
+        lg::debug("icon is {}x{}, {} bytes", icon[0], icon[1], size);
         XFree(icon);
     } else {
         lg::debug("No icon for client {}", c->name);
@@ -2877,7 +2870,9 @@ void zoom() {
 
     if (!selmon->lt[selmon->sellt]->arrange || !c || c->props.isfloating) return;
 
-    if (c == nexttiled(selmon->clients) || !(c = nexttiled(c->next))) return;
+    if (c == nexttiled(selmon->clients)) return;
+    c = nexttiled(c->next);
+    if (!c) return;
 
     pop(c);
 }
@@ -2896,10 +2891,12 @@ int main(int argc, char *argv[]) {
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale()) {
         lg::warn("no locale support");
     }
-    if (!(dpy = XOpenDisplay(nullptr))) {
+    dpy = XOpenDisplay(nullptr);
+    if (!dpy) {
         lg::fatal("cannot open display");
     }
-    if (!(xcon = XGetXCBConnection(dpy))) {
+    xcon = XGetXCBConnection(dpy);
+    if (!xcon) {
         lg::fatal("cannot get xcb connection");
     }
     checkotherwm();
