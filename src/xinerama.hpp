@@ -17,14 +17,12 @@ struct ScreenInfo {
 
 struct ScreenInfoPtr {
 private:
-    Display *m_dpy = nullptr;
     void *m_infos = nullptr;
     int m_count = 1;
     void free() noexcept;
 
-    ScreenInfoPtr(Display *dpy, void *infos, int count)
-            : m_dpy(dpy)
-            , m_infos(infos)
+    ScreenInfoPtr(void *infos, int count)
+            : m_infos(infos)
             , m_count(count) { }
 public:
     ~ScreenInfoPtr();

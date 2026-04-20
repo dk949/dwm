@@ -36,5 +36,5 @@ void ScreenInfoPtr::free() noexcept {
 ScreenInfoPtr ScreenInfoPtr::query(Display *dpy) {
     int count = 0;
     auto *infos = XineramaQueryScreens(dpy, &count);
-    return ScreenInfoPtr {dpy, infos, count};
+    return ScreenInfoPtr {infos, count};
 }
