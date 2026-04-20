@@ -22,7 +22,7 @@ static long vceil(double d) {
 }
 
 static long convert_prange(float val, float min, float max) {
-    return vceil(static_cast<double>(val * (max - min) * 0.01f + min));
+    return vceil(static_cast<double>((val * (max - min) * 0.01f) + min));
 }
 
 static float convert_prange_back(long val, float min, float max) {
