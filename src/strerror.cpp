@@ -1,7 +1,10 @@
 #include "strerror.hpp"
 
+#include <string.h>  // NOLINT(modernize-deprecated-headers) // for strerror_r
+
 #include <array>
-#include <cstring>
+#include <string_view>
+#include <type_traits>
 
 std::string_view strError(int errnum) {
     static constexpr auto errbufsz = 1024;

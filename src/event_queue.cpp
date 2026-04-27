@@ -6,16 +6,26 @@
 #include "time_utils.hpp"
 #include "x_utils.hpp"
 
+#include <stdlib.h>  // NOLINT(modernize-deprecated-headers)
 #include <sys/select.h>
 #include <sys/signalfd.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
 #include <algorithm>
 #include <cerrno>
 #include <chrono>
+#include <climits>
 #include <cstring>
+#include <format>
+#include <optional>
+#include <ranges>
+#include <utility>
+#include <variant>
+#include <vector>
+
 namespace rng = std::ranges;
 namespace vws = std::views;
 

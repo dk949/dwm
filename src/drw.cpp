@@ -5,6 +5,9 @@
 #include "log.hpp"
 #include "util.hpp"
 
+#include <X11/extensions/Xrender.h>
+#include <X11/Xft/Xft.h>
+
 #include <array>
 #include <cstdio>
 #include <cstdlib>

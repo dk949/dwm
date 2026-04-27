@@ -6,6 +6,8 @@
 #include <X11/extensions/Xinerama.h>
 #include <X11/Xlib.h>
 
+#include <cstddef>
+
 bool xineramaIsActive(Display *dpy) {
     return XineramaIsActive(dpy) == True;
 }

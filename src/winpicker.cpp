@@ -10,11 +10,16 @@
 #include <algorithm>
 #include <bitset>
 #include <charconv>
+#include <cstdint>
+#include <cstddef>
 #include <format>
 #include <iterator>
+#include <optional>
 #include <ranges>
 #include <string>
 #include <string_view>
+#include <system_error>
+#include <utility>
 #include <vector>
 namespace rng = std::ranges;
 namespace vws = std::views;

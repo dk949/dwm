@@ -8,9 +8,11 @@
 
 #include <array>
 #include <charconv>
+#include <climits>
 #include <cstdio>
 #include <format>
 #include <print>
+#include <string>
 #include <string_view>
 #include <type_traits>
 

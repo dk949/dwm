@@ -6,24 +6,36 @@
 #include "util.hpp"
 
 #include <fcntl.h>
-#include <libgen.h>
+#include <linux/prctl.h>
+#include <signal.h>  // NOLINT(modernize-deprecated-headers)
+#include <stdlib.h>  // NOLINT(modernize-deprecated-headers)
 #include <sys/prctl.h>
 #include <sys/signalfd.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <ut/sv_to_num/sv_to_num.hpp>
+#include <X11/Xlib.h>
 
 #include <algorithm>
 #include <array>
 #include <cerrno>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <iterator>
+#include <limits>
+#include <optional>
 #include <ranges>
+#include <string>
+#include <string_view>
+#include <system_error>
+#include <utility>
+#include <vector>
 
 namespace rng = std::ranges;
 namespace vws = std::views;
-static sigset_t original_sigset {};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static sigset_t original_sigset {};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,misc-include-cleaner)
 
 pid_t Proc::spawnDetached(Display *dpy, std::vector<std::string> args) {
     auto argv = args | vws::transform([](auto &str) noexcept { return str.data(); }) | rng::to<std::vector>();
@@ -208,7 +220,7 @@ std::optional<std::string_view> Proc::writeFD(std::string_view sv, int fd) {
     size_t remaining = sv.size();
 
     // Limit each write() to at most SSIZE_MAX for portability.
-    constexpr auto MAX_CHUNK = static_cast<size_t>(SSIZE_MAX);
+    constexpr auto MAX_CHUNK = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
 
     while (remaining > 0) {
         size_t to_write = std::min(remaining, MAX_CHUNK);

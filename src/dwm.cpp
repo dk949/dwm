@@ -23,6 +23,7 @@
 
 #include "dwm.hpp"
 
+#include "colors.hpp"
 #include "drw.hpp"
 #include "event_queue.hpp"
 #include "layout.hpp"
@@ -36,20 +37,17 @@
 #include "xidptr.hpp"
 #include "xinerama.hpp"
 
-#include <fcntl.h>
 #include <project/config.hpp>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <sched.h>
 #include <unistd.h>
 #include <ut/resource/resource.hpp>
 #include <ut/static_string/static_string.hpp>
-#include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
+#include <xcb/xcb.h>
 
 #include <algorithm>
 #include <array>
@@ -59,14 +57,25 @@
 #include <clocale>
 #include <cmath>
 #include <concepts>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <filesystem>
 #include <format>
+#include <iterator>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <print>
+#include <ranges>
+#include <span>
+#include <string>
+#include <system_error>
 #include <utility>
+#include <vector>
+
 
 #ifdef ASOUND
 #    include "volc.hpp"
@@ -74,6 +83,7 @@
 
 #include "backlight.hpp"
 
+#include <X11/X.h>
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
 #include <xcb/res.h>
@@ -897,7 +907,7 @@ void drawprogress(unsigned long long t, unsigned long long c, Color const *color
     if (sel_bar_name_x <= 0 || sel_bar_name_width <= 0) return;
 
     struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
+    clock_gettime(CLOCK_REALTIME, &now);  // NOLINT(misc-include-cleaner)
 
     if (t != 0) {
         total = t;

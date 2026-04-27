@@ -7,12 +7,15 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/dk949/libut/
     GIT_TAG trunk
     EXCLUDE_FROM_ALL
+    SYSTEM
 )
+
 FetchContent_Declare(
     noticeboard
     GIT_REPOSITORY https://github.com/dk949/noticeboard/
     GIT_TAG trunk
     EXCLUDE_FROM_ALL
+    SYSTEM
 )
 
 FetchContent_MakeAvailable(libut)
@@ -36,6 +39,10 @@ add_executable(
 
 target_link_libraries(${EXE_NAME} PRIVATE ut::ut)
 target_link_libraries(${EXE_NAME} PRIVATE noticeboard)
+
+target_enable_clang_tidy(${EXE_NAME})
+target_enable_cppcheck(${EXE_NAME})
+
 execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
 # Convert command output into a CMake list
 string(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")

@@ -8,6 +8,7 @@
 
 #include <format>
 #include <optional>
+#include <cstdlib>
 
 static constexpr auto info_expiry = nb::ExpireTime {900};
 
