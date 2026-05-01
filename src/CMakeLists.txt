@@ -18,9 +18,6 @@ FetchContent_Declare(
     SYSTEM
 )
 
-FetchContent_MakeAvailable(libut)
-FetchContent_MakeAvailable(noticeboard)
-
 add_executable(
     ${EXE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/backlight.cpp #
@@ -37,11 +34,14 @@ add_executable(
     ${CMAKE_CURRENT_SOURCE_DIR}/x_utils.cpp #
 )
 
-target_link_libraries(${EXE_NAME} PRIVATE ut::ut)
-target_link_libraries(${EXE_NAME} PRIVATE noticeboard)
-
 target_enable_clang_tidy(${EXE_NAME})
 target_enable_cppcheck(${EXE_NAME})
+
+FetchContent_MakeAvailable(libut)
+FetchContent_MakeAvailable(noticeboard)
+
+target_link_libraries(${EXE_NAME} PRIVATE ut::ut)
+target_link_libraries(${EXE_NAME} PRIVATE noticeboard)
 
 execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
 # Convert command output into a CMake list
