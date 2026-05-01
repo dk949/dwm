@@ -8,24 +8,26 @@
 #include <cstring>
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-char const *xstrerror(Display *dpy, int code) {
+std::string_view xstrerror(Display *dpy, int code) {
     static constexpr auto bufsz = 2048;
-    static char buf[bufsz];
+    static std::array<char, bufsz> buf;
     if (code < LastExtensionError)
-        XGetErrorText(dpy, code, buf, bufsz);
+        XGetErrorText(dpy, code, buf.data(), buf.size());
     else
         switch (code) {
-            case PropGetTypeError: return std::strncpy(buf, "Retrieved incorrect type when querying property", bufsz);
+            case PropGetTypeError:
+                return std::strncpy(buf.data(), "Retrieved incorrect type when querying property", buf.size());
             case PropGetFormatError:
-                return std::strncpy(buf, "Retrieved incorrect format when querying property", bufsz);
-            case PropGetNoItemError: return std::strncpy(buf, "Retrieved no items when querying property", bufsz);
+                return std::strncpy(buf.data(), "Retrieved incorrect format when querying property", buf.size());
+            case PropGetNoItemError:
+                return std::strncpy(buf.data(), "Retrieved no items when querying property", buf.size());
             case PropGetItemError:
-                return std::strncpy(buf, "Retrieved incorrect number of items when querying property", bufsz);
+                return std::strncpy(buf.data(), "Retrieved incorrect number of items when querying property", buf.size());
             case PropGetDoesNotExistError:
-                return std::strncpy(buf, "Property does not exist on the specified client", bufsz);
-            default: return std::strncpy(buf, "Unknown error", bufsz);
+                return std::strncpy(buf.data(), "Property does not exist on the specified client", buf.size());
+            default: return std::strncpy(buf.data(), "Unknown error", buf.size());
         }
-    return buf;
+    return std::string_view {buf};
 }
 
 static constexpr auto atom_names = [] {
