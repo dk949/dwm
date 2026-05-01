@@ -109,6 +109,7 @@ Checks:
   -cppcoreguidelines-pro-bounds-constant-array-index,
   -cppcoreguidelines-pro-type-reinterpret-cast,
   -cppcoreguidelines-pro-type-union-access,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
   google-*,
   -google-build-namespaces,
   -google-readability-avoid-underscore-in-googletest-name,
