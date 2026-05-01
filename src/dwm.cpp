@@ -57,6 +57,7 @@
 #include <clocale>
 #include <cmath>
 #include <concepts>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -898,6 +899,7 @@ void drawbars() {
 
 // TODO(dk949): THIS NEEDS TO BE FIXED!!!!!
 //              (also handle_notifyself_fade_anim)
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void drawprogress(unsigned long long t, unsigned long long c, Color const *color) {
     static unsigned long long total;
     static unsigned long long current;
@@ -1196,7 +1198,7 @@ void grabkeys() {
     for (int k = start; k <= end; k++) {
         for (auto const &key : keys) {
             /* skip modifier codes, we do that ourselves */
-            if (key.keysym == syms[(k - start) * skip]) {
+            if (key.keysym == syms[(static_cast<ptrdiff_t>(k - start) * skip)]) {
                 for (auto const &mod : modifiers) {
                     XGrabKey(dpy, k, key.mod | mod, root, True, GrabModeAsync, GrabModeAsync);
                 }
@@ -2542,6 +2544,7 @@ void winpicker() {
     auto args = winpickerCreateDmenuCommand(dpy, mons, selmon->num);
     loop->spawn(std::move(args),
         EventLoop::SpawnConfig {.keep_stdout = true, .keep_stderr = true},
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](std::optional<std::string> const &out, std::optional<std::string> const &err, int status) noexcept {
             if (status == 1 && err->empty()) {
                 lg::debug("No window selected");
