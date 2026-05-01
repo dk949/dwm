@@ -34,12 +34,12 @@ namespace detail {
     template<typename T>
     decltype(auto) checkForNull(T &&arg) {
         if constexpr (std::is_same_v<std::remove_cvref_t<T>, char const *>) {
-            static auto null = "(null)";
+            static auto const *null = "(null)";
             if (!arg) return std::forward<T>(null);
         }
         if constexpr (std::is_same_v<std::remove_cvref_t<T>, char *>) {
-            static char _null[] = "(null)";
-            static auto null = &_null[0];
+            static char _null[] = "(null)";  // NOLINT(modernize-avoid-c-arrays)
+            static auto *null = &_null[0];
             if (!arg) return std::forward<T>(null);
         }
         return std::forward<T>(arg);
@@ -51,7 +51,7 @@ void sendNotice(Level l, std::string_view header, std::string_view body = {});
 
 template<Level level, typename... Args>
 void log(std::format_string<Args...> fmt, Args &&...args) {
-    auto msg = std::format(fmt, std::forward<Args>(detail::checkForNull(args))...) + '\n';
+    auto msg = std::format(fmt, std::forward<Args>(detail::checkForNull(std::forward<Args>(args)))...) + '\n';
     sendNotice(level, msg);
     auto *const file = log_file ? log_file : stderr;
     std::print(file,
