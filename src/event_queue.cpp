@@ -11,6 +11,7 @@
 #include <sys/signalfd.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <X11/extensions/Xrandr.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -104,6 +105,13 @@ EventLoop::EventLoop(Display *dpy, Window root)
                   | PropertyChangeMask;
     XChangeWindowAttributes(m_dpy, root, CWEventMask, &wa);
     XSelectInput(dpy, root, wa.event_mask);
+    int err_base = 0;// TODO(dk949): This might break xstrerror
+    if (XRRQueryExtension(m_dpy, &m_xrandr_event_base, &err_base)) {
+        XRRSelectInput(m_dpy, root, RROutputChangeNotifyMask);
+    } else {
+        m_xrandr_event_base = -1;
+        lg::warn("randr: extension not available, hot-plug events disabled");
+    }
 }
 
 /**
@@ -187,8 +195,11 @@ void EventLoop::flushXEvents() {
             lg::error("XNextEvent error: {}", xstrerror(m_dpy, err));
             break;
         }
-        auto &&handler = m_x_handlers[static_cast<std::size_t>(ev.type)];
-        if (handler) handler(&ev);
+        if (auto t = static_cast<std::size_t>(ev.type); t < LASTEvent) {
+            if (auto &handler = m_x_handlers[t]) handler(&ev);
+        } else if (auto it = m_x_ext_handlers.find(ev.type); it != m_x_ext_handlers.end() && it->second) {
+            it->second(&ev);
+        }
     }
 }
 

@@ -6,6 +6,7 @@
 #include <project/config.hpp>
 #include <sys/select.h>
 #include <ut/mt_queue/mt_queue.hpp>
+#include <X11/extensions/Xrandr.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -16,6 +17,7 @@
 #include <optional>
 #include <ratio>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 
@@ -68,6 +70,8 @@ private:
 
     // TODO(dk949): Make this more type-safe (use tuple for xevents too)
     std::array<std::function<void(XEvent *)>, LASTEvent> m_x_handlers;
+    std::flat_map<int, std::function<void(XEvent *)>> m_x_ext_handlers;
+    int m_xrandr_event_base = -1;
     map_tuple_types_t<variant_to_tuple_t<InternalEvent>, EvFn> m_intern_handlers;
 
     std::array<InternalQueue, 2> m_queues;
@@ -95,6 +99,15 @@ public:
     auto on(Fn &&fn) {
         static_assert(Ev < LASTEvent);
         return std::exchange(m_x_handlers[Ev], std::forward<Fn>(fn));
+    }
+
+    int xrandrEventBase() const {
+        return m_xrandr_event_base;
+    }
+
+    template<typename Fn>
+    auto onExtension(int type, Fn &&fn) {
+        return std::exchange(m_x_ext_handlers[type], std::forward<Fn>(fn));
     }
 
     template<InVariant<InternalEvent> Ev, typename Fn>

@@ -42,6 +42,7 @@
 #include <unistd.h>
 #include <ut/resource/resource.hpp>
 #include <ut/static_string/static_string.hpp>
+#include <X11/extensions/Xrandr.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
@@ -187,6 +188,7 @@ static void pop(Client *c);
 static void propertynotify(XEvent *e);
 static MonitorRef recttomon(Rect<int> rect);
 static void restack(MonitorRef const &m);
+static void rroutputchange(XEvent *e);
 static void scan();
 static void sendmon(Client *c, MonitorRef const &m);
 static void setup();
@@ -684,6 +686,23 @@ void configurenotify(XEvent *e) {
         focus(nullptr);
         arrange(nullptr);
     }
+}
+
+void rroutputchange(XEvent *e) {
+    auto *ev = reinterpret_cast<XRROutputChangeNotifyEvent *>(e);
+    if (ev->subtype != RRNotify_OutputChange) return;
+    auto *res = XRRGetScreenResourcesCurrent(dpy, root);
+    if (!res) {
+        lg::warn("randr: no screen resources");
+        return;
+    }
+    auto *info = XRRGetOutputInfo(dpy, res, ev->output);
+    char const *state = ev->connection == RR_Connected    ? "connected"
+                      : ev->connection == RR_Disconnected ? "disconnected"
+                                                          : "unknown";
+    lg::info("randr: output '{}' {}", info ? info->name : "(unknown)", state);
+    if (info) XRRFreeOutputInfo(info);
+    XRRFreeScreenResources(res);
 }
 
 void configurerequest(XEvent *e) {
@@ -2779,6 +2798,7 @@ void installEventHandlers() {
     loop->on<PropertyNotify>(propertynotify);
     loop->on<UnmapNotify>(unmapnotify);
     loop->on<FadeBarEvent>(handle_notifyself_fade_anim);
+    if (auto base = loop->xrandrEventBase(); base >= 0) loop->onExtension(base + RRNotify, rroutputchange);
 }
 
 bool isdescprocess(pid_t p, pid_t c) {
