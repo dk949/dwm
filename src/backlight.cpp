@@ -119,15 +119,15 @@ static BacklightError bright_modify(double value, int dir) {
     }
 }
 
-BacklightError brightInc_(double value) {
+BacklightError brightInc(double value) {
     return bright_modify(value, UP);
 }
 
-BacklightError brightDec_(double value) {
+BacklightError brightDec(double value) {
     return bright_modify(value, DOWN);
 }
 
-BacklightError brightSet_(double value) {
+BacklightError brightSet(double value) {
     if (auto res = nan_check(); res != BacklightError::Ok) return res;
     auto fp = FilePtr {fopen(set_brightness, "w")};
     if (!fp) {
@@ -138,7 +138,7 @@ BacklightError brightSet_(double value) {
     return ret;
 }
 
-BacklightError brightGet_(double *value) {
+BacklightError brightGet(double *value) {
     if (auto res = nan_check(); res != BacklightError::Ok) return res;
     auto fp = FilePtr {fopen(get_brightness, "r")};
     if (!fp) {

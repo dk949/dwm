@@ -491,25 +491,25 @@ void unswallow(Client *client) {
 }
 
 void bright_dec(double arg) {
-    if (brightDec_(arg) != BacklightError::Ok) return;
+    if (brightDec(arg) != BacklightError::Ok) return;
 
     auto newval = std::nan("");
-    if (brightGet_(&newval) != BacklightError::Ok) return;
+    if (brightGet(&newval) != BacklightError::Ok) return;
 
     drawProgress(full_bar, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_inc(double arg) {
-    if (brightInc_(arg) != BacklightError::Ok) return;
+    if (brightInc(arg) != BacklightError::Ok) return;
 
     auto newval = std::nan("");
-    if (brightGet_(&newval) != BacklightError::Ok) return;
+    if (brightGet(&newval) != BacklightError::Ok) return;
 
     drawProgress(full_bar, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
 void bright_set(double arg) {
-    if (brightSet_(arg) != BacklightError::Ok) return;
+    if (brightSet(arg) != BacklightError::Ok) return;
 
     drawProgress(full_bar, static_cast<unsigned long long>(arg), &drw->scheme().bright_progress);
 }

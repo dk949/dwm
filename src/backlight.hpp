@@ -17,14 +17,14 @@ BacklightError brightSetup(char const *bright_file, char const *actual_brightnes
 // Backlight values go from 0 to 100
 
 // Increment brightness of the backlight
-BacklightError brightInc_(double value);
+BacklightError brightInc(double value);
 
 // Decrement brightness of the backlight
-BacklightError brightDec_(double value);
+BacklightError brightDec(double value);
 
 // Set brightness of the backlight to a certain number
-BacklightError brightSet_(double value);
+BacklightError brightSet(double value);
 
-BacklightError brightGet_(double *value);
+BacklightError brightGet(double *value);
 
 #endif  // DWM_XBACKLIGHT_HPP
