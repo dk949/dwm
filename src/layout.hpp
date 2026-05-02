@@ -12,6 +12,6 @@ struct Layout {
 
 void tile(struct std::shared_ptr<Monitor> const &);
 void monocle(struct std::shared_ptr<Monitor> const &);
-void centeredmaster(struct std::shared_ptr<Monitor> const &);
+void centeredMaster(struct std::shared_ptr<Monitor> const &);
 
 #endif  // DWM_LAYOUT_HPP

@@ -45,8 +45,8 @@ struct ClassHint {
     XPtr<char> class_hint;
 
     [[nodiscard]]
-    static ClassHint fromX(XClassHint ch) {
-        return {XPtr<char> {ch.res_name}, XPtr<char> {ch.res_class}};
+    static ClassHint fromX(XClassHint class_hint) {
+        return {XPtr<char> {class_hint.res_name}, XPtr<char> {class_hint.res_class}};
     }
 };
 
@@ -56,14 +56,14 @@ using Monitors = std::vector<MonitorRef>;
 
 struct Monitor {
     ut::StaticString<16> layoutSymbol;  // NOLINT readability-magic-numbers
-    float mfact;
+    float master_factor;
     int nmaster;
     int num;
     int bar_y; /* bar geometry */
     Rect<int> monitor_size;
     Rect<int> window_size;
-    unsigned int seltags;
-    unsigned int sellt;
+    unsigned int sel_tags;
+    unsigned int sel_layout;
     std::array<unsigned int, 2> tagset;
     bool showbar;
     int topbar;
@@ -71,7 +71,7 @@ struct Monitor {
     Client *sel;
     Client *stack;
     Window barwin;
-    std::array<Layout const *, 2> lt;
+    std::array<Layout const *, 2> layout_slots;
     Pertag *pertag;
 };
 
@@ -88,13 +88,13 @@ struct ClientProps {
 
 struct Client {
     ut::StaticString<256> name;  // NOLINT readability-magic-numbers
-    float mina, maxa;
-    float cfact;
+    float min_aspect, max_aspect;
+    float client_factor;
     Rect<int> size;
     Rect<int> old_size;
-    int basew, baseh, incw, inch, maxw, maxh, minw, minh;
+    int base_width, base_height, inc_width, inc_height, max_width, max_height, min_width, min_height;
     bool hintsvalid;
-    int bw, oldbw;
+    int border_width, old_border_width;
     unsigned int tags;
     unsigned int switchtotag;
     ClientProps props;
@@ -107,10 +107,10 @@ struct Client {
 
     [[nodiscard]]
     ClassHint classHint(Display *dpy) const {
-        XClassHint ch;
-        auto status = XGetClassHint(dpy, win, &ch);
+        XClassHint raw_hint;
+        auto status = XGetClassHint(dpy, win, &raw_hint);
         if (!status) return ClassHint {nullptr, nullptr};
-        return ClassHint::fromX(ch);
+        return ClassHint::fromX(raw_hint);
     }
 
     [[nodiscard]]
@@ -121,26 +121,26 @@ struct Client {
     }
 
     void configure() const;
-    void applyrules();
-    void resizeclient(Rect<int> new_size);
-    bool applysizehints(Rect<int> *size, bool interact);
+    void applyRules();
+    void resizeClient(Rect<int> new_size);
+    bool applySizeHints(Rect<int> *size, bool interact);
     void resize(Rect<int> size, bool interact);
-    void unfocus(bool setfocus);
-    void setfocus();
-    void setfullscreen(FullScreen fullscreen);
-    void seturgent(IsUrgent urg);
-    void updatesizehints();
-    void updatetitle();
-    void updatewindowtype();
-    void updatewmhints();
-    void grabbuttons(bool focused) const;
-    void setclientstate(long state) const;
+    void unfocus(bool set_focus);
+    void setFocus();
+    void setFullscreen(FullScreen fullscreen);
+    void setUrgent(IsUrgent urg);
+    void updateSizeHints();
+    void updateTitle();
+    void updateWindowType();
+    void updateWmHints();
+    void grabButtons(bool focused) const;
+    void setClientState(long state) const;
     [[nodiscard]]
     MonitorRef getMon();
     [[nodiscard]]
-    bool sendevent(Atom proto) const;
+    bool sendEvent(Atom proto) const;
     [[nodiscard]]
-    Atom getatomprop(Atom prop) const;
+    Atom getAtomProp(Atom prop) const;
     [[nodiscard]]
     int getWidth() const;
     [[nodiscard]]
@@ -153,8 +153,8 @@ struct Client {
 
     [[nodiscard]]
     bool isVisible() const {
-        if (auto m = mon.lock())
-            return isVisibleOnTag(m->tagset[m->seltags]);
+        if (auto monitor = mon.lock())
+            return isVisibleOnTag(monitor->tagset[monitor->sel_tags]);
         else
             lg::warn("Trying to query visibility of the client '{}' on a deleted monitor", name.view());
         return false;
@@ -185,21 +185,21 @@ struct std::tuple_element<1, RootPointer> {
 };
 
 template<std::size_t I>
-constexpr int &get(RootPointer &s) {
+constexpr int &get(RootPointer &ptr) {
     static_assert(I < 2);
     if constexpr (I == 0)
-        return s.x;
+        return ptr.x;
     else
-        return s.y;
+        return ptr.y;
 }
 
 template<std::size_t I>
-constexpr int get(RootPointer s) {
+constexpr int get(RootPointer ptr) {
     static_assert(I < 2);
     if constexpr (I == 0)
-        return s.x;
+        return ptr.x;
     else
-        return s.y;
+        return ptr.y;
 }
 
 #endif  // DWM_HPP

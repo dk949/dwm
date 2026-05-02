@@ -6,14 +6,14 @@
 #include <noticeboard/noticeboard.hpp>
 #include <X11/Xlib.h>
 
+#include <cstdlib>
 #include <format>
 #include <optional>
-#include <cstdlib>
 
 static constexpr auto info_expiry = nb::ExpireTime {900};
 
-static std::string_view getIcon(lg::Level l) {
-    switch (l) {
+static std::string_view getIcon(lg::Level level) {
+    switch (level) {
         case lg::Level::Breakpoint:
         case lg::Level::Debug:
         case lg::Level::Info: return ICONDIR "/dwm-icon.svg";
@@ -24,12 +24,12 @@ static std::string_view getIcon(lg::Level l) {
     }
 }
 
-static nb::Notice &getNotice(lg::Level l) {
+static nb::Notice &getNotice(lg::Level level) {
     static std::optional<nb::Notice> null_notice {};
     static std::optional<nb::Notice> info_notice {};
     static std::optional<nb::Notice> warn_notice {};
     static std::optional<nb::Notice> error_notice {};
-    switch (l) {
+    switch (level) {
         case lg::Level::Breakpoint:
         case lg::Level::Debug:
             if (!null_notice) null_notice = nb::Notice {"dwm", nb::Backend::Null};
@@ -37,7 +37,7 @@ static nb::Notice &getNotice(lg::Level l) {
         case lg::Level::Info:
             if (!info_notice) {
                 info_notice = nb::Notice {"dwm"};
-                info_notice->icon = getIcon(l);
+                info_notice->icon = getIcon(level);
                 info_notice->expire_time = info_expiry;
             }
             return *info_notice;
@@ -45,7 +45,7 @@ static nb::Notice &getNotice(lg::Level l) {
             if (!warn_notice) {
                 warn_notice = nb::Notice {"dwm"};
                 warn_notice->urgency = nb::Urgency::Critical;
-                warn_notice->icon = getIcon(l);
+                warn_notice->icon = getIcon(level);
             }
             return *warn_notice;
         case lg::Level::Error:
@@ -53,7 +53,7 @@ static nb::Notice &getNotice(lg::Level l) {
             if (!error_notice) {
                 error_notice = nb::Notice {"dwm"};
                 error_notice->urgency = nb::Urgency::Critical;
-                error_notice->icon = getIcon(l);
+                error_notice->icon = getIcon(level);
             }
             return *error_notice;
         default: std::abort();
@@ -63,10 +63,10 @@ static nb::Notice &getNotice(lg::Level l) {
 namespace lg {
 FILE *log_file = nullptr;
 
-void sendNotice(Level l, std::string_view header, std::string_view body) {
+void sendNotice(Level level, std::string_view header, std::string_view body) {
     // TODO(dk949): handle exception properly
     try {
-        getNotice(l).send(header, body);
+        getNotice(level).send(header, body);
     } catch (...) { }
 }
 
@@ -76,20 +76,20 @@ std::optional<std::filesystem::path> getLogDir() {
     char const *xdg_cache_home = getenv("XDG_CACHE_HOME");
     if (xdg_cache_home) {
         auto path = std::filesystem::path(xdg_cache_home) / logsubdir;
-        std::error_code ec;
-        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
+        std::error_code err;
+        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, err);
 
-        if (ec == std::errc {}) return path;
+        if (err == std::errc {}) return path;
         warn("Failed to get XDG_CACHE_HOME ({}): {}", path.c_str(), strError(errno));
     }
 
     char const *home = getenv("HOME");
     if (home) {
         auto path = std::filesystem::path(home) / ".cache" / logsubdir;
-        std::error_code ec;
-        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, ec);
+        std::error_code err;
+        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, err);
 
-        if (ec == std::errc {}) return path;
+        if (err == std::errc {}) return path;
         warn("Failed to get $HOME/.cache directory ({}): {}", path.c_str(), strError(errno));
     }
     return {};

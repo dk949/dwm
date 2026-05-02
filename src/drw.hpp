@@ -63,7 +63,7 @@ using Clr = XftColor;
 
 struct Drw {
 private:
-    ColorScheme m_scheme{};
+    ColorScheme m_scheme {};
     Color const *m_current_color = nullptr;
     int m_screen_width;
     int m_screen_height;
@@ -85,15 +85,15 @@ public:
 
     void resize(int w, int h);
     [[nodiscard]]
-    bool fontset_create(std::span<char const *const> fonts);
+    bool fontsetCreate(std::span<char const *const> fonts);
 
 
     void setColorScheme(ColorSchemeName clrnames);
 
-    int fontset_getwidth(char const *text);
+    int fontsetGetwidth(char const *text);
 
-    int draw_text(int x, int y, int w, int h, int lpad, char const *text, bool invert);
-    void draw_rect(int x, int y, int w, int h, bool filled, bool invert);
+    int drawText(int x, int y, int w, int h, int left_pad, char const *text, bool invert);
+    void drawRect(int x, int y, int w, int h, bool filled, bool invert);
     void map(Window win, Rect<int> dims);
 
     void setColor(Color const *col) {
@@ -121,14 +121,14 @@ public:
     }
 
 private:
-    std::optional<Fnt> xfont_create(char const *fontname);
-    std::optional<Fnt> xfont_create(FcPattern *fontpattern);
-    Clr clr_create(char const *clrname) const;
+    std::optional<Fnt> xfontCreate(char const *fontname);
+    std::optional<Fnt> xfontCreate(FcPattern *fontpattern);
+    Clr clrCreate(char const *clrname) const;
     Color nameToColor(ColorName const &name) const;
 };
 
 /* Fnt abstraction */
-void drw_fontset_free(std::vector<Fnt> &set);
-void drw_font_getexts(Fnt *font, char const *text, std::size_t len, int *w, int *h);
+void drwFontsetFree(std::vector<Fnt> &set);
+void drwFontGetexts(Fnt *font, char const *text, std::size_t len, int *w, int *h);
 
 #endif  // DWM_DRW_HPP

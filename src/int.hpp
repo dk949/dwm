@@ -42,14 +42,14 @@ public:
         return m_data;
     }
 
-    static constexpr BasicInt from(std::integral auto i) noexcept {
-        return BasicInt(cast<BackingInt>(i));
+    static constexpr BasicInt from(std::integral auto val) noexcept {
+        return BasicInt(cast<BackingInt>(val));
     }
 
     template<typename OtherBackingInt>
     requires(!std::is_same_v<BackingInt, OtherBackingInt>)
-    static constexpr BasicInt from(BasicInt<OtherBackingInt> i) noexcept {
-        return BasicInt(cast<BackingInt>(i.get()));
+    static constexpr BasicInt from(BasicInt<OtherBackingInt> val) noexcept {
+        return BasicInt(cast<BackingInt>(val.get()));
     }
 
     [[nodiscard]]
@@ -58,15 +58,15 @@ public:
     constexpr std::strong_ordering operator<=>(BasicInt const &) const noexcept = default;
 
     [[nodiscard]]
-    constexpr bool operator==(std::integral auto i) const noexcept {
-        return std::cmp_equal(m_data, i);
+    constexpr bool operator==(std::integral auto val) const noexcept {
+        return std::cmp_equal(m_data, val);
     }
 
     [[nodiscard]]
-    constexpr std::strong_ordering operator<=>(std::integral auto i) const noexcept {
-        if (std::cmp_equal(m_data, i))
+    constexpr std::strong_ordering operator<=>(std::integral auto val) const noexcept {
+        if (std::cmp_equal(m_data, val))
             return std::strong_ordering::equivalent;
-        else if (std::cmp_less(m_data, i))
+        else if (std::cmp_less(m_data, val))
             return std::strong_ordering::less;
         else
             return std::strong_ordering::greater;
@@ -95,55 +95,55 @@ public:
     constexpr BasicInt operator--(int) noexcept { BasicInt tmp(*this); m_data = safeSub(1); return tmp; }
 
     [[nodiscard]]
-    constexpr BasicInt operator+(BasicInt i) const noexcept { return BasicInt(safeAdd(i.m_data)); }
+    constexpr BasicInt operator+(BasicInt val) const noexcept { return BasicInt(safeAdd(val.m_data)); }
     [[nodiscard]]
-    constexpr BasicInt operator-(BasicInt i) const noexcept { return BasicInt(safeSub(i.m_data)); }
+    constexpr BasicInt operator-(BasicInt val) const noexcept { return BasicInt(safeSub(val.m_data)); }
     [[nodiscard]]
-    constexpr BasicInt operator*(BasicInt i) const noexcept { return BasicInt(safeMul(i.m_data)); }
+    constexpr BasicInt operator*(BasicInt val) const noexcept { return BasicInt(safeMul(val.m_data)); }
     [[nodiscard]]
-    constexpr BasicInt operator/(BasicInt i) const noexcept { return BasicInt(safeDiv(i.m_data)); }
+    constexpr BasicInt operator/(BasicInt val) const noexcept { return BasicInt(safeDiv(val.m_data)); }
     [[nodiscard]]
-    constexpr BasicInt operator%(BasicInt i) const noexcept { return BasicInt(safeMod(i.m_data)); }
+    constexpr BasicInt operator%(BasicInt val) const noexcept { return BasicInt(safeMod(val.m_data)); }
 
     [[nodiscard]]
-    constexpr BasicInt operator+(std::integral auto i) const noexcept { return BasicInt(safeAdd(cast<BackingInt>(i))); }
+    constexpr BasicInt operator+(std::integral auto val) const noexcept { return BasicInt(safeAdd(cast<BackingInt>(val))); }
     [[nodiscard]]
-    constexpr BasicInt operator-(std::integral auto i) const noexcept { return BasicInt(safeSub(cast<BackingInt>(i))); }
+    constexpr BasicInt operator-(std::integral auto val) const noexcept { return BasicInt(safeSub(cast<BackingInt>(val))); }
     [[nodiscard]]
-    constexpr BasicInt operator*(std::integral auto i) const noexcept { return BasicInt(safeMul(cast<BackingInt>(i))); }
+    constexpr BasicInt operator*(std::integral auto val) const noexcept { return BasicInt(safeMul(cast<BackingInt>(val))); }
     [[nodiscard]]
-    constexpr BasicInt operator/(std::integral auto i) const noexcept { return BasicInt(safeDiv(cast<BackingInt>(i))); }
+    constexpr BasicInt operator/(std::integral auto val) const noexcept { return BasicInt(safeDiv(cast<BackingInt>(val))); }
     [[nodiscard]]
-    constexpr BasicInt operator%(std::integral auto i) const noexcept { return BasicInt(safeMod(cast<BackingInt>(i))); }
+    constexpr BasicInt operator%(std::integral auto val) const noexcept { return BasicInt(safeMod(cast<BackingInt>(val))); }
 
     [[nodiscard]]
-    friend constexpr BasicInt operator+(std::integral auto a, BasicInt b) noexcept { return BasicInt(BasicInt::from(a).safeAdd(b.m_data)); }
+    friend constexpr BasicInt operator+(std::integral auto lhs, BasicInt rhs) noexcept { return BasicInt(BasicInt::from(lhs).safeAdd(rhs.m_data)); }
     [[nodiscard]]
-    friend constexpr BasicInt operator-(std::integral auto a, BasicInt b) noexcept { return BasicInt(BasicInt::from(a).safeSub(b.m_data)); }
+    friend constexpr BasicInt operator-(std::integral auto lhs, BasicInt rhs) noexcept { return BasicInt(BasicInt::from(lhs).safeSub(rhs.m_data)); }
     [[nodiscard]]
-    friend constexpr BasicInt operator*(std::integral auto a, BasicInt b) noexcept { return BasicInt(BasicInt::from(a).safeMul(b.m_data)); }
+    friend constexpr BasicInt operator*(std::integral auto lhs, BasicInt rhs) noexcept { return BasicInt(BasicInt::from(lhs).safeMul(rhs.m_data)); }
     [[nodiscard]]
-    friend constexpr BasicInt operator/(std::integral auto a, BasicInt b) noexcept { return BasicInt(BasicInt::from(a).safeDiv(b.m_data)); }
+    friend constexpr BasicInt operator/(std::integral auto lhs, BasicInt rhs) noexcept { return BasicInt(BasicInt::from(lhs).safeDiv(rhs.m_data)); }
     [[nodiscard]]
-    friend constexpr BasicInt operator%(std::integral auto a, BasicInt b) noexcept { return BasicInt(BasicInt::from(a).safeMod(b.m_data)); }
+    friend constexpr BasicInt operator%(std::integral auto lhs, BasicInt rhs) noexcept { return BasicInt(BasicInt::from(lhs).safeMod(rhs.m_data)); }
 
-    friend std::ostream &operator<<(std::ostream &os, BasicInt const &x) { return os << x.m_data; }
-    friend std::istream &operator>>(std::istream &is, BasicInt &x) { return is >> x.m_data; }
+    friend std::ostream &operator<<(std::ostream &stream, BasicInt const &x) { return stream << x.m_data; }
+    friend std::istream &operator>>(std::istream &in_stream, BasicInt &x) { return in_stream >> x.m_data; }
 
     // clang-format on
 
     template<std::integral T, std::integral I>
     [[nodiscard]]
-    static constexpr T cast(I i) noexcept {
+    static constexpr T cast(I val) noexcept {
         if constexpr (std::is_same_v<T, I>) {
-            return i;
+            return val;
         } else {
-            if (std::in_range<T>(i)) [[likely]]
-                return static_cast<T>(i);
+            if (std::in_range<T>(val)) [[likely]]
+                return static_cast<T>(val);
             else [[unlikely]] {
                 std::string_view err;
                 T out = 0;
-                if (std::cmp_greater(i, std::numeric_limits<T>::max())) {
+                if (std::cmp_greater(val, std::numeric_limits<T>::max())) {
                     err = "overflow";
                     out = std::numeric_limits<T>::max();
                 } else {
@@ -151,108 +151,109 @@ public:
                     out = std::numeric_limits<T>::min();
                 }
                 if (!std::is_constant_evaluated())
-                    lg::error("({}){} would cause {} for {}", ut::typeName<I>(), i, err, ut::typeName<T>());
+                    lg::error("({}){} would cause {} for {}", ut::typeName<I>(), val, err, ut::typeName<T>());
                 return out;
             }
         }
     }
 private:
     [[nodiscard]]
-    constexpr BackingInt safeAdd(BackingInt i) const {
-        if (m_data > int_max - i) [[unlikely]] {
-            if (!std::is_constant_evaluated()) lg::error("Adding {} to {} would overflow, saturating", i, m_data);
+    constexpr BackingInt safeAdd(BackingInt val) const {
+        if (m_data > int_max - val) [[unlikely]] {
+            if (!std::is_constant_evaluated()) lg::error("Adding {} to {} would overflow, saturating", val, m_data);
             return int_max;
         }
-        return m_data + i;
+        return m_data + val;
     }
 
     [[nodiscard]]
-    constexpr BackingInt safeSub(BackingInt i) const {
-        if (m_data < int_min + i) [[unlikely]] {
+    constexpr BackingInt safeSub(BackingInt val) const {
+        if (m_data < int_min + val) [[unlikely]] {
             if (!std::is_constant_evaluated())
-                lg::error("Subtracting {} from {} would underflow, saturating", i, m_data);
+                lg::error("Subtracting {} from {} would underflow, saturating", val, m_data);
             return int_min;
         }
-        return m_data - i;
+        return m_data - val;
     }
 
     [[nodiscard]]
-    constexpr BackingInt safeMul(BackingInt i) const {
+    constexpr BackingInt safeMul(BackingInt val) const {
         if constexpr (is_unsigned) {
-            if (i == 0) return 0;
-            if (m_data > int_max / i) [[unlikely]] {
+            if (val == 0) return 0;
+            if (m_data > int_max / val) [[unlikely]] {
                 if (!std::is_constant_evaluated())
-                    lg::error("Multiplying {} by {} would overflow, saturating", m_data, i);
+                    lg::error("Multiplying {} by {} would overflow, saturating", m_data, val);
                 return int_max;
             }
-            return m_data * i;
+            return m_data * val;
         } else {
-            if (m_data == 0 || i == 0) return 0;
+            if (m_data == 0 || val == 0) return 0;
 
             if (m_data > 0) {
-                if (i > 0) {
-                    if (m_data > int_max / i) [[unlikely]] {
+                if (val > 0) {
+                    if (m_data > int_max / val) [[unlikely]] {
                         if (!std::is_constant_evaluated())
-                            lg::error("Multiplying {} by {} would overflow, saturating", m_data, i);
+                            lg::error("Multiplying {} by {} would overflow, saturating", m_data, val);
                         return int_max;
                     }
                 } else {
-                    if (i < int_min / m_data) [[unlikely]] {
+                    if (val < int_min / m_data) [[unlikely]] {
                         if (!std::is_constant_evaluated())
-                            lg::error("Multiplying {} by {} would underflow, saturating", m_data, i);
+                            lg::error("Multiplying {} by {} would underflow, saturating", m_data, val);
                         return int_min;
                     }
                 }
             } else {
-                if (i > 0) {
-                    if (m_data < int_min / i) [[unlikely]] {
+                if (val > 0) {
+                    if (m_data < int_min / val) [[unlikely]] {
                         if (!std::is_constant_evaluated())
-                            lg::error("Multiplying {} by {} would underflow, saturating", m_data, i);
+                            lg::error("Multiplying {} by {} would underflow, saturating", m_data, val);
                         return int_min;
                     }
                 } else {
-                    if (m_data < int_max / i) [[unlikely]] {
+                    if (m_data < int_max / val) [[unlikely]] {
                         if (!std::is_constant_evaluated())
-                            lg::error("Multiplying {} by {} would overflow, saturating", m_data, i);
+                            lg::error("Multiplying {} by {} would overflow, saturating", m_data, val);
                         return int_max;
                     }
                 }
             }
-            return m_data * i;
+            return m_data * val;
         }
     }
 
     [[nodiscard]]
-    constexpr BackingInt safeDiv(BackingInt i) const {
-        if (i == 0) [[unlikely]] {
+    constexpr BackingInt safeDiv(BackingInt val) const {
+        if (val == 0) [[unlikely]] {
             if (!std::is_constant_evaluated()) lg::error("Trying to divide {} by 0, using {}", m_data, int_max);
             return int_max;
         }
         if constexpr (is_unsigned)
-            return m_data / i;
+            return m_data / val;
         else {
-            if (m_data == int_min && i == -1) [[unlikely]] {
-                if (!std::is_constant_evaluated()) lg::error("Dividing {} by {} would overflow, saturating", m_data, i);
+            if (m_data == int_min && val == -1) [[unlikely]] {
+                if (!std::is_constant_evaluated())
+                    lg::error("Dividing {} by {} would overflow, saturating", m_data, val);
                 return int_max;
             }
-            return m_data / i;
+            return m_data / val;
         }
     }
 
     [[nodiscard]]
-    constexpr BackingInt safeMod(BackingInt i) const {
-        if (i == 0) [[unlikely]] {
+    constexpr BackingInt safeMod(BackingInt val) const {
+        if (val == 0) [[unlikely]] {
             if (!std::is_constant_evaluated()) lg::error("Trying to perform {} modulo 0, using {}", m_data, int_max);
             return int_max;
         }
         if constexpr (is_unsigned)
-            return m_data % i;
+            return m_data % val;
         else {
-            if (m_data == int_min && i == -1) [[unlikely]] {
-                if (!std::is_constant_evaluated()) lg::error("{} modulo {} would overflow, saturating", m_data, i);
+            if (m_data == int_min && val == -1) [[unlikely]] {
+                if (!std::is_constant_evaluated()) lg::error("{} modulo {} would overflow, saturating", m_data, val);
                 return int_max;
             }
-            return m_data % i;
+            return m_data % val;
         }
     }
 

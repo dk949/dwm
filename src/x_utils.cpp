@@ -107,8 +107,8 @@ static constexpr auto atom_names = [] {
     return out;
 }();
 
-char const *atomTypeName(Atom a) {
-    if (a < atom_names.size()) return atom_names.at(a);
+char const *atomTypeName(Atom atom) {
+    if (atom < atom_names.size()) return atom_names.at(atom);
     return "UNKNOWN_ATOM";
 }
 

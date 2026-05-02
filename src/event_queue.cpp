@@ -94,18 +94,18 @@ void EventLogger<true>::log() {
 EventLoop::EventLoop(Display *dpy, Window root)
         : m_dpy(dpy)
         , x_socket(ConnectionNumber(m_dpy)) {
-    XSetWindowAttributes wa;
-    wa.event_mask = SubstructureRedirectMask  //
-                  | SubstructureNotifyMask    //
-                  | ButtonPressMask           //
-                  | PointerMotionMask         //
-                  | EnterWindowMask           //
-                  | LeaveWindowMask           //
-                  | StructureNotifyMask       //
-                  | PropertyChangeMask;
-    XChangeWindowAttributes(m_dpy, root, CWEventMask, &wa);
-    XSelectInput(dpy, root, wa.event_mask);
-    int err_base = 0;// TODO(dk949): This might break xstrerror
+    XSetWindowAttributes attrs;
+    attrs.event_mask = SubstructureRedirectMask  //
+                     | SubstructureNotifyMask    //
+                     | ButtonPressMask           //
+                     | PointerMotionMask         //
+                     | EnterWindowMask           //
+                     | LeaveWindowMask           //
+                     | StructureNotifyMask       //
+                     | PropertyChangeMask;
+    XChangeWindowAttributes(m_dpy, root, CWEventMask, &attrs);
+    XSelectInput(dpy, root, attrs.event_mask);
+    int err_base = 0;  // TODO(dk949): This might break xstrerror
     if (XRRQueryExtension(m_dpy, &m_xrandr_event_base, &err_base)) {
         XRRSelectInput(m_dpy, root, RROutputChangeNotifyMask);
     } else {
@@ -130,7 +130,7 @@ EventLoop::EventLoop(Display *dpy, Window root)
  *    then going to sleep again.
  *  * X events and internal events can both generate new internal events, these go to the new active queue and
  *    are not processed this frame.
- *  * There will be potential issues with `movemouse` and `resizemouse`, since these process events out of order.
+ *  * There will be potential issues with `movemouse` and `resizeMouse`, since these process events out of order.
  *    To start this should be OK (there aren't currently any internal events this will interfere with), but
  *    eventually I want to be able to dynamically replace X event handlers.
  */
@@ -150,8 +150,8 @@ void EventLoop::run() {
     }
 }
 
-void EventLoop::runQueueEvents(InternalQueue *q) {
-    for (auto ev = q->tryPop(); ev; ev = q->tryPop()) {
+void EventLoop::runQueueEvents(InternalQueue *queue) {
+    for (auto ev = queue->tryPop(); ev; ev = queue->tryPop()) {
         logger.countInternal();
         std::visit([this]<typename Ev>(Ev &&e) { return runInternalHandler(std::forward<Ev>(e)); }, *std::move(ev));
     }
@@ -164,9 +164,9 @@ void EventLoop::handleXEvents(chr::high_resolution_clock::time_point until) {
         FD_ZERO(&in_fd_set);
         FD_SET(x_socket, &in_fd_set);
         FD_SET(Proc::sfd.get(), &in_fd_set);
-        auto const ts = fromChrono(until - now);
+        auto const tspec = fromChrono(until - now);
         // TODO(dk949): Once we no longer need the timeout, switch to poll
-        if (auto bits = pselect(std::max(x_socket, Proc::sfd.get()) + 1, &in_fd_set, nullptr, nullptr, &ts, nullptr);
+        if (auto bits = pselect(std::max(x_socket, Proc::sfd.get()) + 1, &in_fd_set, nullptr, nullptr, &tspec, nullptr);
             bits > 0) {
             if (FD_ISSET(x_socket, &in_fd_set)) flushXEvents();
             if (FD_ISSET(Proc::sfd.get(), &in_fd_set)) handleSignals();
@@ -195,10 +195,10 @@ void EventLoop::flushXEvents() {
             lg::error("XNextEvent error: {}", xstrerror(m_dpy, err));
             break;
         }
-        if (auto t = static_cast<std::size_t>(ev.type); t < LASTEvent) {
-            if (auto &handler = m_x_handlers[t]) handler(&ev);
-        } else if (auto it = m_x_ext_handlers.find(ev.type); it != m_x_ext_handlers.end() && it->second) {
-            it->second(&ev);
+        if (auto type = static_cast<std::size_t>(ev.type); type < LASTEvent) {
+            if (auto &handler = m_x_handlers[type]) handler(&ev);
+        } else if (auto iter = m_x_ext_handlers.find(ev.type); iter != m_x_ext_handlers.end() && iter->second) {
+            iter->second(&ev);
         }
     }
 }

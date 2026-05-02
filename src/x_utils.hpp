@@ -14,7 +14,7 @@ enum {
 };
 
 std::string_view xstrerror(Display *dpy, int code);
-char const *atomTypeName(Atom a);
+char const *atomTypeName(Atom atom);
 
 
 #endif  // DWM_X_UTILS_HPP

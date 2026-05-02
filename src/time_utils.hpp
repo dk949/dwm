@@ -20,9 +20,9 @@ constexpr std::timespec fromChrono(chr::duration<Rep, Period> dur) {
 
 template<typename T = chr::nanoseconds>
 [[nodiscard]]
-constexpr T fromTimespec(std::timespec ts) {
-    auto nano = chr::nanoseconds(ts.tv_nsec);
-    auto secs = chr::seconds(ts.tv_sec);
+constexpr T fromTimespec(std::timespec tspec) {
+    auto nano = chr::nanoseconds(tspec.tv_nsec);
+    auto secs = chr::seconds(tspec.tv_sec);
     return chr::duration_cast<T>(secs + nano);
 }
 

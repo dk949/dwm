@@ -154,7 +154,7 @@ private:
         if (fn) fn(std::move(ev));
     }
 
-    void runQueueEvents(InternalQueue *q);
+    void runQueueEvents(InternalQueue *queue);
     void handleXEvents(std::chrono::high_resolution_clock::time_point until);
     void flushXEvents();
     void handleSignals();

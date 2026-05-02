@@ -19,8 +19,8 @@ extern FILE *log_file;
 enum struct Level { Breakpoint, Debug, Info, Warn, Error, Fatal };
 
 namespace detail {
-    constexpr std::string_view log_level_str(Level l) {
-        switch (l) {
+    constexpr std::string_view log_level_str(Level level) {
+        switch (level) {
             case Level::Breakpoint: return "[DWM BP]";
             case Level::Debug: return "[DWM DBG]";
             case Level::Info: return "[DWM INFO]";
@@ -47,7 +47,7 @@ namespace detail {
 
 }  // namespace detail
 
-void sendNotice(Level l, std::string_view header, std::string_view body = {});
+void sendNotice(Level level, std::string_view header, std::string_view body = {});
 
 template<Level level, typename... Args>
 void log(std::format_string<Args...> fmt, Args &&...args) {

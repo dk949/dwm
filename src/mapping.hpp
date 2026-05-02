@@ -74,37 +74,37 @@ void bright_inc(double arg);
 [[maybe_unused]]
 void bright_set(double arg);
 void dmenu_run();
-void focusmon(int arg);
-void focusmonabs(unsigned arg);
-void focusstack(int arg);
+void focusMon(int arg);
+void focusMonAbs(unsigned arg);
+void focusStack(int arg);
 void iconify();
-void incnmaster(int arg);
-void killclient();
+void incNmaster(int arg);
+void killClient();
 void movemouse();
 void quit();
-void resetmcfact();
-void resizemouse();
+void resetMcfact();
+void resizeMouse();
 void restart();
-void rotatestack(int arg);
-void setcfact(float arg);
-void setlayout(Layout const *arg);
-void setmaster(int arg);
-void setmfact(float arg);
+void rotateStack(int arg);
+void setCfact(float arg);
+void setLayout(Layout const *arg);
+void setMaster(int arg);
+void setMfact(float arg);
 void spawn(char const *const *arg);
 void tag(unsigned arg);
-void tagmon(int arg);
-void togglebar();
-void togglefloating();
-void togglefs();
-void toggletag(unsigned arg);
-void toggleview(unsigned arg);
+void tagMon(int arg);
+void toggleBar();
+void toggleFloating();
+void toggleFs();
+void toggleTag(unsigned arg);
+void toggleView(unsigned arg);
 void view(unsigned arg);
-void shiftview(int dir);
-void winpicker();
+void shiftView(int dir);
+void winPicker();
 void zoom();
 
 #ifdef ASOUND
-void volumechange(float arg);
+void volumeChange(float arg);
 #endif  // ASOUND
 
 #endif  // DWM_MAPPING_HPP

@@ -47,7 +47,6 @@
 #   readability-avoid-return-with-void-value               # Why?
 #   readability-braces-around-statements                   # Non-issue when using a formatter
 #   readability-else-after-return                          # Also why?
-#   readability-identifier-length                          # Sometimes short identifiers are OK
 #   readability-named-parameter                            # Some parameters don't need names
 #   readability-redundant-access-specifiers                # They can be used to subdivide a class declaration
 #   readability-static-accessed-through-instance           # Nothing wrong with this
@@ -142,7 +141,6 @@ Checks:
   -readability-braces-around-statements,
   -readability-container-size-empty,
   -readability-else-after-return,
-  -readability-identifier-length,
   -readability-identifier-naming,
   -readability-named-parameter,
   -readability-non-const-parameter,
@@ -232,3 +230,14 @@ CheckOptions:
 
   - key: concurrency-mt-unsafe.FunctionSet
     value: glibc
+
+  - key: readability-identifier-length.MinimumVariableNameLength
+    value: 3
+  - key: readability-identifier-length.MinimumParameterNameLength
+    value: 3
+  - key: readability-identifier-length.IgnoredLoopCounterNames
+    value: '^(i|j|k|c)$'
+  - key: readability-identifier-length.IgnoredVariableNames
+    value: '^(x|y|w|h|fg|bg|fn|fd|fp|sv|ev|e|dpy|drw|fmt|rng|vws|chr|arg|volc|xcon|os)$'
+  - key: readability-identifier-length.IgnoredParameterNames
+    value: '^(x|y|w|h|fg|fd|fp|bg|fn|sv|ev|e|dpy|drw|fmt|rng|vws|chr|arg|volc|xcon)$'

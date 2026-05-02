@@ -64,7 +64,7 @@ public:
     static std::size_t cleanUpZombies();
 
     // Can be used to redirect any file descriptor to any other file descriptor
-    static bool redirect(Redirection r);
+    static bool redirect(Redirection redir);
 
     static bool addFDFlag(int fd, unsigned flag);
 
@@ -99,7 +99,7 @@ private:
     [[nodiscard]]
     static std::optional<Proc> spawn(Display *dpy, char *const *argv, SpawnConfig);
     // SHOULD ONLY EVER BE CALLED FROM CHILD PROCESS!!!
-    static void tryRedirect(Redirection r, int bad_exit);
+    static void tryRedirect(Redirection redir, int bad_exit);
     // SHOULD ONLY EVER BE CALLED FROM CHILD PROCESS!!!
     static void trySetsid(int bad_exit);
     static void closePipe(int pipe);
@@ -111,16 +111,16 @@ private:
 template<>
 struct std::formatter<Proc::Redirection> {
 private:
-    static std::format_context::iterator formatFD(int fd, std::format_context::iterator it) {
+    static std::format_context::iterator formatFD(int fd, std::format_context::iterator iter) {
         switch (fd) {
-            case STDIN_FILENO: return std::format_to(it, "stdin");
-            case STDOUT_FILENO: return std::format_to(it, "stdout");
-            case STDERR_FILENO: return std::format_to(it, "stderr");
+            case STDIN_FILENO: return std::format_to(iter, "stdin");
+            case STDOUT_FILENO: return std::format_to(iter, "stdout");
+            case STDERR_FILENO: return std::format_to(iter, "stderr");
             default:
                 if (fd == Proc::devNull())
-                    return std::format_to(it, "/dev/null");
+                    return std::format_to(iter, "/dev/null");
                 else
-                    return std::format_to(it, "{}", fd);
+                    return std::format_to(iter, "{}", fd);
         }
     }
 public:
@@ -128,11 +128,11 @@ public:
         return ctx.begin();
     }
 
-    static auto format(Proc::Redirection const &r, std::format_context &ctx) {
+    static auto format(Proc::Redirection const &redir, std::format_context &ctx) {
         std::format_context::iterator out = ctx.out();
-        out = formatFD(r.from, out);
+        out = formatFD(redir.from, out);
         std::format_to(out, " -> ");
-        out = formatFD(r.to, out);
+        out = formatFD(redir.to, out);
         return out;
     }
 };

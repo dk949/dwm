@@ -56,7 +56,7 @@ pid_t Proc::spawnDetached(Display *dpy, char const *const *argv) {
 
 pid_t Proc::spawnDetached(Display *dpy, char *const *argv) {
     return spawn(dpy, argv, {.out = Proc::devNull(), .err = Proc::devNull(), .detach = true})
-        .transform([](Proc p) noexcept { return p.m_pid; })
+        .transform([](Proc proc) noexcept { return proc.m_pid; })
         .value_or(-1);
 }
 
@@ -80,12 +80,12 @@ FDPtr Proc::dev_null {};
 
 static int tryOpenDevNull() {
     // When dwm is restarted, /dev/fd is re-opened, try to pick up that fd instead of opening a new one
-    std::error_code ec;
+    std::error_code err;
     for (auto const &dirent : std::filesystem::directory_iterator {"/dev/fd"}) {
-        if (!dirent.is_symlink(ec) || ec) continue;
+        if (!dirent.is_symlink(err) || err) continue;
         auto const &symlink_path = dirent.path();
-        auto real_path = std::filesystem::read_symlink(symlink_path, ec);
-        if (ec) continue;
+        auto real_path = std::filesystem::read_symlink(symlink_path, err);
+        if (err) continue;
         if (real_path != "/dev/null") continue;
         if (auto fd = ut::svToNum<int>(symlink_path.stem().native())) return *fd;
     }
@@ -111,8 +111,8 @@ int Proc::stdErr() {
     return STDERR_FILENO;
 }
 
-bool Proc::redirect(Redirection r) {
-    return dup2(r.to, r.from) >= 0;
+bool Proc::redirect(Redirection redir) {
+    return dup2(redir.to, redir.from) >= 0;
 }
 
 FDPtr Proc::sfd {};
@@ -173,9 +173,9 @@ std::optional<Proc> Proc::spawn(Display *dpy, char *const *argv, SpawnConfig con
     }
 }
 
-void Proc::tryRedirect(Redirection r, int bad_exit) {
-    if (!Proc::redirect(r)) {
-        lg::warn("Could not redirect {}: {}", r, strError(errno));
+void Proc::tryRedirect(Redirection redir, int bad_exit) {
+    if (!Proc::redirect(redir)) {
+        lg::warn("Could not redirect {}: {}", redir, strError(errno));
         _exit(bad_exit);
     }
 }
@@ -224,21 +224,21 @@ std::optional<std::string_view> Proc::writeFD(std::string_view sv, int fd) {
 
     while (remaining > 0) {
         size_t to_write = std::min(remaining, MAX_CHUNK);
-        ssize_t n = ::write(fd, ptr, to_write);
+        ssize_t bytes = ::write(fd, ptr, to_write);
 
-        if (n > 0) {
-            ptr += static_cast<size_t>(n);
-            remaining -= static_cast<size_t>(n);
+        if (bytes > 0) {
+            ptr += static_cast<size_t>(bytes);
+            remaining -= static_cast<size_t>(bytes);
             continue;
         }
 
-        if (n == 0) {
+        if (bytes == 0) {
             int saved_errno = errno;
             lg::error("writeFD: failed to write to fd {}: no progress (errno={})", fd, strError(saved_errno));
             return std::nullopt;
         }
 
-        // n < 0: error
+        // bytes < 0: error
         if (errno == EINTR) continue;
 
 
@@ -274,18 +274,18 @@ std::optional<std::pair<std::string, Proc::ReachedEOF>> Proc::readFD(int fd) {
     std::array<char, BUF_SZ> buf;
 
     while (true) {
-        ssize_t n = ::read(fd, buf.data(), buf.size());
+        ssize_t bytes = ::read(fd, buf.data(), buf.size());
 
-        if (n > 0) {
-            out.append(buf.data(), static_cast<size_t>(n));
+        if (bytes > 0) {
+            out.append(buf.data(), static_cast<size_t>(bytes));
             continue;
         }
 
         // EOF
-        if (n == 0) return std::make_optional(std::make_pair(std::move(out), ReachedEOF::Yes));
+        if (bytes == 0) return std::make_optional(std::make_pair(std::move(out), ReachedEOF::Yes));
 
 
-        // n < 0: error
+        // bytes < 0: error
         if (errno == EINTR) continue;
 
         if (DWM_IS_EAGAIN(errno)) return std::pair {std::move(out), ReachedEOF::No};
@@ -297,8 +297,8 @@ std::optional<std::pair<std::string, Proc::ReachedEOF>> Proc::readFD(int fd) {
     }
 }
 
-void Proc::closePipe(int p) {
-    if (isPipe(p)) close(p);
+void Proc::closePipe(int pipe_fd) {
+    if (isPipe(pipe_fd)) close(pipe_fd);
 }
 
 void Proc::closeStdin() noexcept {
@@ -330,18 +330,18 @@ std::array<Proc::PipeFds, 3> Proc::arrangePipes(SpawnConfig const &conf) {
     if (conf.err) out[2] = {.read = *conf.err, .write = STDERR_FILENO};
 
 
-    for (auto &p : out) {
-        if (p.read != pipe && p.write != pipe) continue;
+    for (auto &fds : out) {
+        if (fds.read != pipe && fds.write != pipe) continue;
         std::array<int, 2> pipes {};
         if (::pipe2(pipes.data(), 0) < 0) {
             lg::error("Failed to open a pipe for child process: {}", strError(errno));
-            p.read = devNull();
-            p.write = devNull();
+            fds.read = devNull();
+            fds.write = devNull();
             continue;
         }
 
-        p.read = pipes[0];
-        p.write = pipes[1];
+        fds.read = pipes[0];
+        fds.write = pipes[1];
     }
 
     return out;

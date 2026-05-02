@@ -21,21 +21,21 @@
 #    define IF_EVENT_TRACE if (false)
 #endif  // NDEBUG
 
-constexpr auto between(auto x, auto a, auto b) {
-    return a <= x && x <= b;
+constexpr auto between(auto value, auto low, auto high) {
+    return low <= value && value <= high;
 }
 
 template<typename R, typename E, typename Cmp>
-bool contains(R const &r, E &&_match, Cmp const &cmp = std::equal_to<E> {}) {
-    return std::ranges::find_if(r, [&, match = std::forward<E>(_match)](E const &e) { return cmp(match, e); })
-        == std::ranges::end(r);
+bool contains(R const &range, E &&_match, Cmp const &cmp = std::equal_to<E> {}) {
+    return std::ranges::find_if(range, [&, match = std::forward<E>(_match)](E const &e) { return cmp(match, e); })
+        == std::ranges::end(range);
 }
 
 template<std::integral Int>
-consteval auto toUnsigned(Int i) {
+consteval auto toUnsigned(Int val) {
     using Uint = std::make_unsigned_t<Int>;
-    if (!std::in_range<Uint>(i)) throw "Bad integral conversion";
-    return static_cast<Uint>(i);
+    if (!std::in_range<Uint>(val)) throw "Bad integral conversion";
+    return static_cast<Uint>(val);
 }
 
 /**
@@ -47,8 +47,8 @@ template<typename T>
 requires std::is_pointer_v<T>
 struct NullSentinel {
     [[nodiscard]]
-    constexpr bool operator==(T const &t) const noexcept {
-        return *t == std::remove_pointer_t<T> {0};
+    constexpr bool operator==(T const &ptr) const noexcept {
+        return *ptr == std::remove_pointer_t<T> {0};
     }
 };
 

@@ -11,14 +11,14 @@
 #define CHECK_RANGE(val, min, max) (((val) < (min)) ? (min) : ((val) > (max)) ? (max) : (val))
 
 // Avoiding c math lib
-static long vceil(double d) {
+static long vceil(double val) {
     /*
       if ((n - 0.0000000000000008) == floor(n))
           this will break :(
       */
 
     static constexpr double eps = 0.999999999999999;
-    return static_cast<long>(d + eps);
+    return static_cast<long>(val + eps);
 }
 
 static long convert_prange(float val, float min, float max) {

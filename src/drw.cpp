@@ -27,49 +27,50 @@ static constexpr std::array<unsigned char, UTF_SIZ + 1> utfmask {0xC0, 0x80, 0xE
 static constexpr std::array<long, UTF_SIZ + 1> utfmin {0, 0, 0x80, 0x800, 0x10000};
 static constexpr std::array<long, UTF_SIZ + 1> utfmax {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
 
-static long utf8decodebyte(char c, size_t *i) {
-    for (*i = 0; *i < (UTF_SIZ + 1); ++(*i))
-        if ((static_cast<unsigned char>(c) & utfmask[*i]) == utfbyte[*i])
-            return static_cast<unsigned char>(c) & static_cast<unsigned char>(~utfmask[*i]);
+static long utf8DecodeByte(char byte, size_t *idx) {
+    for (*idx = 0; *idx < (UTF_SIZ + 1); ++(*idx))
+        if ((static_cast<unsigned char>(byte) & utfmask[*idx]) == utfbyte[*idx])
+            return static_cast<unsigned char>(byte) & static_cast<unsigned char>(~utfmask[*idx]);
 
     return 0;
 }
 
-static size_t utf8validate(long *u, size_t i) {
-    if (!between(*u, utfmin[i], utfmax[i]) || between(*u, UtfInvalidRange::begin, UtfInvalidRange::end)) {
-        *u = UTF_INVALID;
+static size_t utf8Validate(long *codepoint, size_t idx) {
+    if (!between(*codepoint, utfmin[idx], utfmax[idx])
+        || between(*codepoint, UtfInvalidRange::begin, UtfInvalidRange::end)) {
+        *codepoint = UTF_INVALID;
     }
-    for (i = 1; *u > utfmax[i]; ++i) {
+    for (idx = 1; *codepoint > utfmax[idx]; ++idx) {
         ;
     }
-    return i;
+    return idx;
 }
 
-static size_t utf8decode(char const *c, long *u, size_t clen) {
-    size_t i;
-    size_t j;
+static size_t utf8Decode(char const *str, long *codepoint, size_t clen) {
     size_t len = 0;
     size_t type = 0;
 
-    *u = UTF_INVALID;
+    *codepoint = UTF_INVALID;
     if (!clen) {
         return 0;
     }
-    long udecoded = utf8decodebyte(c[0], &len);
+    long udecoded = utf8DecodeByte(str[0], &len);
     if (!between(len, 1uz, UTF_SIZ)) {
         return 1;
     }
-    for (i = 1, j = 1; i < clen && j < len; ++i, ++j) {
-        udecoded = (udecoded << 6u) | utf8decodebyte(c[i], &type);
+    size_t idx = 1;
+    size_t out = 1;
+    for (; idx < clen && out < len; ++idx, ++out) {
+        udecoded = (udecoded << 6u) | utf8DecodeByte(str[idx], &type);
         if (type) {
-            return j;
+            return out;
         }
     }
-    if (j < len) {
+    if (out < len) {
         return 0;
     }
-    *u = udecoded;
-    utf8validate(u, len);
+    *codepoint = udecoded;
+    utf8Validate(codepoint, len);
 
     return len;
 }
@@ -93,7 +94,7 @@ Drw::Drw(Display *dpy, int screen, Window win, int width, int height)
 Drw::~Drw() {
     XFreePixmap(m_dpy, m_drawable);
     XFreeGC(m_dpy, m_gc);
-    drw_fontset_free(m_fonts);
+    drwFontsetFree(m_fonts);
 }
 
 void Drw::resize(int w, int h) {
@@ -110,7 +111,7 @@ void Drw::resize(int w, int h) {
 /* This function is an implementation detail. Library users should use
  * drw_fontset_create instead.
  */
-std::optional<Fnt> Drw::xfont_create(char const *fontname) {
+std::optional<Fnt> Drw::xfontCreate(char const *fontname) {
     // TODO(dk949): consider making this the constructor for Fnt
     Fnt font;
 
@@ -138,11 +139,11 @@ std::optional<Fnt> Drw::xfont_create(char const *fontname) {
     return font;
 }
 
-std::optional<Fnt> Drw::xfont_create(FcPattern *fontpattern) {
+std::optional<Fnt> Drw::xfontCreate(FcPattern *fontpattern) {
     // TODO(dk949): consider making this the constructor for Fnt
     Fnt font;
 
-    // NOTE: this *does not* set the pattern field, AFACT for no better reason than draw_text using this to
+    // NOTE: this *does not* set the pattern field, AFACT for no better reason than drawText using this to
     //       determine if a font was loaded from a pattern.
 
     if (auto xfont = XftFontOpenPattern(m_dpy, fontpattern)) {
@@ -158,30 +159,30 @@ std::optional<Fnt> Drw::xfont_create(FcPattern *fontpattern) {
     return font;
 }
 
-static void xfont_free(Fnt const &font) {
+static void xfontFree(Fnt const &font) {
     // TODO(dk949): consider making this the destructor for Fnt
     if (font.pattern) FcPatternDestroy(font.pattern);
 
     XftFontClose(font.dpy, font.xfont);
 }
 
-bool Drw::fontset_create(std::span<char const *const> fonts) {
+bool Drw::fontsetCreate(std::span<char const *const> fonts) {
 
     bool success = false;
     for (auto const *font_name : fonts)
-        if (auto xfont = xfont_create(font_name)) {
+        if (auto xfont = xfontCreate(font_name)) {
             m_fonts.push_back(*xfont);
             success = true;
         }
     return success;
 }
 
-void drw_fontset_free(std::vector<Fnt> &fonts) {
+void drwFontsetFree(std::vector<Fnt> &fonts) {
     for (auto const &font : fonts)
-        xfont_free(font);
+        xfontFree(font);
 }
 
-Clr Drw::clr_create(char const *clrname) const {
+Clr Drw::clrCreate(char const *clrname) const {
     Clr out;
 
     if (!XftColorAllocName(m_dpy, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen), clrname, &out))
@@ -193,7 +194,7 @@ Clr Drw::clr_create(char const *clrname) const {
 Color Drw::nameToColor(ColorName const &name) const {
     Color out;
 #undef DRW_COLOR_FIELDS_DO
-#define DRW_COLOR_FIELDS_DO(f) out.f = clr_create(name.f);
+#define DRW_COLOR_FIELDS_DO(f) out.f = clrCreate(name.f);
     DRW_COLOR_FIELDS_FOREACH()
     return out;
 };
@@ -205,7 +206,7 @@ void Drw::setColorScheme(ColorSchemeName clrnames) {
 }
 
 // TODO(dk949): make the bools strongly typed
-void Drw::draw_rect(int x, int y, int w, int h, bool filled, bool invert) {
+void Drw::drawRect(int x, int y, int w, int h, bool filled, bool invert) {
     if (!m_current_color) return;
 
     XSetForeground(m_dpy, m_gc, invert ? currentColor().bg.pixel : currentColor().fg.pixel);
@@ -216,11 +217,11 @@ void Drw::draw_rect(int x, int y, int w, int h, bool filled, bool invert) {
 }
 
 // TODO(dk949): make the bools strongly typed
-int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool invert) {
+int Drw::drawText(int x, int y, int w, int h, int left_pad, char const *text, bool invert) {
     int ellipsis_x = 0;
     int tmpw = 0;
     int ellipsis_w = 0;
-    XftDraw *d = nullptr;
+    XftDraw *draw = nullptr;
     int render = x || y || w || h;
     long utf8codepoint = 0;
     XftResult result;
@@ -246,33 +247,33 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
     } else {
         XSetForeground(m_dpy, m_gc, currentColor().invert(invert).bg.pixel);
         XFillRectangle(m_dpy, m_drawable, m_gc, x, y, static_cast<unsigned>(w), static_cast<unsigned>(h));
-        d = XftDrawCreate(m_dpy, m_drawable, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen));
-        x += lpad;
-        w -= lpad;
+        draw = XftDrawCreate(m_dpy, m_drawable, DefaultVisual(m_dpy, m_screen), DefaultColormap(m_dpy, m_screen));
+        x += left_pad;
+        w -= left_pad;
     }
 
     Fnt usedfont = m_fonts.front();
-    if (!ellipsis_width && render) ellipsis_width = fontset_getwidth("...");
+    if (!ellipsis_width && render) ellipsis_width = fontsetGetwidth("...");
     while (true) {
-        int ew = 0;
+        int extent_w = 0;
         std::size_t ellipsis_len = 0;
         std::size_t utf8strlen = 0;
         char const *utf8str = text;
         std::optional<Fnt> nextfont = std::nullopt;
         while (*text) {
-            auto utf8charlen = utf8decode(text, &utf8codepoint, UTF_SIZ);
+            auto utf8charlen = utf8Decode(text, &utf8codepoint, UTF_SIZ);
             for (auto &curfont : m_fonts) {
                 charexists = charexists || XftCharExists(m_dpy, curfont.xfont, static_cast<FcChar32>(utf8codepoint));
                 if (charexists) {
-                    drw_font_getexts(&curfont, text, utf8charlen, &tmpw, nullptr);
-                    if (ew + ellipsis_width <= w) {
+                    drwFontGetexts(&curfont, text, utf8charlen, &tmpw, nullptr);
+                    if (extent_w + ellipsis_width <= w) {
                         /* keep track where the ellipsis still fits */
-                        ellipsis_x = x + ew;
-                        ellipsis_w = w - ew;
+                        ellipsis_x = x + extent_w;
+                        ellipsis_w = w - extent_w;
                         ellipsis_len = utf8strlen;
                     }
 
-                    if (ew + tmpw > w) {
+                    if (extent_w + tmpw > w) {
                         overflow = 1;
                         /* called from drw_fontset_getwidth_clamp():
                          * it wants the width AFTER the overflow
@@ -284,7 +285,7 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
                     } else if (curfont == usedfont) {
                         utf8strlen += utf8charlen;
                         text += utf8charlen;
-                        ew += tmpw;
+                        extent_w += tmpw;
                     } else {
                         nextfont = curfont;
                     }
@@ -300,19 +301,19 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
 
         if (utf8strlen) {
             if (render) {
-                auto ty = y + ((h - usedfont.h) / 2) + usedfont.xfont->ascent;
-                XftDrawStringUtf8(d,
+                auto text_y = y + ((h - usedfont.h) / 2) + usedfont.xfont->ascent;
+                XftDrawStringUtf8(draw,
                     &currentColor().invert(invert).fg,
                     usedfont.xfont,
                     x,
-                    ty,
+                    text_y,
                     reinterpret_cast<XftChar8 const *>(utf8str),
                     static_cast<int>(utf8strlen));
             }
-            x += ew;
-            w -= ew;
+            x += extent_w;
+            w -= extent_w;
         }
-        if (render && overflow) draw_text(ellipsis_x, y, ellipsis_w, h, 0, "...", invert);
+        if (render && overflow) drawText(ellipsis_x, y, ellipsis_w, h, 0, "...", invert);
 
         if (!*text || overflow) {
             break;
@@ -341,7 +342,7 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
                 FcCharSetAddChar(fccharset, static_cast<FcChar32>(utf8codepoint));
 
                 if (!m_fonts.front().pattern) {
-                    /* Refer to the comment in xfont_create for more information. */
+                    /* Refer to the comment in xfontCreate for more information. */
                     lg::fatal("the first font in the cache must be loaded from a font string.");
                 }
 
@@ -358,12 +359,12 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
 
                 // TODO(dk949): the `match` is never deleted???
                 if (match) {
-                    auto new_font = xfont_create(match);
+                    auto new_font = xfontCreate(match);
                     if (new_font && XftCharExists(m_dpy, new_font->xfont, static_cast<FcChar32>(utf8codepoint))) {
                         usedfont = *new_font;
                         m_fonts.push_back(usedfont);
                     } else {
-                        if (new_font) xfont_free(*new_font);
+                        if (new_font) xfontFree(*new_font);
                         nomatches.codepoint[++nomatches.idx % nomatches_len] = utf8codepoint;
                         usedfont = m_fonts.front();
                     }
@@ -371,8 +372,8 @@ int Drw::draw_text(int x, int y, int w, int h, int lpad, char const *text, bool 
             }
         }
     }
-    if (d) {
-        XftDrawDestroy(d);
+    if (draw) {
+        XftDrawDestroy(draw);
     }
 
     return x + (render ? w : 0);
@@ -392,13 +393,13 @@ void Drw::map(Window win, Rect<int> dims) {
     XSync(m_dpy, False);
 }
 
-int Drw::fontset_getwidth(char const *text) {
+int Drw::fontsetGetwidth(char const *text) {
     if (!text) return 0;
 
-    return draw_text(0, 0, 0, 0, 0, text, false);
+    return drawText(0, 0, 0, 0, 0, text, false);
 }
 
-void drw_font_getexts(Fnt *font, char const *text, std::size_t len, int *w, int *h) {
+void drwFontGetexts(Fnt *font, char const *text, std::size_t len, int *w, int *h) {
     // TODO(dk949): Use std::stroing_view?
     XGlyphInfo ext;
 

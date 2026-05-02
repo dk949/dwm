@@ -11,9 +11,9 @@
 #include <vector>
 
 [[nodiscard]]
-std::vector<std::string> winpickerCreateDmenuCommand(Display *dpy, Monitors const &mons, int current_mon) noexcept;
+std::vector<std::string> winPickerCreateDmenuCommand(Display *dpy, Monitors const &mons, int current_mon) noexcept;
 [[nodiscard]]
-std::optional<std::pair<Client *, std::size_t>> winpickerMatchClient(Display *dpy,
+std::optional<std::pair<Client *, std::size_t>> winPickerMatchClient(Display *dpy,
     Monitors const &mons,
     std::string_view dmenu_str) noexcept;
 

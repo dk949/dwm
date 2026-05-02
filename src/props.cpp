@@ -13,11 +13,11 @@
 
 static constexpr auto UINT32_FORMAT = 32;
 
-void setCardinalProp(Display *dpy, Client *c, Atom prop, std::uint32_t value) {
-    setCardinalProps(dpy, c, prop, std::array {value});
+void setCardinalProp(Display *dpy, Client *client, Atom prop, std::uint32_t value) {
+    setCardinalProps(dpy, client, prop, std::array {value});
 }
 
-void setCardinalProps(Display *dpy, Client *c, Atom prop, std::span<std::uint32_t const> values) {
+void setCardinalProps(Display *dpy, Client *client, Atom prop, std::span<std::uint32_t const> values) {
     if (prop == None) return;
     if (values.size() == 0 || !std::in_range<int>(values.size())) {
         lg::error("Cannot set {} CARDINALS, length out of range", values.size());
@@ -32,12 +32,12 @@ void setCardinalProps(Display *dpy, Client *c, Atom prop, std::span<std::uint32_
     auto const *data = reinterpret_cast<unsigned char const *>(new_data.data());
     auto const nelements = static_cast<int>(values.size());
 
-    XChangeProperty(dpy, c->win, prop, XA_CARDINAL, UINT32_FORMAT, PropModeReplace, data, nelements);
+    XChangeProperty(dpy, client->win, prop, XA_CARDINAL, UINT32_FORMAT, PropModeReplace, data, nelements);
     XSync(dpy, False);
 }
 
 static std::expected<std::vector<uint32_t>, int> getCardinalPropImpl(
-    Display *dpy, Client *c, Atom prop, std::size_t count, bool too_few_props_is_error) {
+    Display *dpy, Client *client, Atom prop, std::size_t count, bool too_few_props_is_error) {
     if (prop == None) return std::unexpected(Success);
     if (count == 0 || !std::in_range<long>(count)) {
         lg::error("Cannot get {} CARDINALS, length out of range", count);
@@ -51,7 +51,7 @@ static std::expected<std::vector<uint32_t>, int> getCardinalPropImpl(
     XPtr<unsigned char> prop_ret;
 
     int status = XGetWindowProperty(dpy,
-        c->win,
+        client->win,
         prop,
         0L,
         static_cast<long>(count),
@@ -79,16 +79,16 @@ static std::expected<std::vector<uint32_t>, int> getCardinalPropImpl(
     return out;
 }
 
-std::expected<uint32_t, int> getCardinalProp(Display *dpy, Client *c, Atom prop) {
-    return getCardinalProp(dpy, c, prop, 1).transform([](auto const &vec) { return vec.at(0); });
+std::expected<uint32_t, int> getCardinalProp(Display *dpy, Client *client, Atom prop) {
+    return getCardinalProp(dpy, client, prop, 1).transform([](auto const &vec) { return vec.at(0); });
 }
 
-std::expected<std::vector<uint32_t>, int> getCardinalProp(Display *dpy, Client *c, Atom prop, std::size_t count) {
-    return getCardinalPropImpl(dpy, c, prop, count, true);
+std::expected<std::vector<uint32_t>, int> getCardinalProp(Display *dpy, Client *client, Atom prop, std::size_t count) {
+    return getCardinalPropImpl(dpy, client, prop, count, true);
 }
 
-std::expected<std::vector<uint32_t>, int> getCardinalProps(Display *dpy, Client *c, Atom prop) {
-    return getCardinalPropImpl(dpy, c, prop, std::numeric_limits<long>::max(), false);
+std::expected<std::vector<uint32_t>, int> getCardinalProps(Display *dpy, Client *client, Atom prop) {
+    return getCardinalPropImpl(dpy, client, prop, std::numeric_limits<long>::max(), false);
 }
 
 // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)

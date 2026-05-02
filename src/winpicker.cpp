@@ -10,8 +10,8 @@
 #include <algorithm>
 #include <bitset>
 #include <charconv>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <iterator>
 #include <optional>
@@ -31,11 +31,11 @@ static constexpr auto tagmask = ((1u << tag_symbols.size()) - 1);
 
 [[nodiscard]]
 static std::string encodeClientName(
-    Display *dpy, Client const *c, Monitors::difference_type mon_idx, bool needs_mon) noexcept {
+    Display *dpy, Client const *client, Monitors::difference_type mon_idx, bool needs_mon) noexcept {
     std::string out;
-    out.reserve(15 + c->name.size());
+    out.reserve(15 + client->name.size());
     out.push_back('[');
-    auto tagset = std::bitset<sizeof(c->tags) * 8>(c->tags & tagmask);
+    auto tagset = std::bitset<sizeof(client->tags) * 8>(client->tags & tagmask);
     for (auto i = 0uz; i < std::min(tag_symbols.size(), tagset.size()); ++i) {
         if (tagset[i]) {
             if (out.back() != '[') out.push_back(',');
@@ -44,8 +44,8 @@ static std::string encodeClientName(
     }
     if (needs_mon) std::format_to(std::back_inserter(out), ":{}", mon_idx);
 
-    auto class_hint = c->classHint(dpy);
-    std::format_to(std::back_inserter(out), "] {} ({})", class_hint.class_hint.get(), c->name.view());
+    auto class_hint = client->classHint(dpy);
+    std::format_to(std::back_inserter(out), "] {} ({})", class_hint.class_hint.get(), client->name.view());
 
     return out;
 }
@@ -129,7 +129,7 @@ static Client *decodedToClient(Display *dpy, Monitors const &mons, DecodedClient
     return candidate;
 }
 
-std::vector<std::string> winpickerCreateDmenuCommand(Display *dpy, Monitors const &mons, int current_mon) noexcept {
+std::vector<std::string> winPickerCreateDmenuCommand(Display *dpy, Monitors const &mons, int current_mon) noexcept {
     auto total_client_count =
         rng::fold_left(mons, 0uz, [](auto count, auto const &mon) noexcept { return count + mon->clients->count(); });
     std::vector<std::string> args;
@@ -156,7 +156,7 @@ std::vector<std::string> winpickerCreateDmenuCommand(Display *dpy, Monitors cons
     return args;
 }
 
-std::optional<std::pair<Client *, std::size_t>> winpickerMatchClient(Display *dpy,
+std::optional<std::pair<Client *, std::size_t>> winPickerMatchClient(Display *dpy,
     Monitors const &mons,
     std::string_view dmenu_str) noexcept {
     auto decoded = decodeClientName(dmenu_str);
