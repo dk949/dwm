@@ -15,15 +15,15 @@ std::string_view xstrerror(Display *dpy, int code) {
         XGetErrorText(dpy, code, buf.data(), buf.size());
     else
         switch (code) {
-            case PropGetTypeError:
+            case PROP_GET_TYPE_ERROR:
                 return std::strncpy(buf.data(), "Retrieved incorrect type when querying property", buf.size());
-            case PropGetFormatError:
+            case PROP_GET_FORMAT_ERROR:
                 return std::strncpy(buf.data(), "Retrieved incorrect format when querying property", buf.size());
-            case PropGetNoItemError:
+            case PROP_GET_NO_ITEM_ERROR:
                 return std::strncpy(buf.data(), "Retrieved no items when querying property", buf.size());
-            case PropGetItemError:
+            case PROP_GET_ITEM_ERROR:
                 return std::strncpy(buf.data(), "Retrieved incorrect number of items when querying property", buf.size());
-            case PropGetDoesNotExistError:
+            case PROP_GET_DOES_NOT_EXIST_ERROR:
                 return std::strncpy(buf.data(), "Property does not exist on the specified client", buf.size());
             default: return std::strncpy(buf.data(), "Unknown error", buf.size());
         }

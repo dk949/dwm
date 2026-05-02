@@ -92,7 +92,7 @@
 namespace rng = std::ranges;
 namespace vws = std::views;
 
-static constexpr auto CLEANMASK(std::unsigned_integral auto mask, std::unsigned_integral auto nlmask) {
+static constexpr auto cleanmask(std::unsigned_integral auto mask, std::unsigned_integral auto nlmask) {
     return ((mask) & ~(nlmask | toUnsigned(LockMask))
             & (toUnsigned(ShiftMask)       //
                 | toUnsigned(ControlMask)  //
@@ -103,37 +103,37 @@ static constexpr auto CLEANMASK(std::unsigned_integral auto mask, std::unsigned_
                 | toUnsigned(Mod5Mask)));
 }
 
-static constexpr auto INTERSECT(
+static constexpr auto intersect(
     std::integral auto x, std::integral auto y, std::integral auto w, std::integral auto h, MonitorRef const &mon) {
     return std::max(0, std::min(x + w, mon->window_size.x + mon->window_size.w) - std::max(x, mon->window_size.x))
          * std::max(0, std::min(y + h, mon->window_size.y + mon->window_size.h) - std::max(y, mon->window_size.y));
 }
 
 template<std::integral I>
-static constexpr auto INTERSECT(Rect<I> rect, MonitorRef const &mon) {
-    return INTERSECT(rect.x, rect.y, rect.w, rect.h, mon);
+static constexpr auto intersect(Rect<I> rect, MonitorRef const &mon) {
+    return intersect(rect.x, rect.y, rect.w, rect.h, mon);
 }
 
 #define TEXTW(X) (drw->fontsetGetwidth((X)) + text_padding)
 
 enum {
-    NetSupported,
-    NetWMName,
-    NetWMState,
-    NetWMCheck,
-    NetWMFullscreen,
-    NetActiveWindow,
-    NetWMWindowType,
-    NetWMWindowTypeDialog,
-    NetClientList,
-    NetWMIcon,
-    NetOpacity,
-    NetBypassComp,
-    NetOpaqueRegion,
-    NetLast
+    NET_SUPPORTED,
+    NET_WM_NAME,
+    NET_WM_STATE,
+    NET_WM_CHECK,
+    NET_WM_FULLSCREEN,
+    NET_ACTIVE_WINDOW,
+    NET_WM_WINDOW_TYPE,
+    NET_WM_WINDOW_TYPE_DIALOG,
+    NET_CLIENT_LIST,
+    NET_WM_ICON,
+    NET_OPACITY,
+    NET_BYPASS_COMP,
+    NET_OPAQUE_REGION,
+    NET_LAST
 }; /* EWMH atoms */
 
-enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMChangeState, WMLast }; /* default atoms */
+enum { WM_PROTOCOLS, WM_DELETE, WM_STATE, WM_TAKE_FOCUS, WM_CHANGE_STATE, WM_LAST }; /* default atoms */
 
 #define PROGRESS_FADE 0, 0, 0
 
@@ -183,7 +183,7 @@ static void mapRequest(XEvent *e);
 static void motionNotify(XEvent *e);
 static Client *nextTagged(Client *client);
 static Client *nextTiled(Client *client);
-static void handle_notifyself_fade_anim(FadeBarEvent);
+static void handleNotifyselfFadeAnim(FadeBarEvent);
 static void pop(Client *client);
 static void propertyNotify(XEvent *e);
 static MonitorRef rectToMon(Rect<int> rect);
@@ -222,9 +222,9 @@ static int xErrorStart(Display *dpy, XErrorEvent *err_event);
 
 /* variables */
 
-constexpr auto TAGMASK = (1uz << tag_symbols.size()) - 1uz;
-constexpr auto BUTTONMASK = toUnsigned(ButtonPressMask) | toUnsigned(ButtonReleaseMask);
-constexpr auto MOUSEMASK = BUTTONMASK | toUnsigned(PointerMotionMask);
+constexpr auto tagmask = (1uz << tag_symbols.size()) - 1uz;
+constexpr auto buttonmask = toUnsigned(ButtonPressMask) | toUnsigned(ButtonReleaseMask);
+constexpr auto mousemask = buttonmask | toUnsigned(PointerMotionMask);
 constexpr auto cfact_min = 0.25f;
 constexpr auto cfact_max = 4.0f;
 constexpr auto mfact_min = 0.05f;
@@ -238,8 +238,8 @@ static int bar_height, sel_bar_name_x = -1, sel_bar_name_width = -1; /* bar geom
 static int text_padding;                                             /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
-static std::array<Atom, WMLast> wmatom;
-static std::array<Atom, NetLast> netatom;
+static std::array<Atom, WM_LAST> wmatom;
+static std::array<Atom, NET_LAST> netatom;
 static bool need_restart = false;
 static Display *dpy;
 static Drw *drw;
@@ -247,7 +247,7 @@ static Monitors mons;
 static MonitorRef selmon;
 static Window root, wmcheckwin;
 #ifdef ASOUND
-static volc_t *volc;
+static Volc *volc;
 #endif /* ASOUND */
 static xcb_connection_t *xcon;
 static std::filesystem::path log_dir;
@@ -275,11 +275,11 @@ void Client::applyRules() {
     props.isfloating = false;
     tags = 0;
     auto hints = classHint(dpy);
-    char const *class_ = hints.class_hint ? hints.class_hint.get() : broken.data();
+    char const *klass = hints.class_hint ? hints.class_hint.get() : broken.data();
     char const *instance = hints.instance_hint ? hints.instance_hint.get() : broken.data();
 
     for (auto const &rule : rules) {
-        if ((!rule.title || name.contains(rule.title)) && (!rule.class_ || strstr(class_, rule.class_))
+        if ((!rule.title || name.contains(rule.title)) && (!rule.klass || strstr(klass, rule.klass))
             && (!rule.instance || strstr(instance, rule.instance))) {
             props.isterminal = rule.isterminal;
             props.isfloating = rule.isfloating;
@@ -308,7 +308,7 @@ void Client::applyRules() {
             }
         }
     }
-    tags = tags & TAGMASK ? tags & TAGMASK : getMon()->tagset[getMon()->sel_tags];
+    tags = tags & tagmask ? tags & tagmask : getMon()->tagset[getMon()->sel_tags];
 }
 
 bool Client::applySizeHints(Rect<int> *new_size, bool interact) {
@@ -490,7 +490,7 @@ void unswallow(Client *client) {
     client->setClientState(NormalState);
 }
 
-void bright_dec(double arg) {
+void brightnessDec(double arg) {
     if (brightDec(arg) != BacklightError::Ok) return;
 
     auto newval = std::nan("");
@@ -499,7 +499,7 @@ void bright_dec(double arg) {
     drawProgress(full_bar, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
-void bright_inc(double arg) {
+void brightnessInc(double arg) {
     if (brightInc(arg) != BacklightError::Ok) return;
 
     auto newval = std::nan("");
@@ -508,13 +508,13 @@ void bright_inc(double arg) {
     drawProgress(full_bar, static_cast<unsigned long long>(newval), &drw->scheme().bright_progress);
 }
 
-void bright_set(double arg) {
+void brightnessSet(double arg) {
     if (brightSet(arg) != BacklightError::Ok) return;
 
     drawProgress(full_bar, static_cast<unsigned long long>(arg), &drw->scheme().bright_progress);
 }
 
-void dmenu_run() {
+void dmenuRun() {
     static std::array<char, 8> mon {};  // NOLINT(readability-magic-numbers)
     // clang-format off
     static std::array cmd = {
@@ -574,7 +574,7 @@ void buttonPress(XEvent *e) {
     }
     for (auto const &button : buttons)
         if (click == button.click && button.button == ev->button
-            && CLEANMASK(button.mask, numlockmask) == CLEANMASK(ev->state, numlockmask)) {
+            && cleanmask(button.mask, numlockmask) == cleanmask(ev->state, numlockmask)) {
             auto fn_arg = click == Click::TagBar && button.arg.index() == 0 ? arg : button.arg;
             if (!variantInvoke(button.func, fn_arg))
                 lg::error("Could not run button mapping: function index is {}, but arg is {}",
@@ -612,9 +612,9 @@ void cleanup() {
     delete drw;
     XSync(dpy, False);
     XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
-    XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
+    XDeleteProperty(dpy, root, netatom[NET_ACTIVE_WINDOW]);
 #ifdef ASOUND
-    volc_deinit(volc);
+    volcDeinit(volc);
 #endif /* ASOUND */
 }
 
@@ -632,14 +632,14 @@ void clientMessage(XEvent *e) {
 
     if (!client) return;
 
-    if (cme->message_type == netatom[NetWMState]) {
-        if (std::cmp_equal(cme->data.l[1], netatom[NetWMFullscreen])
-            || std::cmp_equal(cme->data.l[2], netatom[NetWMFullscreen])) {
+    if (cme->message_type == netatom[NET_WM_STATE]) {
+        if (std::cmp_equal(cme->data.l[1], netatom[NET_WM_FULLSCREEN])
+            || std::cmp_equal(cme->data.l[2], netatom[NET_WM_FULLSCREEN])) {
             client->setFullscreen(
                 (FullScreen {cme->data.l[0] == 1} /* _NET_WM_STATE_ADD    */
                     || (FullScreen {cme->data.l[0] == 2} /* _NET_WM_STATE_TOGGLE */ && !client->props.isfullscreen)));
         }
-    } else if (cme->message_type == netatom[NetActiveWindow]) {
+    } else if (cme->message_type == netatom[NET_ACTIVE_WINDOW]) {
         if (client != selmon->sel && !client->props.isurgent) {
             client->setUrgent(IsUrgent::yes);
         }
@@ -1046,7 +1046,7 @@ void focus(Client *client) {
         client->setFocus();
     } else {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
-        XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
+        XDeleteProperty(dpy, root, netatom[NET_ACTIVE_WINDOW]);
     }
     selmon->sel = client;
     drawBars();
@@ -1156,7 +1156,7 @@ long getState(Window w) {
     unsigned long extra;
     Atom real;
 
-    if (XGetWindowProperty(dpy, w, wmatom[WMState], 0L, 2L, False, wmatom[WMState], &real, &format, &nitems, &extra, &prop_data)
+    if (XGetWindowProperty(dpy, w, wmatom[WM_STATE], 0L, 2L, False, wmatom[WM_STATE], &real, &format, &nitems, &extra, &prop_data)
         != Success) {
         return -1;
     }
@@ -1194,7 +1194,7 @@ void Client::grabButtons(bool focused) const {
         std::array modifiers {0u, toUnsigned(LockMask), numlockmask, numlockmask | LockMask};
         XUngrabButton(dpy, AnyButton, AnyModifier, win);
         if (!focused) {
-            XGrabButton(dpy, AnyButton, AnyModifier, win, False, BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
+            XGrabButton(dpy, AnyButton, AnyModifier, win, False, buttonmask, GrabModeSync, GrabModeSync, None, None);
         }
         for (auto const &button : buttons) {
             if (button.click == Click::ClientWin) {
@@ -1204,7 +1204,7 @@ void Client::grabButtons(bool focused) const {
                         button.mask | modifier,
                         win,
                         False,
-                        BUTTONMASK,
+                        buttonmask,
                         GrabModeAsync,
                         GrabModeSync,
                         None,
@@ -1273,7 +1273,7 @@ void keyPress(XEvent *e) {
 
     KeySym keysym = XLookupKeysym(ev, 0);
     for (auto const &key : keys)
-        if (keysym == key.keysym && CLEANMASK(key.mod, numlockmask) == CLEANMASK(ev->state, numlockmask))
+        if (keysym == key.keysym && cleanmask(key.mod, numlockmask) == cleanmask(ev->state, numlockmask))
             if (!variantInvoke(key.func, key.arg)) {
                 lg::error("Could not run key mapping: function index is {}, but arg is {}",
                     key.func.index(),
@@ -1285,7 +1285,7 @@ void killClient() {
     if (!selmon->sel) {
         return;
     }
-    if (!selmon->sel->sendEvent(wmatom[WMDelete])) {
+    if (!selmon->sel->sendEvent(wmatom[WM_DELETE])) {
         XGrabServer(dpy);
         XSetErrorHandler(xErrorDummy);
         XSetCloseDownMode(dpy, DestroyAll);
@@ -1354,7 +1354,7 @@ void manage(Window w, XWindowAttributes *attrs) {
     attachStack(client);
     XChangeProperty(dpy,
         root,
-        netatom[NetClientList],
+        netatom[NET_CLIENT_LIST],
         XA_WINDOW,
         32,
         PropModeAppend,
@@ -1460,13 +1460,13 @@ void movemouse() {
     restack(selmon);
     ocx = client->size.x;
     ocy = client->size.y;
-    if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, drw->cursors().move(), CurrentTime)
+    if (XGrabPointer(dpy, root, False, mousemask, GrabModeAsync, GrabModeAsync, None, drw->cursors().move(), CurrentTime)
         != GrabSuccess) {
         return;
     }
     if (auto [x, y] = getRootPtr()) {
         do {
-            XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
+            XMaskEvent(dpy, mousemask | ExposureMask | SubstructureRedirectMask, &ev);
             switch (ev.type) {
                 // TODO(dk949): make sure these don't actually need special treatment
                 case ButtonRelease:
@@ -1556,11 +1556,11 @@ void propertyNotify(XEvent *e) {
                 drawBars();
                 break;
         }
-        if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
+        if (ev->atom == XA_WM_NAME || ev->atom == netatom[NET_WM_NAME]) {
             client->updateTitle();
             if (client == client->getMon()->sel) drawBar(client->getMon());
         }
-        if (ev->atom == netatom[NetWMWindowType]) {
+        if (ev->atom == netatom[NET_WM_WINDOW_TYPE]) {
             client->updateWindowType();
         }
     }
@@ -1579,7 +1579,7 @@ void restart() {
 
 MonitorRef rectToMon(Rect<int> rect) {
     return *rng::max_element(mons,
-        [&](auto const &lhs, auto const &rhs) { return INTERSECT(rect, lhs) < INTERSECT(rect, rhs); });
+        [&](auto const &lhs, auto const &rhs) { return intersect(rect, lhs) < intersect(rect, rhs); });
 }
 
 void Client::resize(Rect<int> new_size, bool interact) {
@@ -1644,7 +1644,7 @@ void resizeMouse() {
     restack(selmon);
     ocx = client->size.x;
     ocy = client->size.y;
-    if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, drw->cursors().resize(), CurrentTime)
+    if (XGrabPointer(dpy, root, False, mousemask, GrabModeAsync, GrabModeAsync, None, drw->cursors().resize(), CurrentTime)
         != GrabSuccess) {
         return;
     }
@@ -1658,7 +1658,7 @@ void resizeMouse() {
         client->size.w + client->border_width - 1,
         client->size.h + client->border_width - 1);
     do {
-        XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
+        XMaskEvent(dpy, mousemask | ExposureMask | SubstructureRedirectMask, &ev);
         switch (ev.type) {
             // TODO(dk949): make sure these don't actually need special treatment
             case ButtonRelease:
@@ -1808,7 +1808,7 @@ void scan() {
     }
 }
 
-void handle_notifyself_fade_anim(FadeBarEvent) {
+void handleNotifyselfFadeAnim(FadeBarEvent) {
     drawProgress(PROGRESS_FADE);
 }
 
@@ -1834,8 +1834,8 @@ void Client::setClientState(long state) const {
 
     XChangeProperty(dpy,
         win,
-        wmatom[WMState],
-        wmatom[WMState],
+        wmatom[WM_STATE],
+        wmatom[WM_STATE],
         32,
         PropModeReplace,
         reinterpret_cast<unsigned char const *>(data.data()),
@@ -1857,7 +1857,7 @@ bool Client::sendEvent(Atom proto) const {
     if (!exists) return false;
     ev.type = ClientMessage;
     ev.xclient.window = win;
-    ev.xclient.message_type = wmatom[WMProtocols];
+    ev.xclient.message_type = wmatom[WM_PROTOCOLS];
     ev.xclient.format = 32;
     ev.xclient.data.l[0] = static_cast<long>(proto);
     ev.xclient.data.l[1] = CurrentTime;
@@ -1870,14 +1870,14 @@ void Client::setFocus() {
         XSetInputFocus(dpy, win, RevertToPointerRoot, CurrentTime);
         XChangeProperty(dpy,
             root,
-            netatom[NetActiveWindow],
+            netatom[NET_ACTIVE_WINDOW],
             XA_WINDOW,
             32,
             PropModeReplace,
             reinterpret_cast<unsigned char const *>(&win),
             1);
     }
-    (void)sendEvent(wmatom[WMTakeFocus]);
+    (void)sendEvent(wmatom[WM_TAKE_FOCUS]);
 }
 
 void Client::setFullscreen(FullScreen fullscreen) {
@@ -1885,11 +1885,11 @@ void Client::setFullscreen(FullScreen fullscreen) {
         props.isfullscreen = FullScreen::on;
         XChangeProperty(dpy,
             win,
-            netatom[NetWMState],
+            netatom[NET_WM_STATE],
             XA_ATOM,
             32,
             PropModeReplace,
-            reinterpret_cast<unsigned char const *>(&netatom[NetWMFullscreen]),
+            reinterpret_cast<unsigned char const *>(&netatom[NET_WM_FULLSCREEN]),
             1);
         props.isfullscreen = FullScreen::on;
         props.old_float_state = props.isfloating;
@@ -1899,7 +1899,7 @@ void Client::setFullscreen(FullScreen fullscreen) {
         resizeClient(getMon()->monitor_size);
         XRaiseWindow(dpy, win);
     } else if (fullscreen == FullScreen::off && props.isfullscreen) {
-        XChangeProperty(dpy, win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, nullptr, 0);
+        XChangeProperty(dpy, win, netatom[NET_WM_STATE], XA_ATOM, 32, PropModeReplace, nullptr, 0);
         props.isfullscreen = FullScreen::off;
         props.isfloating = props.old_float_state;
         border_width = old_border_width;
@@ -1982,12 +1982,12 @@ void setup() {
         lg::fatal("no fonts could be loaded.");
     }
 
-    if (brightSetup(get_bright_set_file(), get_bright_get_file(), get_bright_max_file()) != BacklightError::Ok) {
+    if (brightSetup(getBrightSetFile(), getBrightGetFile(), getBrightMaxFile()) != BacklightError::Ok) {
         lg::fatal("backlight setup failed");
     }
 
 #ifdef ASOUND
-    volc = volc_init(VOLC_ALL_DEFULTS);
+    volc = volcInit(VOLC_ALL_DEFULTS);
     if (!volc) lg::fatal("volc setup failed");
 
 #endif /* ASOUND */
@@ -1997,24 +1997,24 @@ void setup() {
     updateGeom();
     /* init atoms */
     utf8string = XInternAtom(dpy, "UTF8_STRING", False);
-    wmatom[WMProtocols] = XInternAtom(dpy, "WM_PROTOCOLS", False);
-    wmatom[WMDelete] = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-    wmatom[WMState] = XInternAtom(dpy, "WM_STATE", False);
-    wmatom[WMChangeState] = XInternAtom(dpy, "WM_CHANGE_STATE", False);
-    wmatom[WMTakeFocus] = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
-    netatom[NetActiveWindow] = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
-    netatom[NetSupported] = XInternAtom(dpy, "_NET_SUPPORTED", False);
-    netatom[NetWMName] = XInternAtom(dpy, "_NET_WM_NAME", False);
-    netatom[NetWMState] = XInternAtom(dpy, "_NET_WM_STATE", False);
-    netatom[NetWMCheck] = XInternAtom(dpy, "_NET_SUPPORTING_WM_CHECK", False);
-    netatom[NetWMFullscreen] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
-    netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
-    netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
-    netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
-    netatom[NetWMIcon] = XInternAtom(dpy, "_NET_WM_ICON", False);
-    netatom[NetOpacity] = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
-    netatom[NetBypassComp] = XInternAtom(dpy, "_NET_WM_BYPASS_COMPOSITOR", False);
-    netatom[NetOpaqueRegion] = XInternAtom(dpy, "_NET_WM_OPAQUE_REGION", False);
+    wmatom[WM_PROTOCOLS] = XInternAtom(dpy, "WM_PROTOCOLS", False);
+    wmatom[WM_DELETE] = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+    wmatom[WM_STATE] = XInternAtom(dpy, "WM_STATE", False);
+    wmatom[WM_CHANGE_STATE] = XInternAtom(dpy, "WM_CHANGE_STATE", False);
+    wmatom[WM_TAKE_FOCUS] = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
+    netatom[NET_ACTIVE_WINDOW] = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
+    netatom[NET_SUPPORTED] = XInternAtom(dpy, "_NET_SUPPORTED", False);
+    netatom[NET_WM_NAME] = XInternAtom(dpy, "_NET_WM_NAME", False);
+    netatom[NET_WM_STATE] = XInternAtom(dpy, "_NET_WM_STATE", False);
+    netatom[NET_WM_CHECK] = XInternAtom(dpy, "_NET_SUPPORTING_WM_CHECK", False);
+    netatom[NET_WM_FULLSCREEN] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
+    netatom[NET_WM_WINDOW_TYPE] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
+    netatom[NET_WM_WINDOW_TYPE_DIALOG] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+    netatom[NET_CLIENT_LIST] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
+    netatom[NET_WM_ICON] = XInternAtom(dpy, "_NET_WM_ICON", False);
+    netatom[NET_OPACITY] = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
+    netatom[NET_BYPASS_COMP] = XInternAtom(dpy, "_NET_WM_BYPASS_COMPOSITOR", False);
+    netatom[NET_OPAQUE_REGION] = XInternAtom(dpy, "_NET_WM_OPAQUE_REGION", False);
 
     drw->setColorScheme(colors);
 
@@ -2034,7 +2034,7 @@ void setup() {
     wmcheckwin = XCreateSimpleWindow(dpy, root, 0, 0, 1, 1, 0, 0, 0);
     XChangeProperty(dpy,
         wmcheckwin,
-        netatom[NetWMCheck],
+        netatom[NET_WM_CHECK],
         XA_WINDOW,
         32,
         PropModeReplace,
@@ -2042,7 +2042,7 @@ void setup() {
         1);
     XChangeProperty(dpy,
         wmcheckwin,
-        netatom[NetWMName],
+        netatom[NET_WM_NAME],
         utf8string,
         8,
         PropModeReplace,
@@ -2050,7 +2050,7 @@ void setup() {
         3);
     XChangeProperty(dpy,
         root,
-        netatom[NetWMCheck],
+        netatom[NET_WM_CHECK],
         XA_WINDOW,
         32,
         PropModeReplace,
@@ -2059,13 +2059,13 @@ void setup() {
     /* EWMH support per view */
     XChangeProperty(dpy,
         root,
-        netatom[NetSupported],
+        netatom[NET_SUPPORTED],
         XA_ATOM,
         32,
         PropModeReplace,
         reinterpret_cast<unsigned char const *>(netatom.data()),
-        NetLast);
-    XDeleteProperty(dpy, root, netatom[NetClientList]);
+        NET_LAST);
+    XDeleteProperty(dpy, root, netatom[NET_CLIENT_LIST]);
     /* select events */
     XSetWindowAttributes attrs;
     attrs.cursor = drw->cursors().normal();
@@ -2108,8 +2108,8 @@ void spawn(char const *const *arg) {
 }
 
 void tag(unsigned arg) {
-    if (selmon->sel && arg & TAGMASK) {
-        selmon->sel->tags = arg & TAGMASK;
+    if (selmon->sel && arg & tagmask) {
+        selmon->sel->tags = arg & tagmask;
         if (selmon->sel->switchtotag) {
             selmon->sel->switchtotag = 0;
         }
@@ -2230,7 +2230,7 @@ void toggleTag(unsigned arg) {
     if (!selmon->sel) {
         return;
     }
-    newtags = selmon->sel->tags ^ (arg & TAGMASK);
+    newtags = selmon->sel->tags ^ (arg & tagmask);
     if (newtags) {
         selmon->sel->tags = newtags;
         focus(nullptr);
@@ -2239,7 +2239,7 @@ void toggleTag(unsigned arg) {
 }
 
 void toggleView(unsigned arg) {
-    unsigned int newtagset = selmon->tagset[selmon->sel_tags] ^ (arg & TAGMASK);
+    unsigned int newtagset = selmon->tagset[selmon->sel_tags] ^ (arg & tagmask);
 
     if (newtagset) {
         selmon->tagset[selmon->sel_tags] = newtagset;
@@ -2277,7 +2277,7 @@ void Client::unfocus(bool set_focus) {
     XSetWindowBorder(dpy, win, drw->scheme().norm.border.pixel);
     if (set_focus) {
         XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
-        XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
+        XDeleteProperty(dpy, root, netatom[NET_ACTIVE_WINDOW]);
     }
 }
 
@@ -2419,12 +2419,12 @@ void updateBarPos(MonitorRef const &mon) {
 void updateClientList() {
     Client *client;
 
-    XDeleteProperty(dpy, root, netatom[NetClientList]);
+    XDeleteProperty(dpy, root, netatom[NET_CLIENT_LIST]);
     for (auto const &mon : mons) {
         for (client = mon->clients; client; client = client->next) {
             XChangeProperty(dpy,
                 root,
-                netatom[NetClientList],
+                netatom[NET_CLIENT_LIST],
                 XA_WINDOW,
                 32,
                 PropModeAppend,
@@ -2570,7 +2570,7 @@ void updateStatus() {
 }
 
 void Client::updateTitle() {
-    if (!getTextProp(win, netatom[NetWMName], name.data(), name.max_size()))
+    if (!getTextProp(win, netatom[NET_WM_NAME], name.data(), name.max_size()))
         getTextProp(win, XA_WM_NAME, name.data(), name.max_size());
 
     if (name[0] == '\0') /* hack to mark broken clients */
@@ -2578,13 +2578,13 @@ void Client::updateTitle() {
 }
 
 void Client::updateWindowType() {
-    Atom state = getAtomProp(netatom[NetWMState]);
-    Atom wtype = getAtomProp(netatom[NetWMWindowType]);
+    Atom state = getAtomProp(netatom[NET_WM_STATE]);
+    Atom wtype = getAtomProp(netatom[NET_WM_WINDOW_TYPE]);
 
-    if (state == netatom[NetWMFullscreen]) {
+    if (state == netatom[NET_WM_FULLSCREEN]) {
         setFullscreen(FullScreen::on);
     }
-    if (wtype == netatom[NetWMWindowTypeDialog]) {
+    if (wtype == netatom[NET_WM_WINDOW_TYPE_DIALOG]) {
         props.isfloating = true;
     }
 }
@@ -2639,11 +2639,11 @@ void winPicker() {
 
 void view(unsigned arg) {
 
-    if ((arg & TAGMASK) == selmon->tagset[selmon->sel_tags]) return;
+    if ((arg & tagmask) == selmon->tagset[selmon->sel_tags]) return;
 
     selmon->sel_tags ^= 1u; /* toggle sel tagset */
-    if (arg & TAGMASK) {
-        selmon->tagset[selmon->sel_tags] = arg & TAGMASK;
+    if (arg & tagmask) {
+        selmon->tagset[selmon->sel_tags] = arg & tagmask;
         selmon->pertag->prevtag = selmon->pertag->curtag;
 
         if (arg == ~0u)
@@ -2670,7 +2670,7 @@ void view(unsigned arg) {
 
 void shiftView(int dir) {
     if (dir == 0) return;
-    unsigned arg = selmon->tagset[selmon->sel_tags] & TAGMASK;
+    unsigned arg = selmon->tagset[selmon->sel_tags] & tagmask;
     auto const last_set = static_cast<unsigned>(std::countl_zero(arg));
     auto const first_set = static_cast<unsigned>(std::countr_zero(arg));
 
@@ -2687,8 +2687,8 @@ void shiftView(int dir) {
 
 #ifdef ASOUND
 void volumeChange(float arg) {
-    auto const state = arg == VOL_MT ? volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE)
-                                     : volc_volume_ctl(volc, VOLC_ALL_CHANNELS, VOLC_INC(arg), VOLC_CHAN_ON);
+    auto const state = arg == vol_mt ? volcVolumeCtl(volc, VOLC_ALL_CHANNELS, VOLC_SAME, VOLC_CHAN_TOGGLE)
+                                     : volcVolumeCtl(volc, VOLC_ALL_CHANNELS, VOLC_INC(arg), VOLC_CHAN_ON);
 
     if (state.err < 0) return;
 
@@ -2762,7 +2762,7 @@ static uint32_t *geticon(Client *client, unsigned long *size) {
        */
     long offset = 0;
     long length = 0;
-    Bool delete_ = False;
+    Bool do_delete = False;
     Atom req_type = XA_CARDINAL;
     Atom actual_type;
     int format;
@@ -2771,10 +2771,10 @@ static uint32_t *geticon(Client *client, unsigned long *size) {
     unsigned char *data;
     XGetWindowProperty(dpy,
         client->win,
-        netatom[NetWMIcon],
+        netatom[NET_WM_ICON],
         offset,
         length,
-        delete_,
+        do_delete,
         req_type,
         &actual_type,
         &format,
@@ -2788,10 +2788,10 @@ static uint32_t *geticon(Client *client, unsigned long *size) {
     *size = bytes_left;
     XGetWindowProperty(dpy,
         client->win,
-        netatom[NetWMIcon],
+        netatom[NET_WM_ICON],
         offset,
         length,
-        delete_,
+        do_delete,
         req_type,
         &actual_type,
         &format,
@@ -2849,7 +2849,7 @@ void installEventHandlers() {
     loop->on<MotionNotify>(motionNotify);
     loop->on<PropertyNotify>(propertyNotify);
     loop->on<UnmapNotify>(unmapNotify);
-    loop->on<FadeBarEvent>(handle_notifyself_fade_anim);
+    loop->on<FadeBarEvent>(handleNotifyselfFadeAnim);
     if (auto base = loop->xrandrEventBase(); base >= 0) loop->onExtension(base + RRNotify, rrOutputChange);
 }
 

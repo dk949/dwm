@@ -15,20 +15,20 @@
 #include <limits>
 #include <span>
 
-static constexpr auto UTF_INVALID = 0xFFFD;
-static constexpr auto UTF_SIZ = 4uz;
+static constexpr auto utf_invalid = 0xFFFD;
+static constexpr auto utf_siz = 4uz;
 
 namespace {
-enum UtfInvalidRange { begin = 0xD800, end = 0xDFFF };
+enum UtfInvalidRange { BEGIN = 0xD800, END = 0xDFFF };
 }  // namespace
 
-static constexpr std::array<unsigned char, UTF_SIZ + 1> utfbyte {0x80, 0, 0xC0, 0xE0, 0xF0};
-static constexpr std::array<unsigned char, UTF_SIZ + 1> utfmask {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
-static constexpr std::array<long, UTF_SIZ + 1> utfmin {0, 0, 0x80, 0x800, 0x10000};
-static constexpr std::array<long, UTF_SIZ + 1> utfmax {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
+static constexpr std::array<unsigned char, utf_siz + 1> utfbyte {0x80, 0, 0xC0, 0xE0, 0xF0};
+static constexpr std::array<unsigned char, utf_siz + 1> utfmask {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
+static constexpr std::array<long, utf_siz + 1> utfmin {0, 0, 0x80, 0x800, 0x10000};
+static constexpr std::array<long, utf_siz + 1> utfmax {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
 
 static long utf8DecodeByte(char byte, size_t *idx) {
-    for (*idx = 0; *idx < (UTF_SIZ + 1); ++(*idx))
+    for (*idx = 0; *idx < (utf_siz + 1); ++(*idx))
         if ((static_cast<unsigned char>(byte) & utfmask[*idx]) == utfbyte[*idx])
             return static_cast<unsigned char>(byte) & static_cast<unsigned char>(~utfmask[*idx]);
 
@@ -37,8 +37,8 @@ static long utf8DecodeByte(char byte, size_t *idx) {
 
 static size_t utf8Validate(long *codepoint, size_t idx) {
     if (!between(*codepoint, utfmin[idx], utfmax[idx])
-        || between(*codepoint, UtfInvalidRange::begin, UtfInvalidRange::end)) {
-        *codepoint = UTF_INVALID;
+        || between(*codepoint, UtfInvalidRange::BEGIN, UtfInvalidRange::END)) {
+        *codepoint = utf_invalid;
     }
     for (idx = 1; *codepoint > utfmax[idx]; ++idx) {
         ;
@@ -50,12 +50,12 @@ static size_t utf8Decode(char const *str, long *codepoint, size_t clen) {
     size_t len = 0;
     size_t type = 0;
 
-    *codepoint = UTF_INVALID;
+    *codepoint = utf_invalid;
     if (!clen) {
         return 0;
     }
     long udecoded = utf8DecodeByte(str[0], &len);
-    if (!between(len, 1uz, UTF_SIZ)) {
+    if (!between(len, 1uz, utf_siz)) {
         return 1;
     }
     size_t idx = 1;
@@ -261,7 +261,7 @@ int Drw::drawText(int x, int y, int w, int h, int left_pad, char const *text, bo
         char const *utf8str = text;
         std::optional<Fnt> nextfont = std::nullopt;
         while (*text) {
-            auto utf8charlen = utf8Decode(text, &utf8codepoint, UTF_SIZ);
+            auto utf8charlen = utf8Decode(text, &utf8codepoint, utf_siz);
             for (auto &curfont : m_fonts) {
                 charexists = charexists || XftCharExists(m_dpy, curfont.xfont, static_cast<FcChar32>(utf8codepoint));
                 if (charexists) {

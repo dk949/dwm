@@ -17,7 +17,6 @@
 #include <optional>
 #include <ratio>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <variant>
 
@@ -31,15 +30,15 @@ template<bool active>
 struct EventLogger {
     static constexpr auto log_every = std::chrono::seconds {1};
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> last_log;
-    std::chrono::time_point<std::chrono::high_resolution_clock> this_tick_start;
-    std::chrono::microseconds max_tick_time {};
-    std::size_t internal_max_per_tick {};
-    std::size_t internal_this_tick {};
-    std::size_t internal_total {};
-    std::size_t x_max_per_tick {};
-    std::size_t x_this_tick {};
-    std::size_t x_total {};
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_last_log;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_this_tick_start;
+    std::chrono::microseconds m_max_tick_time {};
+    std::size_t m_internal_max_per_tick {};
+    std::size_t m_internal_this_tick {};
+    std::size_t m_internal_total {};
+    std::size_t m_x_max_per_tick {};
+    std::size_t m_x_this_tick {};
+    std::size_t m_x_total {};
 public:
 
     void tickStart();
@@ -72,17 +71,17 @@ private:
     std::array<std::function<void(XEvent *)>, LASTEvent> m_x_handlers;
     std::flat_map<int, std::function<void(XEvent *)>> m_x_ext_handlers;
     int m_xrandr_event_base = -1;
-    map_tuple_types_t<variant_to_tuple_t<InternalEvent>, EvFn> m_intern_handlers;
+    MapTupleTypesT<VariantToTupleT<InternalEvent>, EvFn> m_intern_handlers;
 
     std::array<InternalQueue, 2> m_queues;
     InternalQueue *m_active_queue = &m_queues[0];
     InternalQueue *m_inactive_queue = &m_queues[1];
     std::flat_map<pid_t, std::pair<Proc, ProcOnExit>> m_on_proc_exit;
 
-    EventLogger<dwm::log_events> logger;
+    EventLogger<dwm::log_events> m_logger;
 
     Display *m_dpy;
-    int x_socket;
+    int m_x_socket;
 
     bool m_done = false;
 
@@ -95,10 +94,10 @@ public:
     EventLoop &operator=(EventLoop &&) = delete;
     ~EventLoop() = default;
 
-    template<int Ev, typename Fn>
+    template<int ev, typename Fn>
     auto on(Fn &&fn) {
-        static_assert(Ev < LASTEvent);
-        return std::exchange(m_x_handlers[Ev], std::forward<Fn>(fn));
+        static_assert(ev < LASTEvent);
+        return std::exchange(m_x_handlers[ev], std::forward<Fn>(fn));
     }
 
     int xrandrEventBase() const {
@@ -117,9 +116,9 @@ public:
             std::forward<Fn>(fn));
     }
 
-    template<int Ev>
-    void exec(XEvent *ev) {
-        if (m_x_handlers[Ev]) m_x_handlers[Ev](ev);
+    template<int ev>
+    void exec(XEvent *e) {
+        if (m_x_handlers[ev]) m_x_handlers[ev](e);
     }
 
     template<InVariant<InternalEvent> Ev>

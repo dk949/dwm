@@ -21,17 +21,17 @@ static long vceil(double val) {
     return static_cast<long>(val + eps);
 }
 
-static long convert_prange(float val, float min, float max) {
+static long convertPrange(float val, float min, float max) {
     // NOLINTNEXTLINE(readability-magic-numbers)
     return vceil(static_cast<double>((val * (max - min) * 0.01f) + min));
 }
 
-static float convert_prange_back(long val, float min, float max) {
+static float convertPrangeBack(long val, float min, float max) {
     return ((100.f * static_cast<float>(val)) - min) / (max - min);
 }
 
 // volume as percentage: 100% is 100.0
-static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t chn, volc_volume_t volume) {
+static float getSetVolume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t chn, VolcVolume volume) {
     if (!snd_mixer_selem_has_playback_volume(elem)) {
         return -1;
     }
@@ -48,23 +48,23 @@ static float get_set_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t
         return -1;
     }
 
-    if (volume.action == volc_volume_t::VOLC_VOL_SAME) {
-        return convert_prange_back(orig, static_cast<float>(pmin), static_cast<float>(pmax));
+    if (volume.action == VolcVolume::VOLC_VOL_SAME) {
+        return convertPrangeBack(orig, static_cast<float>(pmin), static_cast<float>(pmax));
     }
 
 
-    long val = convert_prange(volume.volume, static_cast<float>(pmin), static_cast<float>(pmax));
-    if (volume.action == volc_volume_t::VOLC_VOL_INC) {
+    long val = convertPrange(volume.volume, static_cast<float>(pmin), static_cast<float>(pmax));
+    if (volume.action == VolcVolume::VOLC_VOL_INC) {
         val += orig;
     }
     val = CHECK_RANGE(val, pmin, pmax);
     if (snd_mixer_selem_set_playback_volume(elem, chn, val)) {
         return -1;
     }
-    return convert_prange_back(val, static_cast<float>(pmin), static_cast<float>(pmax));
+    return convertPrangeBack(val, static_cast<float>(pmin), static_cast<float>(pmax));
 }
 
-static snd_mixer_t *get_handle(int *err, char const *card) {
+static snd_mixer_t *getHandle(int *err, char const *card) {
     snd_mixer_t *handle = nullptr;
     {
         *err = snd_mixer_open(&handle, 0);
@@ -95,11 +95,11 @@ static snd_mixer_t *get_handle(int *err, char const *card) {
     return handle;
 }
 
-extern volc_volume_state_t volc_volume_ctl(
-    volc_t *volc, unsigned int channels, volc_volume_t new_volume, channel_switch_t channel_switch) {
+VolcVolumeState volcVolumeCtl(
+    Volc *volc, unsigned int channels, VolcVolume new_volume, ChannelSwitch channel_switch) {
 
     // snd_mixer_selem_channel_id_t chn;
-    volc_volume_state_t state {};
+    VolcVolumeState state {};
 
     if (channels != VOLC_ALL_CHANNELS) channels = 1u << channels;
 
@@ -143,14 +143,14 @@ extern volc_volume_state_t volc_volume_ctl(
             case VOLC_CHAN_SAME:
             default:;
         }
-        state.state.volume = get_set_volume(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), new_volume);
+        state.state.volume = getSetVolume(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), new_volume);
         if (state.state.volume <= 0) {
             continue;
         }
 
         int new_value = 0;
         snd_mixer_selem_get_playback_switch(volc->elem, static_cast<snd_mixer_selem_channel_id_t>(chn), &new_value);
-        state.state.switch_pos = static_cast<channel_switch_t>(new_value);
+        state.state.switch_pos = static_cast<ChannelSwitch>(new_value);
 
         firstchn = 0;
         any_set = 1;
@@ -163,16 +163,16 @@ extern volc_volume_state_t volc_volume_ctl(
     return state;
 }
 
-extern volc_t *volc_init(char const *selector, unsigned int selector_index, char const *card) {
+Volc *volcInit(char const *selector, unsigned int selector_index, char const *card) {
     int err = 0;
-    auto *volc = new volc_t {};
+    auto *volc = new Volc {};
     snd_mixer_selem_id_alloca(&volc->sid);
     volc->card = card;
 
     snd_mixer_selem_id_set_index(volc->sid, selector_index);
     snd_mixer_selem_id_set_name(volc->sid, selector);
 
-    volc->handle = get_handle(&err, volc->card);
+    volc->handle = getHandle(&err, volc->card);
     if (err) {
         delete volc;
         return nullptr;
@@ -190,7 +190,7 @@ extern volc_t *volc_init(char const *selector, unsigned int selector_index, char
     return volc;
 }
 
-extern void volc_deinit(volc_t *volc) {
+void volcDeinit(Volc *volc) {
     if (volc != nullptr) {
         if (volc->handle != nullptr) snd_mixer_close(volc->handle);
         delete volc;

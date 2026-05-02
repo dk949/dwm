@@ -6,12 +6,11 @@
 #include <X11/Xatom.h>
 
 #include <limits>
-#include <ranges>
 #include <utility>
 
 // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
 
-static constexpr auto UINT32_FORMAT = 32;
+static constexpr auto uint32_format = 32;
 
 void setCardinalProp(Display *dpy, Client *client, Atom prop, std::uint32_t value) {
     setCardinalProps(dpy, client, prop, std::array {value});
@@ -32,7 +31,7 @@ void setCardinalProps(Display *dpy, Client *client, Atom prop, std::span<std::ui
     auto const *data = reinterpret_cast<unsigned char const *>(new_data.data());
     auto const nelements = static_cast<int>(values.size());
 
-    XChangeProperty(dpy, client->win, prop, XA_CARDINAL, UINT32_FORMAT, PropModeReplace, data, nelements);
+    XChangeProperty(dpy, client->win, prop, XA_CARDINAL, uint32_format, PropModeReplace, data, nelements);
     XSync(dpy, False);
 }
 
@@ -64,10 +63,10 @@ static std::expected<std::vector<uint32_t>, int> getCardinalPropImpl(
         std::out_ptr(prop_ret));
 
     if (status != Success) return std::unexpected(status);
-    if (actual_type == None) return std::unexpected(PropGetDoesNotExistError);
-    if (actual_type != XA_CARDINAL) return std::unexpected(PropGetTypeError);
-    if (actual_format != UINT32_FORMAT) return std::unexpected(PropGetFormatError);
-    if (nitems == 0) return std::unexpected(PropGetNoItemError);
+    if (actual_type == None) return std::unexpected(PROP_GET_DOES_NOT_EXIST_ERROR);
+    if (actual_type != XA_CARDINAL) return std::unexpected(PROP_GET_TYPE_ERROR);
+    if (actual_format != uint32_format) return std::unexpected(PROP_GET_FORMAT_ERROR);
+    if (nitems == 0) return std::unexpected(PROP_GET_NO_ITEM_ERROR);
     if (too_few_props_is_error && nitems < count) lg::warn("Expected {} cardinals, got {}", count, nitems);
 
     auto *longs = reinterpret_cast<unsigned long *>(prop_ret.get());

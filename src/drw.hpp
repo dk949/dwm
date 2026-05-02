@@ -57,7 +57,7 @@ struct Fnt {
     bool operator==(Fnt const &) const = default;
 };
 
-enum { ColFg, ColBg, ColBorder }; /* Clr scheme index */
+enum { COL_FG, COL_BG, COL_BORDER }; /* Clr scheme index */
 
 using Clr = XftColor;
 
@@ -124,6 +124,7 @@ private:
     std::optional<Fnt> xfontCreate(char const *fontname);
     std::optional<Fnt> xfontCreate(FcPattern *fontpattern);
     Clr clrCreate(char const *clrname) const;
+    [[nodiscard]]
     Color nameToColor(ColorName const &name) const;
 };
 

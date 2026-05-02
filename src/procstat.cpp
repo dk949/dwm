@@ -18,10 +18,10 @@
 
 static_assert(std::is_same_v<pid_t, int>);
 #define stringize2(x) #x
-#define stringize(x)  stringize2(x)
+#define STRINGIZE(x)  stringize2(x)
 
 static constexpr auto task_comm_len = 16;
-static constexpr auto max_pid_size = std::string_view {stringize(INT_MAX)}.size();
+static constexpr auto max_pid_size = std::string_view {STRINGIZE(INT_MAX)}.size();
 
 pid_t getPpid(pid_t child) {
     if (child <= 0) return 0;

@@ -68,6 +68,7 @@ constexpr ColorSchemeName colors {
 };
 // clang-format on
 
+// NOLINTBEGIN(readability-identifier-naming)
 enum TagTypes {
     TagTerm1 = 0,
     TagBrowse = 1,
@@ -80,7 +81,9 @@ enum TagTypes {
     TagTerm3 = 8,
 };
 
-#define ttype(type) (1u << Tag##type)
+// NOLINTEND(readability-identifier-naming)
+
+#define TTYPE(type) (1u << Tag##type)
 
 /* tagging */
 static constexpr auto tag_symbols = [] {
@@ -113,32 +116,32 @@ static constexpr auto rules = std::array {
     */
     // clang-format off
     /*     class                     , inst         , title        , tags          , switch , isfloating , isterminal , noswallow , monitor */
-    Rule{"firefox"                   , nullptr      , nullptr      , ttype(Browse) , 3      , false      , false      , false     , -1},
-    Rule{"Google-chrome"             , nullptr      , nullptr      , ttype(Browse) , 3      , false      , true       , true      , -1},
-    Rule{"jetbrains-clion"           , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    Rule{"jetbrains-webstorm"        , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    Rule{"jetbrains-idea"            , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    Rule{"jetbrains-pycharm"         , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    Rule{"jetbrains-studio"          , nullptr      , nullptr      , ttype(Code)   , 1      , false      , false      , false     , -1},
-    Rule{"Steam"                     , nullptr      , nullptr      , ttype(Ent)    , 3      , true       , false      , false     , -1},
-    Rule{"Spotify"                   , nullptr      , nullptr      , ttype(Ent)    , 1      , false      , false      , false     , -1},
-    Rule{"st-256color"               , nullptr      , "spotify"    , ttype(Ent)    , 3      , false      , false      , true      , -1},
-    Rule{"st-256color"               , nullptr      , "sysmon"     , ttype(Sys)    , 3      , false      , false      , true      , -1},
-    Rule{"VirtualBox Machine"        , nullptr      , nullptr      , ttype(Sys)    , 1      , false      , false      , false     , -1},
-    Rule{"qemu-system-i386"          , nullptr      , nullptr      , ttype(Sys)    , 0      , true       , true       , true      , -1},
-    Rule{"Gimp"                      , nullptr      , nullptr      , ttype(Creat)  , 3      , false      , false      , false     , -1},
-    Rule{"Blender"                   , nullptr      , nullptr      , ttype(Creat)  , 3      , false      , false      , false     , -1},
-    Rule{"Darktable"                 , nullptr      , nullptr      , ttype(Creat)  , 1      , false      , false      , false     , -1},
-    Rule{"MuseScore3"                , nullptr      , nullptr      , ttype(Creat)  , 1      , false      , false      , false     , -1},
-    Rule{"discord"                   , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    Rule{"Slack"                     , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    Rule{"Mattermost"                , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    Rule{"Microsoft Teams - Preview" , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    Rule{"thunderbird"               , nullptr      , "Msgcompose" , ttype(Chat)   , 1      , false      , true       , true      , -1},
-    Rule{"thunderbird"               , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    Rule{"Zulip"                     , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    Rule{"Signal"                    , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
-    Rule{"zoom"                      , nullptr      , nullptr      , ttype(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"firefox"                   , nullptr      , nullptr      , TTYPE(Browse) , 3      , false      , false      , false     , -1},
+    Rule{"Google-chrome"             , nullptr      , nullptr      , TTYPE(Browse) , 3      , false      , true       , true      , -1},
+    Rule{"jetbrains-clion"           , nullptr      , nullptr      , TTYPE(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-webstorm"        , nullptr      , nullptr      , TTYPE(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-idea"            , nullptr      , nullptr      , TTYPE(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-pycharm"         , nullptr      , nullptr      , TTYPE(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"jetbrains-studio"          , nullptr      , nullptr      , TTYPE(Code)   , 1      , false      , false      , false     , -1},
+    Rule{"Steam"                     , nullptr      , nullptr      , TTYPE(Ent)    , 3      , true       , false      , false     , -1},
+    Rule{"Spotify"                   , nullptr      , nullptr      , TTYPE(Ent)    , 1      , false      , false      , false     , -1},
+    Rule{"st-256color"               , nullptr      , "spotify"    , TTYPE(Ent)    , 3      , false      , false      , true      , -1},
+    Rule{"st-256color"               , nullptr      , "sysmon"     , TTYPE(Sys)    , 3      , false      , false      , true      , -1},
+    Rule{"VirtualBox Machine"        , nullptr      , nullptr      , TTYPE(Sys)    , 1      , false      , false      , false     , -1},
+    Rule{"qemu-system-i386"          , nullptr      , nullptr      , TTYPE(Sys)    , 0      , true       , true       , true      , -1},
+    Rule{"Gimp"                      , nullptr      , nullptr      , TTYPE(Creat)  , 3      , false      , false      , false     , -1},
+    Rule{"Blender"                   , nullptr      , nullptr      , TTYPE(Creat)  , 3      , false      , false      , false     , -1},
+    Rule{"Darktable"                 , nullptr      , nullptr      , TTYPE(Creat)  , 1      , false      , false      , false     , -1},
+    Rule{"MuseScore3"                , nullptr      , nullptr      , TTYPE(Creat)  , 1      , false      , false      , false     , -1},
+    Rule{"discord"                   , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Slack"                     , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Mattermost"                , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Microsoft Teams - Preview" , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"thunderbird"               , nullptr      , "Msgcompose" , TTYPE(Chat)   , 1      , false      , true       , true      , -1},
+    Rule{"thunderbird"               , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Zulip"                     , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"Signal"                    , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
+    Rule{"zoom"                      , nullptr      , nullptr      , TTYPE(Chat)   , 1      , false      , false      , false     , -1},
     Rule{"testing"                   , nullptr      , nullptr      , 0             , 0      , true       , true       , true      , -1},
     Rule{"Xephyr"                    , nullptr      , nullptr      , 0             , 0      , true       , true       , true      , -1},
     Rule{"st-256color"               , nullptr      , nullptr      , 0             , 0      , false      , true       , true      , -1},
@@ -191,11 +194,11 @@ static constexpr auto keys = std::array {
     // clang-format off
     /*    modifier                         key         function       argument */
     // Utility spawners
-    Key{MODKEY                           , XK_r      , dmenu_run      , {}             } ,
+    Key{MODKEY                           , XK_r      , dmenuRun      , {}              } ,
 #ifdef ASOUND
-    Key{MODKEY                           , XK_F1     , volumeChange   , VOL_MT         } ,
-    Key{MODKEY                           , XK_F2     , volumeChange   , VOL_DN*5.f     } ,
-    Key{MODKEY                           , XK_F3     , volumeChange   , VOL_UP*5.f     } ,
+    Key{MODKEY                           , XK_F1     , volumeChange   , vol_mt         } ,
+    Key{MODKEY                           , XK_F2     , volumeChange   , vol_dn*5.f     } ,
+    Key{MODKEY                           , XK_F3     , volumeChange   , vol_up*5.f     } ,
 #endif // ASOUND
     Key{MODKEY                           , XK_Return , spawn          , termcmd.data() } ,
     Key{MODKEY                           , XK_Next   , spawn          , lockcmd.data() } ,
@@ -230,8 +233,8 @@ static constexpr auto keys = std::array {
     Key{MODKEY | ShiftMask               , XK_Return , zoom           , {}             } ,
     Key{MODKEY                           , XK_Tab    , view           , 0u             } ,
     Key{MODKEY                           , XK_w      , killClient     , {}             } ,
-    Key{MODKEY                           , XK_F5     , bright_dec     , 5.0            } ,
-    Key{MODKEY                           , XK_F6     , bright_inc     , 5.0            } ,
+    Key{MODKEY                           , XK_F5     , brightnessDec  , 5.0            } ,
+    Key{MODKEY                           , XK_F6     , brightnessInc  , 5.0            } ,
     Key{MODKEY                           , XK_F11    , toggleFs       , {}             } ,
     Key{MODKEY                           , XK_t      , setLayout      , &layouts[0]    } ,
     Key{MODKEY                           , XK_f      , setLayout      , &layouts[1]    } ,
@@ -280,19 +283,19 @@ static constexpr auto buttons = std::array {
     // clang-format on
 };
 
-inline char const *get_bright_set_file() {
+inline char const *getBrightSetFile() {
     char const *filename = getenv("DWM_BACKLIGHT_SET_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/brightness";
 }
 
-inline char const *get_bright_get_file() {
+inline char const *getBrightGetFile() {
     char const *filename = getenv("DWM_BACKLIGHT_GET_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/actual_brightness";
 }
 
-inline char const *get_bright_max_file() {
+inline char const *getBrightMaxFile() {
     char const *filename = getenv("DWM_BACKLIGHT_MAX_FILE");
     if (filename) return filename;
     return "/sys/class/backlight/amdgpu_bl1/max_brightness";

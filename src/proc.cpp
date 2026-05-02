@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <array>
 #include <cerrno>
-#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -188,14 +187,14 @@ void Proc::trySetsid(int bad_exit) {
 }
 
 // TODO(dk949): Make individual types for stdin, stdout and stderr
-Proc::Proc(pid_t pid, int inpipe, int outpipe, int errpipe)
+Proc::Proc(pid_t pid, int inpipe, int outpipe, int errpipe)  // NOLINT(bugprone-easily-swappable-parameters)
         : m_pid(pid)
         , m_stdin(inpipe)
         , m_stdout(outpipe)
         , m_stderr(errpipe) { }
 
 // TODO(dk949): Maybe make a type for file descriptors
-bool Proc::addFDFlag(int fd, unsigned flag) {
+bool Proc::addFDFlag(int fd, unsigned flag) {  // NOLINT(bugprone-easily-swappable-parameters)
     auto flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
         lg::error("Failed to get flags for FD {}: {}", fd, strError(errno));
@@ -220,10 +219,10 @@ std::optional<std::string_view> Proc::writeFD(std::string_view sv, int fd) {
     size_t remaining = sv.size();
 
     // Limit each write() to at most SSIZE_MAX for portability.
-    constexpr auto MAX_CHUNK = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
+    constexpr auto max_chunk = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
 
     while (remaining > 0) {
-        size_t to_write = std::min(remaining, MAX_CHUNK);
+        size_t to_write = std::min(remaining, max_chunk);
         ssize_t bytes = ::write(fd, ptr, to_write);
 
         if (bytes > 0) {
@@ -270,8 +269,8 @@ std::optional<std::pair<std::string, Proc::ReachedEOF>> Proc::readFD(int fd) {
     }
 
     std::string out;
-    constexpr size_t BUF_SZ = 8192;
-    std::array<char, BUF_SZ> buf;
+    constexpr size_t buf_sz = 8192;
+    std::array<char, buf_sz> buf;  // NOLINT(cppcoreguidelines-pro-type-member-init)
 
     while (true) {
         ssize_t bytes = ::read(fd, buf.data(), buf.size());
@@ -282,7 +281,7 @@ std::optional<std::pair<std::string, Proc::ReachedEOF>> Proc::readFD(int fd) {
         }
 
         // EOF
-        if (bytes == 0) return std::make_optional(std::make_pair(std::move(out), ReachedEOF::Yes));
+        if (bytes == 0) return std::pair {std::move(out), ReachedEOF::Yes};
 
 
         // bytes < 0: error

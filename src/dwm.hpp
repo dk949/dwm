@@ -184,19 +184,19 @@ struct std::tuple_element<1, RootPointer> {
     using type = int;
 };
 
-template<std::size_t I>
+template<std::size_t i>
 constexpr int &get(RootPointer &ptr) {
-    static_assert(I < 2);
-    if constexpr (I == 0)
+    static_assert(i < 2);
+    if constexpr (i == 0)
         return ptr.x;
     else
         return ptr.y;
 }
 
-template<std::size_t I>
+template<std::size_t i>
 constexpr int get(RootPointer ptr) {
-    static_assert(I < 2);
-    if constexpr (I == 0)
+    static_assert(i < 2);
+    if constexpr (i == 0)
         return ptr.x;
     else
         return ptr.y;

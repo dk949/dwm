@@ -10,7 +10,7 @@
 
 /// Arg functions for key and mouse bindings
 struct Rule {
-    char const *class_;
+    char const *klass;
     char const *instance;
     char const *title;
     unsigned int tags;
@@ -34,7 +34,7 @@ using Arg = std::variant<  //
 static_assert(sizeof(Arg) == sizeof(void *) * 2);
 
 /// Key or mouse combination callback
-using MappingCallback = fn_ptr_variant_t<Arg>;
+using MappingCallback = FnPtrVariantT<Arg>;
 
 /// Key combination
 struct Key {
@@ -64,16 +64,16 @@ struct Button {
 
 
 #ifdef ASOUND
-static constexpr float VOL_DN = -1;
-static constexpr float VOL_MT = 0;
-static constexpr float VOL_UP = 1;
+static constexpr float vol_dn = -1;
+static constexpr float vol_mt = 0;
+static constexpr float vol_up = 1;
 #endif  // ASOUND
 
-void bright_dec(double arg);
-void bright_inc(double arg);
+void brightnessDec(double arg);
+void brightnessInc(double arg);
 [[maybe_unused]]
-void bright_set(double arg);
-void dmenu_run();
+void brightnessSet(double arg);
+void dmenuRun();
 void focusMon(int arg);
 void focusMonAbs(unsigned arg);
 void focusStack(int arg);

@@ -19,7 +19,7 @@ extern FILE *log_file;
 enum struct Level { Breakpoint, Debug, Info, Warn, Error, Fatal };
 
 namespace detail {
-    constexpr std::string_view log_level_str(Level level) {
+    constexpr std::string_view logLevelStr(Level level) {
         switch (level) {
             case Level::Breakpoint: return "[DWM BP]";
             case Level::Debug: return "[DWM DBG]";
@@ -38,9 +38,9 @@ namespace detail {
             if (!arg) return std::forward<T>(null);
         }
         if constexpr (std::is_same_v<std::remove_cvref_t<T>, char *>) {
-            static char _null[] = "(null)";  // NOLINT(modernize-avoid-c-arrays)
-            static auto *null = &_null[0];
-            if (!arg) return std::forward<T>(null);
+            static char null[] = "(null)";  // NOLINT(modernize-avoid-c-arrays)
+            static auto *null_ptr = &null[0];
+            if (!arg) return std::forward<T>(null_ptr);
         }
         return std::forward<T>(arg);
     }
@@ -58,7 +58,7 @@ void log(std::format_string<Args...> fmt, Args &&...args) {
         "{} {}: {}",
         std::chrono::current_zone()->to_local(
             std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now())),
-        detail::log_level_str(level),
+        detail::logLevelStr(level),
         msg);
     if (!log_file) (void)fputs("NOTE: logfile unavailable", file);
     (void)fflush(file);
@@ -109,7 +109,7 @@ void fatal(std::format_string<Args...> fmt, Args &&...args) {
  *
  * If an error occurs, nullopt` is returned
  */
-std::optional<std::filesystem::path> getLogDir(void);
+std::optional<std::filesystem::path> getLogDir();
 
 std::filesystem::path setupLogging();
 
