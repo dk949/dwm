@@ -4,7 +4,7 @@ bool xineramaIsActive(Display *) {
     return false;
 }
 
-ScreenInfoPtr::~ScreenInfoPtr() = default;
+ScreenInfoPtr::~ScreenInfoPtr() = default;  // NOLINT
 
 ScreenInfo ScreenInfoPtr::operator[](std::size_t) const noexcept {
     // TODO(dk949): give this a sensible value
@@ -13,6 +13,6 @@ ScreenInfo ScreenInfoPtr::operator[](std::size_t) const noexcept {
 
 void ScreenInfoPtr::free() noexcept { }
 
-ScreenInfoPtr ScreenInfoPtr::query(Display *dpy) {
-    return {dpy, nullptr, 1};
+ScreenInfoPtr ScreenInfoPtr::query(Display *) {
+    return {nullptr, 1};
 }
