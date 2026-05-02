@@ -1,5 +1,5 @@
-#ifndef ${THIS_PROJECT_NAME}_CONFIG_HPP
-#define ${THIS_PROJECT_NAME}_CONFIG_HPP
+#ifndef ${PROJECT_NAME_CAPS}_PROJECT_CONFIG_HPP
+#define ${PROJECT_NAME_CAPS}_PROJECT_CONFIG_HPP
 #include <string_view>
 
 /// See ${THIS_PROJECT_NAME}::sys::Os for possible values of ${PROJECT_NAME_CAPS}_SYSTEM_IS_*
@@ -212,4 +212,4 @@ inline constexpr std::string_view url = "${PROJECT_HOMEPAGE_URL}";
 inline constexpr bool log_events = ${DWM_LOG_EVENTS};
 }  // namespace ${THIS_PROJECT_NAME}
 
-#endif  // ${THIS_PROJECT_NAME}_CONFIG_HPP
+#endif  // ${PROJECT_NAME_CAPS}_PROJECT_CONFIG_HPP
