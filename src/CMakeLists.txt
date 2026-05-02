@@ -50,12 +50,8 @@ string(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
 list(REMOVE_DUPLICATES CMAKE_PROPERTY_LIST)
 # cmake_print_properties(TARGETS noticeboard PROPERTIES "${CMAKE_PROPERTY_LIST}")
 
-target_sources(
-    ${EXE_NAME}
-    PUBLIC FILE_SET #
-           HEADERS BASE_DIRS #
-           ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/project_config/include
-)
+target_include_directories(${EXE_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${EXE_NAME} SYSTEM PRIVATE ${CMAKE_BINARY_DIR}/project_config/include)
 
 target_add_icon_loc(${EXE_NAME} PUBLIC)
 target_link_alsa(${EXE_NAME} PUBLIC)
