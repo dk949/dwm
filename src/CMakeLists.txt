@@ -28,6 +28,7 @@ add_executable(
     ${CMAKE_CURRENT_SOURCE_DIR}/proc.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/procstat.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/props.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/stddir.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/strerror.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/volc.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/winpicker.cpp #
