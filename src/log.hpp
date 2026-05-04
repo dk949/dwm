@@ -102,14 +102,7 @@ void fatal(std::format_string<Args...> fmt, Args &&...args) {
     std::exit(1);
 }
 
-/**
- * Get dwm log directory
- *
- * Caller owns returned string
- *
- * If an error occurs, nullopt` is returned
- */
-std::optional<std::filesystem::path> getLogDir();
+std::filesystem::path getLogDir();
 
 std::filesystem::path setupLogging();
 

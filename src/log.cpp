@@ -1,5 +1,6 @@
 #include "log.hpp"
 
+#include "stddir.hpp"
 #include "strerror.hpp"
 
 #include <noticeboard/backend.hpp>
@@ -7,8 +8,11 @@
 #include <X11/Xlib.h>
 
 #include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <optional>
+#include <system_error>
+namespace fs = std::filesystem;
 
 static constexpr auto info_expiry = nb::ExpireTime {900};
 
@@ -70,41 +74,20 @@ void sendNotice(Level level, std::string_view header, std::string_view body) {
     } catch (...) { }
 }
 
-std::optional<std::filesystem::path> getLogDir() {
-    constexpr auto const *logsubdir = "dwm/log/";
-
-    char const *xdg_cache_home = getenv("XDG_CACHE_HOME");
-    if (xdg_cache_home) {
-        auto path = std::filesystem::path(xdg_cache_home) / logsubdir;
-        std::error_code err;
-        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, err);
-
-        if (err == std::errc {}) return path;
-        warn("Failed to get XDG_CACHE_HOME ({}): {}", path.c_str(), strError(errno));
-    }
-
-    char const *home = getenv("HOME");
-    if (home) {
-        auto path = std::filesystem::path(home) / ".cache" / logsubdir;
-        std::error_code err;
-        if (!std::filesystem::exists(path)) std::filesystem::create_directories(path, err);
-
-        if (err == std::errc {}) return path;
-        warn("Failed to get $HOME/.cache directory ({}): {}", path.c_str(), strError(errno));
-    }
-    return {};
+std::filesystem::path getLogDir() {
+    std::error_code err;
+    auto dir = dir::cache() / "log/";
+    fs::create_directories(dir, err);
+    if (err) lg::fatal("Failed to create logging directory: {}", err.message());
+    return dir;
 }
 
 std::filesystem::path setupLogging() {
     auto log_dir = lg::getLogDir();
-    if (log_dir) {
-        auto log_file_name = *log_dir / "dwm.log";
-        lg::log_file = fopen(log_file_name.c_str(), "a");
-        if (!lg::log_file) lg::fatal("could not open log file: {}", strError(errno));
-        return *log_dir;
-    } else {
-        lg::fatal("Could not obtain log dir");
-    }
+    auto log_file_name = log_dir / "dwm.log";
+    lg::log_file = fopen(log_file_name.c_str(), "a");
+    if (!lg::log_file) lg::fatal("could not open log file: {}", strError(errno));
+    return log_dir;
 }
 
 }  // namespace lg
