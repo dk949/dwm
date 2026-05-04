@@ -21,6 +21,7 @@ FetchContent_Declare(
 add_executable(
     ${EXE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/backlight.cpp #
+    ${CMAKE_CURRENT_SOURCE_DIR}/display.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/drw.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/dwm.cpp #
     ${CMAKE_CURRENT_SOURCE_DIR}/event_queue.cpp #
@@ -40,6 +41,11 @@ target_enable_cppcheck(${EXE_NAME})
 
 FetchContent_MakeAvailable(libut)
 FetchContent_MakeAvailable(noticeboard)
+
+add_compile_definitions(JSON_USE_IMPLICIT_CONVERSIONS=0) # make sure this is the same for all files
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
+
 
 target_link_libraries(${EXE_NAME} PRIVATE ut::ut)
 target_link_libraries(${EXE_NAME} PRIVATE noticeboard)

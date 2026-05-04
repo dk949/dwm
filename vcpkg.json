@@ -2,6 +2,8 @@
   "name": "dwm",
   "version-string": "6.5",
   "description": "dynamic window manager",
-  "dependencies": [ ],
+  "dependencies": [
+    "nlohmann-json"
+  ],
   "$url": "https://github.com/dk949/dwm"
 }
